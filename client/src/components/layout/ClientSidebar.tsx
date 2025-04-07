@@ -7,13 +7,14 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import {
   LayoutDashboard,
   ShoppingCart,
-  Book,
-  BarChart2,
-  Clock,
-  Tag,
-  Settings,
+  Truck,
+  ShoppingBag,
+  Cog,
   Menu,
   X,
+  HelpCircle,
+  Award,
+  BarChart3,
 } from 'lucide-react';
 
 export default function ClientSidebar() {
@@ -41,29 +42,39 @@ export default function ClientSidebar() {
       icon: <ShoppingCart className="w-5 h-5" />,
     },
     {
-      name: 'Menu Management',
-      href: '/dashboard/menu',
-      icon: <Book className="w-5 h-5" />,
+      name: 'Delivery Partners',
+      href: '/dashboard/delivery-partners',
+      icon: <Truck className="w-5 h-5" />,
     },
     {
-      name: 'Insights',
-      href: '/dashboard/insights',
-      icon: <BarChart2 className="w-5 h-5" />,
+      name: 'E-Commerce',
+      href: '/dashboard/ecommerce',
+      icon: <ShoppingBag className="w-5 h-5" />,
     },
     {
-      name: 'Delivery Times',
-      href: '/dashboard/delivery',
-      icon: <Clock className="w-5 h-5" />,
+      name: 'POS Integration',
+      href: '/dashboard/pos',
+      icon: <BarChart3 className="w-5 h-5" />,
     },
     {
-      name: 'Promotions',
-      href: '/dashboard/promotions',
-      icon: <Tag className="w-5 h-5" />,
+      name: 'Management',
+      href: '/dashboard/management',
+      icon: <Cog className="w-5 h-5" />,
+    },
+    {
+      name: 'Marketing',
+      href: '/dashboard/marketing',
+      icon: <BarChart3 className="w-5 h-5" />,
+    },
+    {
+      name: 'Loyalty & Rewards',
+      href: '/dashboard/loyalty',
+      icon: <Award className="w-5 h-5" />,
     },
     {
       name: 'Settings',
       href: '/dashboard/settings',
-      icon: <Settings className="w-5 h-5" />,
+      icon: <Cog className="w-5 h-5" />,
     },
   ];
 
@@ -84,7 +95,7 @@ export default function ClientSidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "flex-shrink-0 bg-bg-card border-r border-border-color h-screen overflow-y-auto flex flex-col transition-all duration-200 z-40",
+          "flex-shrink-0 bg-[#141b2d] h-screen overflow-y-auto flex flex-col transition-all duration-200 z-40",
           isMobile
             ? isOpen
               ? "fixed inset-y-0 left-0 w-64"
@@ -93,33 +104,27 @@ export default function ClientSidebar() {
         )}
       >
         {/* Logo & Title */}
-        <div className="p-6 border-b border-border-color">
-          <div className="flex items-center mb-6">
-            <div className="h-8 w-8 rounded-lg bg-accent-green mr-3 flex items-center justify-center">
-              <span className="text-white font-bold">S</span>
-            </div>
-            <h1 className="text-xl font-bold">SoZayn</h1>
+        <div className="p-4 border-b border-[#1e2a45]">
+          <div className="flex items-center">
+            <div className="mr-2 font-bold text-white text-lg">SoZayn</div>
           </div>
-          <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-bold">Business Portal</h2>
-            <span className="text-sm text-text-secondary">
-              Manage Your Restaurant
-            </span>
+          <div className="text-xs text-gray-400 mt-1">
+            Welcome to Restaurant/Grocery Retailer
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-6 px-4">
-          <ul className="space-y-2">
+        <nav className="flex-1 py-2">
+          <ul className="space-y-1 px-2">
             {navItems.map((item) => (
               <li key={item.href}>
                 <Button
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start text-sm h-11",
+                    "w-full justify-start text-sm h-10 px-3",
                     location === item.href
-                      ? "bg-accent-green/10 text-accent-green"
-                      : "text-text-secondary hover:text-text-primary hover:bg-bg-chart"
+                      ? "bg-[#4361ee]/10 text-[#4361ee]"
+                      : "text-gray-300 hover:text-white hover:bg-[#1e2a45]"
                   )}
                   onClick={() => {
                     navigate(item.href);
@@ -134,27 +139,24 @@ export default function ClientSidebar() {
           </ul>
         </nav>
 
-        {/* Subscription Status */}
-        <div className="p-4 mx-4 mb-4 border border-accent-blue/20 bg-accent-blue/5 rounded-lg">
-          <h3 className="text-sm font-medium text-accent-blue mb-1">Growth Plan</h3>
-          <p className="text-xs text-text-secondary mb-3">
-            Your subscription renews on April 23
+        {/* Help Section */}
+        <div className="p-4 mx-4 mb-4 bg-[#1e2a45] rounded-lg">
+          <h3 className="text-sm font-medium text-white mb-1">Need help?</h3>
+          <p className="text-xs text-gray-400 mb-3">
+            Our support team is ready to assist you with any questions.
           </p>
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full bg-bg-card"
-            onClick={() => navigate('/dashboard/settings/billing')}
+            className="w-full bg-[#4361ee] hover:bg-[#3a56dd] text-white border-0"
+            onClick={() => navigate('/dashboard/support')}
           >
-            Manage Subscription
+            Contact Support
           </Button>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-border-color text-center">
-          <p className="text-xs text-text-secondary">
-            SoZayn © {new Date().getFullYear()}
-          </p>
+        {/* Footer - empty space to match the design */}
+        <div className="p-2">
         </div>
       </aside>
 

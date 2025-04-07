@@ -1,3 +1,4 @@
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardCard } from '@/components/ui/dashboard-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -152,9 +153,10 @@ export default function ECommerce() {
   }, 0);
   
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">E-Commerce</h1>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+          <h1 className="text-2xl font-bold">E-Commerce</h1>
         
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative">
@@ -489,5 +491,6 @@ export default function ECommerce() {
         </TabsContent>
       </Tabs>
     </div>
+    </DashboardLayout>
   );
 }

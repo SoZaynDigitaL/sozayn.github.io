@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardCard } from '@/components/ui/dashboard-card';
 import { Button } from '@/components/ui/button';
@@ -17,10 +16,10 @@ import {
   PlusCircle, 
   CheckCircle2, 
   XCircle,
-  Settings,
+  Link as LinkIcon,
   MapPin,
   Clock,
-  Link as LinkIcon
+  Settings
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +30,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { useState } from 'react';
 import { StatsCard } from '@/components/ui/stats';
 
 // Example data representing delivery partners
@@ -73,35 +73,25 @@ const DELIVERY_PARTNERS = [
   }
 ];
 
-type DeliveryPartner = {
-  id: number;
-  name: string;
-  status: string;
-  orders: number;
-  avgDeliveryTime: string;
-  deliveryRadius: string;
-  fee: string;
-};
-
 export default function DeliveryPartners() {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Query to fetch delivery partners
-  const { data: deliveryPartners = DELIVERY_PARTNERS } = useQuery({
+  const { data: deliveryPartners = DELIVERY_PARTNERS, isLoading } = useQuery({
     queryKey: ['/api/delivery-partners'],
     enabled: false // Disabled actual API call since we're using example data
   });
   
   // Filter partners based on search term
-  const filteredPartners = deliveryPartners.filter((partner: DeliveryPartner) => 
+  const filteredPartners = deliveryPartners.filter((partner: any) => 
     partner.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   
   // Calculate statistics
-  const activePartners = deliveryPartners.filter((p: DeliveryPartner) => p.status === 'active').length;
-  const totalOrders = deliveryPartners.reduce((sum: number, p: DeliveryPartner) => sum + p.orders, 0);
+  const activePartners = deliveryPartners.filter((p: any) => p.status === 'active').length;
+  const totalOrders = deliveryPartners.reduce((sum: number, p: any) => sum + p.orders, 0);
   const avgDeliveryTime = Math.round(
-    deliveryPartners.reduce((sum: number, p: DeliveryPartner) => {
+    deliveryPartners.reduce((sum: number, p: any) => {
       const minutes = parseInt(p.avgDeliveryTime.split(' ')[0]);
       return sum + minutes;
     }, 0) / deliveryPartners.length
@@ -177,7 +167,7 @@ export default function DeliveryPartners() {
               </TableHeader>
               <TableBody>
                 {filteredPartners.length > 0 ? (
-                  filteredPartners.map((partner: DeliveryPartner) => (
+                  filteredPartners.map((partner: any) => (
                     <TableRow key={partner.id} className="bg-bg-card border-t border-border-color">
                       <TableCell className="font-medium">{partner.name}</TableCell>
                       <TableCell>

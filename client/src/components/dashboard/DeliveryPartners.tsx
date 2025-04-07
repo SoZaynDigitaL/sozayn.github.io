@@ -11,6 +11,10 @@ import {
   ChevronRight,
   ArrowUpRight
 } from 'lucide-react';
+import justEatLogo from '@/assets/just-eat-logo.png';
+import doordashLogo from '@/assets/doordash-logo.jpeg';
+import uberDirectLogo from '@/assets/uberdirect-logo.webp';
+import grubhubLogo from '@/assets/grubhub-logo.png';
 import {
   Dialog,
   DialogContent,
@@ -267,13 +271,90 @@ export default function DeliveryPartners() {
       
       <DashboardCard title="Available Integrations">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {/* DoorDash with actual logo */}
+          <div 
+            key="DoorDash"
+            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src={doordashLogo} alt="DoorDash" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-medium">DoorDash Drive</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Uber Direct with actual logo */}
+          <div 
+            key="UberDirect"
+            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src={uberDirectLogo} alt="Uber Direct" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-medium">UberDirect</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Grubhub with actual logo */}
+          <div 
+            key="Grubhub"
+            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src={grubhubLogo} alt="Grubhub" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-medium">Grubhub</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Just Eat (Jet Go) with actual logo */}
+          <div 
+            key="JustEat"
+            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src={justEatLogo} alt="Just Eat" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-medium">Just Eat (Jet Go)</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Additional partners with text icons */}
           {[
-            { name: 'DoorDash', color: 'text-accent-orange', icon: 'DD' },
-            { name: 'UberEats', color: 'text-accent-blue', icon: 'UE' },
-            { name: 'Grubhub', color: 'text-accent-green', icon: 'GH' },
             { name: 'Postmates', color: 'text-text-primary', icon: 'PM' },
-            { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' },
-            { name: 'Seamless', color: 'text-accent-purple', icon: 'SM' }
+            { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' }
           ].map((partner) => (
             <div 
               key={partner.name}

@@ -32,12 +32,12 @@ export default function Hero() {
                 Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="#demo">
+                <Link href="/auth?tab=register">
                   <Button className="px-6 py-6 text-base bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition glow-button-blue">
-                    Book a Demo
+                    Schedule a Demo
                   </Button>
                 </Link>
-                <Link href="#how-it-works">
+                <Link href="#demo">
                   <Button variant="outline" className="px-6 py-6 text-base border-border-color text-text-primary hover:border-text-secondary transition flex items-center gap-2 glow-border-blue">
                     How It Works
                     <Play className="h-4 w-4" />

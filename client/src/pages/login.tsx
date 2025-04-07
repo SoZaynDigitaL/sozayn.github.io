@@ -237,9 +237,6 @@ export default function Login() {
             
             {/* Demo credentials */}
             <div className="text-xs text-center text-text-secondary border-t border-border-color pt-4 w-full">
-              <p className="mb-2">Demo credentials:</p>
-              <p>Username: <span className="font-mono bg-bg-chart p-1 rounded">demo</span></p>
-              <p>Password: <span className="font-mono bg-bg-chart p-1 rounded">password123</span></p>
             </div>
           </CardFooter>
         </Card>

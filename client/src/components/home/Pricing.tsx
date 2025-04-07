@@ -106,10 +106,10 @@ export default function Pricing() {
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Simple, Honest Pricing — Built to Save You Money
+            Simple Honest Pricing Save You Money
           </h2>
           <p className="text-text-secondary text-lg">
-            No commissions. No hidden fees. Just the tools you need to run and grow your food business — online and offline.
+            No commissions. No hidden fees. Use our platform tools run and grow your small business.
           </p>
         </div>
         

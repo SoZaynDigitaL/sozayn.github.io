@@ -17,6 +17,7 @@ import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import ECommerce from "@/pages/dashboard/ecommerce";
 import Settings from "@/pages/dashboard/settings";
+import ManagementPage from "@/pages/dashboard/management";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import PaymentSuccess from "@/pages/payment-success";
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/dashboard/ecommerce" component={ECommerce} />
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
+      <Route path="/dashboard/management" component={ManagementPage} />
       <Route path="/dashboard/pos" component={POS} />
       <Route path="/dashboard/settings" component={Settings} />
       

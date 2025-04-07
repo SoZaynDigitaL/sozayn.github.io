@@ -39,6 +39,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from '@/hooks/use-toast';
+import { Integration } from '@shared/schema';
 
 // Form schema for adding a new delivery partner integration
 const integrationSchema = z.object({
@@ -53,12 +54,12 @@ export default function DeliveryPartners() {
   const { toast } = useToast();
   
   // Fetch existing integrations
-  const { data: integrations = [], isLoading } = useQuery({ 
+  const { data: integrations = [], isLoading } = useQuery<Integration[]>({ 
     queryKey: ['/api/integrations'],
   });
   
   // Filter to only show delivery type integrations
-  const deliveryIntegrations = integrations.filter((integration: any) => 
+  const deliveryIntegrations = integrations.filter((integration) => 
     integration.type === 'delivery'
   );
   
@@ -251,7 +252,7 @@ export default function DeliveryPartners() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {deliveryIntegrations.length > 0 ? (
-          deliveryIntegrations.map((integration: any) => (
+          deliveryIntegrations.map((integration) => (
             <IntegrationCard
               key={integration.id}
               provider={integration.provider}
@@ -352,9 +353,28 @@ export default function DeliveryPartners() {
             </Button>
           </div>
           
+          {/* Postmates with actual logo */}
+          <div 
+            key="Postmates"
+            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src={postmatesLogo} alt="Postmates" className="w-8 h-8 object-contain" />
+              </div>
+              <span className="font-medium">Postmates</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+            </Button>
+          </div>
+          
           {/* Additional partners with text icons */}
           {[
-            { name: 'Postmates', color: 'text-text-primary', icon: 'PM' },
             { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' }
           ].map((partner) => (
             <div 

@@ -29,18 +29,20 @@ export default function ClientDashboardLayout({ children }: ClientDashboardLayou
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-bg-dark">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#141b2d]">
       <ClientSidebar />
       
       <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
-        <header className="py-4 px-6 border-b border-border-color flex items-center justify-between bg-bg-card z-10">
+        <header className="py-4 px-6 border-b border-[#1e2a45] flex items-center justify-between bg-[#1f2940] z-10">
           <h1 className="text-lg font-semibold">
             {location === '/dashboard' && 'Dashboard'}
             {location === '/dashboard/orders' && 'Orders'}
-            {location === '/dashboard/menu' && 'Menu Management'}
-            {location === '/dashboard/insights' && 'Insights'}
-            {location === '/dashboard/delivery' && 'Delivery Times'}
-            {location === '/dashboard/promotions' && 'Promotions'}
+            {location === '/dashboard/delivery-partners' && 'Delivery Partners'}
+            {location === '/dashboard/ecommerce' && 'E-Commerce'}
+            {location === '/dashboard/pos' && 'POS Integration'}
+            {location === '/dashboard/management' && 'Management'}
+            {location === '/dashboard/marketing' && 'Marketing'}
+            {location === '/dashboard/loyalty' && 'Loyalty & Rewards'}
             {location === '/dashboard/settings' && 'Settings'}
           </h1>
           
@@ -53,32 +55,32 @@ export default function ClientDashboardLayout({ children }: ClientDashboardLayou
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-accent-green/20 text-accent-green">
+                    <AvatarFallback className="bg-[#4361ee]/20 text-[#4361ee]">
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-bg-card border border-border-color">
-                <div className="px-2 py-1.5 text-sm font-medium text-text-primary">
+              <DropdownMenuContent align="end" className="bg-[#1f2940] border border-[#2d3748]">
+                <div className="px-2 py-1.5 text-sm font-medium text-white">
                   {user.businessName}
                 </div>
-                <div className="px-2 py-1.5 text-xs text-text-secondary">
+                <div className="px-2 py-1.5 text-xs text-gray-400">
                   {user.email}
                 </div>
                 <div className="px-2 py-1 text-xs">
-                  <span className="px-1.5 py-0.5 rounded-full bg-accent-green/20 text-accent-green">
+                  <span className="px-1.5 py-0.5 rounded-full bg-[#4361ee]/20 text-[#4361ee]">
                     Client
                   </span>
                 </div>
                 <DropdownMenuItem 
-                  className="cursor-pointer"
+                  className="cursor-pointer text-gray-300 hover:text-white"
                   onClick={() => navigate('/dashboard/settings')}
                 >
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  className="cursor-pointer text-destructive"
+                  className="cursor-pointer text-red-400"
                   onClick={() => logout()}
                 >
                   Logout
@@ -88,7 +90,7 @@ export default function ClientDashboardLayout({ children }: ClientDashboardLayou
           </div>
         </header>
         
-        <main className="flex-1 overflow-y-auto p-6 bg-bg-dark">
+        <main className="flex-1 overflow-y-auto p-6 bg-[#141b2d]">
           {children}
         </main>
       </div>

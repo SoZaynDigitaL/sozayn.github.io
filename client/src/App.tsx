@@ -34,6 +34,11 @@ import SubscriptionSuccess from "@/pages/subscription-success";
 import PayPalCheckout from "@/pages/paypal-checkout";
 import PayPalSuccess from "@/pages/paypal-success";
 import Plans from "@/pages/plans";
+import Support from "@/pages/support";
+import PrivacyPolicy from "@/pages/privacy";
+import TermsOfService from "@/pages/terms";
+import CookiePolicy from "@/pages/cookies";
+import AboutPage from "@/pages/about";
 
 function Router() {
   return (
@@ -44,6 +49,11 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/plans" component={Plans} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/support" component={Support} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/cookies" component={CookiePolicy} />
       
       {/* Protected Dashboard routes - available to all authenticated users */}
       <ProtectedRoute path="/dashboard" component={Dashboard} />

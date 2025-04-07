@@ -30,30 +30,30 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Company</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">About Us</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Careers</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Blog</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Press</a></li>
+              <li><Link href="/about" className="text-text-secondary hover:text-text-primary text-sm">About Us</Link></li>
+              <li><Link href="/careers" className="text-text-secondary hover:text-text-primary text-sm">Careers</Link></li>
+              <li><Link href="/blog" className="text-text-secondary hover:text-text-primary text-sm">Blog</Link></li>
+              <li><Link href="/press" className="text-text-secondary hover:text-text-primary text-sm">Press</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Resources</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Documentation</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Tutorials</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Case Studies</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">FAQ</a></li>
+              <li><Link href="/docs" className="text-text-secondary hover:text-text-primary text-sm">Documentation</Link></li>
+              <li><Link href="/tutorials" className="text-text-secondary hover:text-text-primary text-sm">Tutorials</Link></li>
+              <li><Link href="/case-studies" className="text-text-secondary hover:text-text-primary text-sm">Case Studies</Link></li>
+              <li><Link href="/faq" className="text-text-secondary hover:text-text-primary text-sm">FAQ</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider mb-4">Contact</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">info@sozayn.com</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Support</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">Sales</a></li>
-              <li><a href="#" className="text-text-secondary hover:text-text-primary text-sm">1-800-SOZAYN</a></li>
+              <li><a href="mailto:info@sozayn.com" className="text-text-secondary hover:text-text-primary text-sm">info@sozayn.com</a></li>
+              <li><Link href="/support" className="text-text-secondary hover:text-text-primary text-sm">Support</Link></li>
+              <li><Link href="/sales" className="text-text-secondary hover:text-text-primary text-sm">Sales</Link></li>
+              <li><a href="tel:1-800-SOZAYN" className="text-text-secondary hover:text-text-primary text-sm">1-800-SOZAYN</a></li>
             </ul>
           </div>
         </div>
@@ -63,9 +63,9 @@ export default function Footer() {
             © {new Date().getFullYear()} SoZayn Technologies, Inc. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
-            <a href="#" className="text-sm text-text-secondary hover:text-text-primary">Privacy Policy</a>
-            <a href="#" className="text-sm text-text-secondary hover:text-text-primary">Terms of Service</a>
-            <a href="#" className="text-sm text-text-secondary hover:text-text-primary">Cookie Policy</a>
+            <Link href="/privacy" className="text-sm text-text-secondary hover:text-text-primary">Privacy Policy</Link>
+            <Link href="/terms" className="text-sm text-text-secondary hover:text-text-primary">Terms of Service</Link>
+            <Link href="/cookies" className="text-sm text-text-secondary hover:text-text-primary">Cookie Policy</Link>
           </div>
         </div>
       </div>

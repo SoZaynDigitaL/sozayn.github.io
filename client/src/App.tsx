@@ -45,32 +45,35 @@ function Router() {
       <Route path="/plans" component={Plans} />
       
       {/* Protected Dashboard routes - available to all authenticated users */}
-      <ProtectedRoute path="/dashboard" component={Dashboard} />
-      <ProtectedRoute path="/dashboard/orders" component={Orders} />
+      <ProtectedRoute path="/dashboard" component={Dashboard} exact />
+      <ProtectedRoute path="/dashboard/orders" component={Orders} exact />
       
       {/* Admin-only routes */}
-      <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
-      <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
-      <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} />
-      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly />
-      <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly />
-      <ProtectedRoute path="/dashboard/marketing/seo" component={MarketingSEO} adminOnly />
-      <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} adminOnly />
-      <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} adminOnly />
-      <ProtectedRoute path="/dashboard/social-media" component={SocialMedia} />
-      <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
-      <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
-      <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
-      <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
-      <ProtectedRoute path="/dashboard/settings" component={Settings} />
+      <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly exact />
+      <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly exact />
+      <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} exact />
+      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly exact />
+      
+      {/* Marketing routes with exact matching for specific content */}
+      <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly exact />
+      <ProtectedRoute path="/dashboard/marketing/seo" component={MarketingSEO} adminOnly exact />
+      <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} adminOnly exact />
+      <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} adminOnly exact />
+      
+      <ProtectedRoute path="/dashboard/social-media" component={SocialMedia} exact />
+      <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly exact />
+      <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly exact />
+      <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} exact />
+      <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} exact />
+      <ProtectedRoute path="/dashboard/settings" component={Settings} exact />
       
       {/* Payment routes - protected but available to all users */}
-      <ProtectedRoute path="/checkout" component={Checkout} />
-      <ProtectedRoute path="/paypal-checkout" component={PayPalCheckout} />
-      <ProtectedRoute path="/subscribe" component={Subscribe} />
-      <ProtectedRoute path="/payment-success" component={PaymentSuccess} />
-      <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
-      <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
+      <ProtectedRoute path="/checkout" component={Checkout} exact />
+      <ProtectedRoute path="/paypal-checkout" component={PayPalCheckout} exact />
+      <ProtectedRoute path="/subscribe" component={Subscribe} exact />
+      <ProtectedRoute path="/payment-success" component={PaymentSuccess} exact />
+      <ProtectedRoute path="/paypal-success" component={PayPalSuccess} exact />
+      <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} exact />
       
       {/* Fallback to 404 */}
       <Route path="/:rest*">

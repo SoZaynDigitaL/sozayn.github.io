@@ -291,9 +291,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Add a new integration
   app.post("/api/integrations", isAuthenticated, (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
     const newIntegration = {
       id: sampleIntegrations.length > 0 ? Math.max(...sampleIntegrations.map(i => i.id)) + 1 : 1,
-      userId: req.session.userId,
+      userId: req.session.userId as number,
       provider: req.body.provider,
       type: req.body.type || 'delivery',
       apiKey: req.body.apiKey,
@@ -379,6 +383,270 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/menu", isAuthenticated, (req, res) => {
     // Return empty array - frontend will generate demo data
     res.json([]);
+  });
+  
+  // E-commerce platform data for development
+  let ecommercePlatforms = [
+    { 
+      id: 1, 
+      userId: 0, // Will be set dynamically
+      name: 'Shopify', 
+      status: 'active', 
+      orders: 324,
+      revenue: '$12,458',
+      products: 42,
+      lastSync: '10 min ago'
+    },
+    { 
+      id: 2, 
+      userId: 0, // Will be set dynamically
+      name: 'WooCommerce', 
+      status: 'active', 
+      orders: 156,
+      revenue: '$8,210',
+      products: 36,
+      lastSync: '25 min ago'
+    },
+    { 
+      id: 3, 
+      userId: 0, // Will be set dynamically
+      name: 'BigCommerce', 
+      status: 'inactive', 
+      orders: 0,
+      revenue: '$0',
+      products: 0,
+      lastSync: 'Never'
+    },
+    { 
+      id: 4, 
+      userId: 0, // Will be set dynamically
+      name: 'Amazon Marketplace', 
+      status: 'active', 
+      orders: 287,
+      revenue: '$15,678',
+      products: 28,
+      lastSync: '5 min ago'
+    }
+  ];
+  
+  // E-commerce product data for development
+  let ecommerceProducts = [
+    {
+      id: 1,
+      userId: 0, // Will be set dynamically
+      name: 'Signature Burger',
+      price: '$12.99',
+      inventory: 'Unlimited',
+      category: 'Main Dishes',
+      platforms: ['Shopify', 'Amazon'],
+      sales: 87
+    },
+    {
+      id: 2,
+      userId: 0, // Will be set dynamically
+      name: 'Gourmet Pasta Pack',
+      price: '$15.99',
+      inventory: '28 packs',
+      category: 'Meal Kits',
+      platforms: ['Shopify', 'WooCommerce'],
+      sales: 64
+    },
+    {
+      id: 3,
+      userId: 0, // Will be set dynamically
+      name: 'Specialty Hot Sauce',
+      price: '$8.99',
+      inventory: '42 bottles',
+      category: 'Condiments',
+      platforms: ['Shopify', 'Amazon', 'WooCommerce'],
+      sales: 112
+    },
+    {
+      id: 4,
+      userId: 0, // Will be set dynamically
+      name: 'Fresh Salad Kit',
+      price: '$9.99',
+      inventory: '15 kits',
+      category: 'Meal Kits',
+      platforms: ['WooCommerce'],
+      sales: 36
+    }
+  ];
+  
+  // Get all e-commerce platforms
+  app.get("/api/ecommerce/platforms", isAuthenticated, (req, res) => {
+    // Set the user ID for all platforms
+    const userPlatforms = ecommercePlatforms
+      .filter(platform => platform.userId === 0 || platform.userId === req.session.userId)
+      .map(platform => ({
+        ...platform,
+        userId: req.session.userId
+      }));
+      
+    res.json(userPlatforms);
+  });
+  
+  // Get platform by ID
+  app.get("/api/ecommerce/platforms/:id", isAuthenticated, (req, res) => {
+    const platformId = parseInt(req.params.id);
+    const platform = ecommercePlatforms.find(p => 
+      p.id === platformId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (!platform) {
+      return res.status(404).json({ error: "Platform not found" });
+    }
+    
+    res.json({
+      ...platform,
+      userId: req.session.userId
+    });
+  });
+  
+  // Add a new e-commerce platform
+  app.post("/api/ecommerce/platforms", isAuthenticated, (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    const newPlatform = {
+      id: ecommercePlatforms.length > 0 ? Math.max(...ecommercePlatforms.map(p => p.id)) + 1 : 1,
+      userId: req.session.userId as number,
+      name: req.body.name,
+      status: req.body.status || 'inactive',
+      orders: req.body.orders || 0,
+      revenue: req.body.revenue || '$0',
+      products: req.body.products || 0,
+      lastSync: req.body.lastSync || 'Never'
+    };
+    
+    ecommercePlatforms.push(newPlatform);
+    res.status(201).json(newPlatform);
+  });
+  
+  // Update an e-commerce platform
+  app.patch("/api/ecommerce/platforms/:id", isAuthenticated, (req, res) => {
+    const platformId = parseInt(req.params.id);
+    const platformIndex = ecommercePlatforms.findIndex(p => 
+      p.id === platformId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (platformIndex === -1) {
+      return res.status(404).json({ error: "Platform not found" });
+    }
+    
+    // Update the platform properties that were provided
+    ecommercePlatforms[platformIndex] = {
+      ...ecommercePlatforms[platformIndex],
+      ...req.body,
+      id: platformId, // Ensure ID doesn't change
+      userId: req.session.userId, // Ensure userId doesn't change
+    };
+    
+    res.json(ecommercePlatforms[platformIndex]);
+  });
+  
+  // Delete an e-commerce platform
+  app.delete("/api/ecommerce/platforms/:id", isAuthenticated, (req, res) => {
+    const platformId = parseInt(req.params.id);
+    const platformIndex = ecommercePlatforms.findIndex(p => 
+      p.id === platformId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (platformIndex === -1) {
+      return res.status(404).json({ error: "Platform not found" });
+    }
+    
+    ecommercePlatforms.splice(platformIndex, 1);
+    res.status(204).send();
+  });
+  
+  // Get all e-commerce products
+  app.get("/api/ecommerce/products", isAuthenticated, (req, res) => {
+    // Set the user ID for all products
+    const userProducts = ecommerceProducts
+      .filter(product => product.userId === 0 || product.userId === req.session.userId)
+      .map(product => ({
+        ...product,
+        userId: req.session.userId
+      }));
+      
+    res.json(userProducts);
+  });
+  
+  // Get product by ID
+  app.get("/api/ecommerce/products/:id", isAuthenticated, (req, res) => {
+    const productId = parseInt(req.params.id);
+    const product = ecommerceProducts.find(p => 
+      p.id === productId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    res.json({
+      ...product,
+      userId: req.session.userId
+    });
+  });
+  
+  // Add a new e-commerce product
+  app.post("/api/ecommerce/products", isAuthenticated, (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    const newProduct = {
+      id: ecommerceProducts.length > 0 ? Math.max(...ecommerceProducts.map(p => p.id)) + 1 : 1,
+      userId: req.session.userId as number,
+      name: req.body.name,
+      price: req.body.price,
+      inventory: req.body.inventory || '0',
+      category: req.body.category || 'Uncategorized',
+      platforms: req.body.platforms || [],
+      sales: req.body.sales || 0
+    };
+    
+    ecommerceProducts.push(newProduct);
+    res.status(201).json(newProduct);
+  });
+  
+  // Update an e-commerce product
+  app.patch("/api/ecommerce/products/:id", isAuthenticated, (req, res) => {
+    const productId = parseInt(req.params.id);
+    const productIndex = ecommerceProducts.findIndex(p => 
+      p.id === productId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (productIndex === -1) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    // Update the product properties that were provided
+    ecommerceProducts[productIndex] = {
+      ...ecommerceProducts[productIndex],
+      ...req.body,
+      id: productId, // Ensure ID doesn't change
+      userId: req.session.userId, // Ensure userId doesn't change
+    };
+    
+    res.json(ecommerceProducts[productIndex]);
+  });
+  
+  // Delete an e-commerce product
+  app.delete("/api/ecommerce/products/:id", isAuthenticated, (req, res) => {
+    const productId = parseInt(req.params.id);
+    const productIndex = ecommerceProducts.findIndex(p => 
+      p.id === productId && (p.userId === 0 || p.userId === req.session.userId)
+    );
+    
+    if (productIndex === -1) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    
+    ecommerceProducts.splice(productIndex, 1);
+    res.status(204).send();
   });
 
   // Stripe payment routes

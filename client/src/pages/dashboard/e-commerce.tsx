@@ -37,6 +37,29 @@ import { useState } from 'react';
 import { StatsCard } from '@/components/ui/stats';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Define types for our data
+interface ECommercePlatform {
+  id: number;
+  userId: number;
+  name: string;
+  status: string;
+  orders: number;
+  revenue: string;
+  products: number;
+  lastSync: string;
+}
+
+interface Product {
+  id: number;
+  userId: number;
+  name: string;
+  price: string;
+  inventory: string;
+  category: string;
+  platforms: string[];
+  sales: number;
+}
+
 // Example data representing e-commerce platforms
 const ECOMMERCE_PLATFORMS = [
   { 
@@ -121,16 +144,14 @@ export default function ECommerce() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('platforms');
   
-  // Query to fetch e-commerce platforms (using dummy data for now)
-  const { data: ecommercePlatforms = ECOMMERCE_PLATFORMS, isLoading: platformsLoading } = useQuery({
+  // Query to fetch e-commerce platforms
+  const { data: ecommercePlatforms = [], isLoading: platformsLoading } = useQuery<ECommercePlatform[]>({
     queryKey: ['/api/ecommerce/platforms'],
-    enabled: false // Disabled actual API call since we're using example data
   });
   
-  // Query to fetch products (using dummy data for now)
-  const { data: products = PRODUCTS, isLoading: productsLoading } = useQuery({
+  // Query to fetch products
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/ecommerce/products'],
-    enabled: false // Disabled actual API call since we're using example data
   });
   
   // Filter platforms based on search term
@@ -398,7 +419,7 @@ export default function ECommerce() {
                 <CardDescription>Best-performing products across platforms</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {PRODUCTS.sort((a, b) => b.sales - a.sales).slice(0, 3).map((product, i) => (
+                {products.sort((a, b) => b.sales - a.sales).slice(0, 3).map((product, i) => (
                   <div key={i} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${

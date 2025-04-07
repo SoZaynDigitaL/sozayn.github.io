@@ -42,37 +42,24 @@ function Router() {
         user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
       } />
       
-      {/* All dashboard routes show the same dashboard based on role */}
+      {/* Client routes */}
       <ProtectedRoute path="/dashboard/support" component={({ user }: { user: any }) => 
         user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
       } />
-      <ProtectedRoute path="/dashboard/orders" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
+      <ProtectedRoute path="/dashboard/orders" component={Orders} />
+      <ProtectedRoute path="/dashboard/delivery-partners" component={({ user }: { user: any }) => 
+        <div className="p-8">
+          <h1 className="text-2xl font-bold mb-4">Delivery Partners</h1>
+          <p>Manage your delivery partners and integrations here.</p>
+        </div>
       } />
-      <ProtectedRoute path="/dashboard/clients" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/integrations" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/ecommerce" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/loyalty" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/marketing" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/management" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/pos" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      <ProtectedRoute path="/dashboard/settings" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
+      <ProtectedRoute path="/dashboard/ecommerce" component={ECommerce} />
+      <ProtectedRoute path="/dashboard/pos" component={POS} />
+      <ProtectedRoute path="/dashboard/management" component={ManagementPage} />
+      <ProtectedRoute path="/dashboard/marketing" component={Marketing} />
+      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} />
+      <ProtectedRoute path="/dashboard/clients" component={Clients} />
+      <ProtectedRoute path="/dashboard/settings" component={Settings} />
       
       {/* Payment routes - protected but available to all users */}
       <ProtectedRoute path="/checkout" component={Checkout} />

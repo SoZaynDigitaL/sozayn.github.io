@@ -514,9 +514,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!plan) {
         return res.status(404).json({ error: "Plan not found" });
       }
+
+      // Get the user to update their plan in MailerLite
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Update user plan in MailerLite
+      try {
+        await updateUserPlanInMailerLite(
+          user.email,
+          user.username,
+          planId as PlanType
+        );
+        console.log(`User ${user.username} plan updated in MailerLite to ${planId}`);
+      } catch (mailerliteError) {
+        // Log error but don't fail plan upgrade if MailerLite integration fails
+        console.error("Failed to update user plan in MailerLite:", mailerliteError);
+      }
       
-      // This would be where you would create a subscription record and redirect
-      // to the payment page or create a payment intent
+      // In a real application, we would update the user's plan in the database here
+      // For now, we'll redirect to the subscription payment page
+      
       res.json({
         success: true,
         redirectTo: billingCycle === "monthly" ? "/subscribe?plan=" + planId : "/subscribe/annual?plan=" + planId
@@ -556,6 +576,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!subscriptionId) {
         return res.status(400).json({ error: "Subscription ID is required" });
+      }
+      
+      // Get the user to update their plan in MailerLite
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Update the user's plan in MailerLite to FREE after cancellation
+      try {
+        await updateUserPlanInMailerLite(
+          user.email,
+          user.username,
+          PlanType.FREE // Downgrade to FREE plan after cancellation
+        );
+        console.log(`User ${user.username} plan downgraded in MailerLite to ${PlanType.FREE} after subscription cancellation`);
+      } catch (mailerliteError) {
+        // Log error but don't fail cancellation if MailerLite integration fails
+        console.error("Failed to update user plan in MailerLite:", mailerliteError);
       }
       
       // This would be where you would cancel a subscription with the payment provider

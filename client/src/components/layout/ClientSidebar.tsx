@@ -127,8 +127,9 @@ export default function ClientSidebar() {
                       : "text-gray-300 hover:text-white hover:bg-[#1e2a45]"
                   )}
                   onClick={() => {
-                    // Only navigate to the main dashboard to prevent layout changes
-                    navigate('/dashboard');
+                    // Each nav link still works correctly, but App.tsx has been configured to always 
+                    // show the same dashboard component regardless of URL path
+                    navigate(item.href);
                     closeSidebar();
                   }}
                 >
@@ -150,7 +151,7 @@ export default function ClientSidebar() {
             variant="outline" 
             size="sm" 
             className="w-full bg-[#4361ee] hover:bg-[#3a56dd] text-white border-0"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard/support')}
           >
             Contact Support
           </Button>

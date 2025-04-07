@@ -28,6 +28,7 @@ export default function DashboardSidebar() {
     { href: '/dashboard/integrations', icon: ExternalLink, label: 'Delivery Partners' },
     { href: '/dashboard/ecommerce', icon: ShoppingCart, label: 'E-Commerce' },
     { href: '/dashboard/pos', icon: Layers, label: 'POS Integration' },
+    { href: '/dashboard/management', icon: Menu, label: 'Management' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },

@@ -24,9 +24,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { 
-      secure: process.env.NODE_ENV === "production", // Set to true in production with HTTPS
+      secure: false, // Set to false in development for HTTP
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+      sameSite: 'lax', // More permissive in development
+      httpOnly: true, // Only accessed by server, not JS
+      path: '/'
     }
   })
 );

@@ -255,6 +255,53 @@ export default function AuthPage() {
                           ) : null}
                           Log In
                         </Button>
+                        
+                        {/* Emergency Direct Login Button - For debugging only */}
+                        <Button 
+                          type="button" 
+                          className="w-full mt-2 bg-accent-green hover:bg-accent-green/90"
+                          onClick={async () => {
+                            try {
+                              // Hardcoded admin credentials
+                              const response = await fetch('/api/auth/login', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                  username: 'admin', 
+                                  password: 'admin123' 
+                                }),
+                                credentials: 'include'
+                              });
+                              
+                              console.log('Emergency login response:', response.status);
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                console.log('Emergency login successful:', data);
+                                
+                                // Force page reload to dashboard
+                                window.location.href = '/dashboard';
+                              } else {
+                                const error = await response.json();
+                                console.error('Emergency login failed:', error);
+                                toast({
+                                  title: "Emergency Login Failed",
+                                  description: JSON.stringify(error),
+                                  variant: "destructive",
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Emergency login error:', error);
+                              toast({
+                                title: "Emergency Login Error",
+                                description: error instanceof Error ? error.message : "Unknown error",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          Emergency Admin Login
+                        </Button>
                       </form>
                     </Form>
                     

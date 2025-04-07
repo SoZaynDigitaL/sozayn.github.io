@@ -16,6 +16,18 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.currentId = 1;
+    
+    // Add a demo user
+    const demoUser: User = {
+      id: this.currentId++,
+      username: 'demo',
+      password: 'password123',
+      email: 'demo@example.com',
+      businessName: 'Demo Restaurant',
+      businessType: 'restaurant',
+      createdAt: new Date()
+    };
+    this.users.set(demoUser.id, demoUser);
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -30,7 +42,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id };
+    const createdAt = new Date();
+    const user: User = { 
+      ...insertUser, 
+      id,
+      createdAt
+    };
     this.users.set(id, user);
     return user;
   }

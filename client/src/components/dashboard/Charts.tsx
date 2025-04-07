@@ -50,11 +50,13 @@ export function OrdersChart({ data }: ChartProps) {
                 data: chartData.values,
                 backgroundColor: '#4361ee',
                 borderRadius: 6,
-                barThickness: 20,
+                barThickness: 30,
+                maxBarThickness: 35
               }]
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -73,6 +75,9 @@ export function OrdersChart({ data }: ChartProps) {
                 x: {
                   grid: {
                     display: false
+                  },
+                  ticks: {
+                    color: 'rgba(255, 255, 255, 0.7)'
                   }
                 },
                 y: {
@@ -82,7 +87,18 @@ export function OrdersChart({ data }: ChartProps) {
                   },
                   grid: {
                     color: 'rgba(255, 255, 255, 0.05)'
+                  },
+                  ticks: {
+                    color: 'rgba(255, 255, 255, 0.7)'
                   }
+                }
+              },
+              layout: {
+                padding: {
+                  top: 10,
+                  right: 10,
+                  bottom: 10,
+                  left: 10
                 }
               }
             }
@@ -100,7 +116,7 @@ export function OrdersChart({ data }: ChartProps) {
   }, [data]);
 
   return (
-    <div>
+    <div className="h-full">
       <canvas ref={chartRef} />
     </div>
   );
@@ -141,11 +157,13 @@ export function RevenueChart({ data }: ChartProps) {
                 pointBackgroundColor: '#8957e5',
                 pointBorderColor: '#131a29',
                 pointBorderWidth: 2,
-                pointRadius: 4
+                pointRadius: 4,
+                borderWidth: 3
               }]
             },
             options: {
               responsive: true,
+              maintainAspectRatio: false,
               plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -153,13 +171,17 @@ export function RevenueChart({ data }: ChartProps) {
                   titleColor: '#fff',
                   bodyColor: '#fff',
                   borderColor: 'rgba(255, 255, 255, 0.1)',
-                  borderWidth: 1
+                  borderWidth: 1,
+                  padding: 12
                 }
               },
               scales: {
                 x: {
                   grid: {
                     display: false
+                  },
+                  ticks: {
+                    color: 'rgba(255, 255, 255, 0.7)'
                   }
                 },
                 y: {
@@ -173,8 +195,17 @@ export function RevenueChart({ data }: ChartProps) {
                   ticks: {
                     callback: function(value) {
                       return '$' + value;
-                    }
+                    },
+                    color: 'rgba(255, 255, 255, 0.7)'
                   }
+                }
+              },
+              layout: {
+                padding: {
+                  top: 10,
+                  right: 10,
+                  bottom: 10,
+                  left: 10
                 }
               }
             }
@@ -191,7 +222,7 @@ export function RevenueChart({ data }: ChartProps) {
   }, [data]);
 
   return (
-    <div>
+    <div className="h-full">
       <canvas ref={chartRef} />
     </div>
   );

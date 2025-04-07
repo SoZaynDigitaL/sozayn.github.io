@@ -24,6 +24,29 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+// Helper function to check admin role
+const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    if (user.role !== 'admin') {
+      return res.status(403).json({ error: "Access denied: Admin role required" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error checking admin role:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 // Function to create a PayPal environment
 function getPayPalEnvironment() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -176,9 +199,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json([]);
   });
 
-  app.get("/api/customers", isAuthenticated, (req, res) => {
-    // Return empty array - frontend will generate demo data
-    res.json([]);
+  app.get("/api/customers", isAdmin, async (req, res) => {
+    try {
+      // Get all users except the current admin
+      const allUsers = await storage.getAllUsers();
+      
+      // Filter out admin users and don't return passwords
+      const customers = allUsers
+        .filter(user => user.role !== 'admin' && user.id !== req.session.userId)
+        .map(user => {
+          const { password, ...userWithoutPassword } = user;
+          return {
+            ...userWithoutPassword,
+            // Add customer-specific fields for the frontend
+            id: user.id.toString(),
+            name: user.businessName,
+            email: user.email,
+            phone: "Not provided", // Could be added to user schema in the future
+            totalOrders: 0,
+            totalSpent: 0,
+            loyaltyPoints: 0,
+            loyaltyTier: 'bronze',
+            createdAt: user.createdAt.toISOString(),
+            lastOrder: ''
+          };
+        });
+      
+      res.json(customers);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
   });
   
   app.get("/api/menu", isAuthenticated, (req, res) => {

@@ -209,9 +209,7 @@ export default function ClientsPage() {
 
   // Get formatted data for display
   const getDisplayClients = (): Customer[] => {
-    if (clients.length === 0) {
-      return getCustomersData() as Customer[];
-    }
+    // Always use the real data from the API
     return clients;
   };
 

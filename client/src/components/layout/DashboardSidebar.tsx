@@ -12,22 +12,35 @@ import {
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardSidebar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
   
   const isActive = (path: string) => location === path;
+  const isAdmin = user?.role === 'admin';
   
-  const navigationItems = [
+  // Base navigation items for all users
+  const baseNavigationItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
-    { href: '/dashboard/clients', icon: Users, label: 'Clients' },
     { href: '/dashboard/management', icon: Menu, label: 'Management' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
-    { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
+  
+  // Admin-only items
+  const adminNavigationItems = [
+    { href: '/dashboard/clients', icon: Users, label: 'Clients' },
+    { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
+  ];
+  
+  // Combine navigation items based on user role
+  const navigationItems = isAdmin 
+    ? [...baseNavigationItems, ...adminNavigationItems] 
+    : baseNavigationItems;
   
   const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
     const active = isActive(href);

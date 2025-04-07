@@ -15,9 +15,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [location, navigate] = useLocation();
   const { user, logout } = useAuth();
   
-  // Redirect to login if not authenticated
+  // Redirect to auth page if not authenticated
   if (!user) {
-    navigate('/login');
+    navigate('/auth');
     return null;
   }
   
@@ -64,6 +64,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
                 <div className="px-2 py-1.5 text-xs text-text-secondary">
                   {user.email}
+                </div>
+                <div className="px-2 py-1 text-xs">
+                  <span className={`px-1.5 py-0.5 rounded-full ${
+                    user.role === 'admin' 
+                      ? 'bg-accent-purple/20 text-accent-purple' 
+                      : 'bg-accent-green/20 text-accent-green'
+                  }`}>
+                    {user.role === 'admin' ? 'Admin' : 'Client'}
+                  </span>
                 </div>
                 <DropdownMenuItem 
                   className="cursor-pointer"

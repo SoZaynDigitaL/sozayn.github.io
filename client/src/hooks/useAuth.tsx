@@ -7,6 +7,7 @@ interface User {
   email: string;
   businessName: string;
   businessType: string;
+  role: string; // 'admin' or 'client'
   createdAt: string;
 }
 

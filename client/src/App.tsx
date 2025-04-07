@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/useAuth";
 import { FirebaseAuthProvider } from "./hooks/useFirebaseAuth";
+import { ProtectedRoute } from "./lib/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -35,25 +36,27 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
-      {/* Dashboard routes */}
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/dashboard/orders" component={Orders} />
-      <Route path="/dashboard/clients" component={Clients} />
-      <Route path="/dashboard/integrations" component={Integrations} />
-      <Route path="/dashboard/ecommerce" component={ECommerce} />
-      <Route path="/dashboard/loyalty" component={Loyalty} />
-      <Route path="/dashboard/marketing" component={Marketing} />
-      <Route path="/dashboard/management" component={ManagementPage} />
-      <Route path="/dashboard/pos" component={POS} />
-      <Route path="/dashboard/settings" component={Settings} />
+      {/* Protected Dashboard routes - available to all authenticated users */}
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
+      <ProtectedRoute path="/dashboard/orders" component={Orders} />
       
-      {/* Payment routes */}
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/paypal-checkout" component={PayPalCheckout} />
-      <Route path="/subscribe" component={Subscribe} />
-      <Route path="/payment-success" component={PaymentSuccess} />
-      <Route path="/paypal-success" component={PayPalSuccess} />
-      <Route path="/subscription-success" component={SubscriptionSuccess} />
+      {/* Admin-only routes */}
+      <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
+      <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
+      <ProtectedRoute path="/dashboard/ecommerce" component={ECommerce} adminOnly />
+      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly />
+      <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly />
+      <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
+      <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
+      <ProtectedRoute path="/dashboard/settings" component={Settings} />
+      
+      {/* Payment routes - protected but available to all users */}
+      <ProtectedRoute path="/checkout" component={Checkout} />
+      <ProtectedRoute path="/paypal-checkout" component={PayPalCheckout} />
+      <ProtectedRoute path="/subscribe" component={Subscribe} />
+      <ProtectedRoute path="/payment-success" component={PaymentSuccess} />
+      <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
+      <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

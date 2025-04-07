@@ -10,6 +10,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   businessName: text("business_name").notNull(),
   businessType: text("business_type").notNull(), // restaurant, grocery, etc.
+  role: text("role").default("client").notNull(), // admin or client
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -52,16 +52,40 @@ const initializeStorage = async () => {
     });
   }
   
-  // Check for admin user
-  const existingAdminUser = await storage.getUserByUsername('admin');
-  if (!existingAdminUser) {
-    await storage.createUser({
-      username: 'admin',
-      password: 'admin123',
-      email: 'admin@sozayn.com',
-      businessName: 'SoZayn Admin',
-      businessType: 'restaurant',
-    });
+  try {
+    // Check for admin user
+    const existingAdminUser = await storage.getUserByUsername('admin');
+    if (!existingAdminUser) {
+      // Create admin user
+      const adminUser: InsertUser = {
+        username: 'admin',
+        password: 'admin123',
+        email: 'admin@sozayn.com',
+        businessName: 'SoZayn Admin',
+        businessType: 'restaurant',
+      };
+      await storage.createUser(adminUser);
+      
+      // Try to update the role after creation if the column exists
+      try {
+        await db.execute(
+          `UPDATE users SET role = 'admin' WHERE username = 'admin'`
+        );
+      } catch (err) {
+        console.log("Note: Could not set admin role, role column may not exist yet");
+      }
+    } else {
+      // Try to update existing admin to have admin role if needed
+      try {
+        await db.execute(
+          `UPDATE users SET role = 'admin' WHERE username = 'admin'`
+        );
+      } catch (err) {
+        console.log("Note: Could not update admin role, role column may not exist yet");
+      }
+    }
+  } catch (error) {
+    console.error("Error in initializing admin user:", error);
   }
   
   return storage;

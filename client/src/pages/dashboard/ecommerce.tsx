@@ -61,7 +61,7 @@ export default function ECommerce() {
   const { toast } = useToast();
   
   // Fetch existing integrations
-  const { data: integrations = [], isLoading } = useQuery({ 
+  const { data: integrations = [], isLoading } = useQuery<any[]>({ 
     queryKey: ['/api/integrations'],
   });
   

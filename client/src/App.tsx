@@ -36,7 +36,7 @@ import Plans from "@/pages/plans";
 
 function Router() {
   return (
-    <Switch>
+    <>
       {/* Public routes */}
       <Route path="/" component={Home} />
       <Route path="/auth" component={AuthPage} />
@@ -72,9 +72,11 @@ function Router() {
       <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
       <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
       
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+      {/* Fallback to 404 - Note: We need to put this outside of Switch as our ProtectedRoutes are now Route components */}
+      <Route path="/:rest*">
+        {() => <NotFound />}
+      </Route>
+    </>
   );
 }
 

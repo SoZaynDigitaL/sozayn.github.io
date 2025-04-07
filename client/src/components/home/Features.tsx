@@ -65,7 +65,7 @@ export default function Features() {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4">One Digital Hub, Multiple Solutions</h2>
           <p className="text-text-secondary text-xl max-w-3xl mx-auto">
-            SoZayn connects all your restaurant services through a powerful digital platform for the modern era.
+            SoZayn connects Business proving services through a powerful digital platform for the modern era.
           </p>
         </div>
         

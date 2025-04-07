@@ -19,14 +19,14 @@ import Marketing from "@/pages/dashboard/marketing";
 import MarketingSEO from "@/pages/dashboard/marketing/seo";
 import MarketingEmail from "@/pages/dashboard/marketing/email";
 import MarketingAutomated from "@/pages/dashboard/marketing/automated";
-import SocialMedia from "@/pages/dashboard/social-media";
+import SocialMediaPage from "@/pages/dashboard/social-media";
 import POS from "@/pages/dashboard/pos";
 import ECommerce from "@/pages/dashboard/e-commerce";
 import Settings from "@/pages/dashboard/settings";
 import ManagementPage from "@/pages/dashboard/management";
 import DeliveryPartners from "@/pages/dashboard/delivery-partners";
 import POSIntegration from "@/pages/dashboard/pos-integration";
-import FeatureAccess from "@/pages/dashboard/feature-access";
+import FeatureAccessPage from "@/pages/dashboard/feature-access";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import PaymentSuccess from "@/pages/payment-success";
@@ -61,12 +61,12 @@ function Router() {
       <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} />
       <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} />
       
-      <ProtectedRoute path="/dashboard/social-media" component={SocialMedia} />
+      <ProtectedRoute path="/dashboard/social-media" component={SocialMediaPage} />
       <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
       <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
       <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
       <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
-      <ProtectedRoute path="/dashboard/feature-access" component={FeatureAccess} />
+      <ProtectedRoute path="/dashboard/feature-access" component={FeatureAccessPage} />
       <ProtectedRoute path="/dashboard/settings" component={Settings} />
       
       {/* Payment routes - protected but available to all users */}

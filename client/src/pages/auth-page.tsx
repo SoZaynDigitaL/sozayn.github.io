@@ -52,9 +52,10 @@ export default function AuthPage() {
     console.log("Auth Page - Current user state:", user);
     if (user) {
       console.log("Auth Page - Redirecting to dashboard");
-      setLocation('/dashboard');
+      // Use direct window location for more reliable redirect
+      window.location.href = '/dashboard';
     }
-  }, [user, setLocation]);
+  }, [user]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -97,16 +98,34 @@ export default function AuthPage() {
     setIsSubmitting(true);
     
     try {
-      // Use the login function from useAuth context
-      await login(data.username, data.password);
+      console.log('Login attempt with form data:', data);
+      
+      // Make direct API call instead of using the login function from context
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      
+      console.log('Login response status:', response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Login failed:', errorData);
+        throw new Error(errorData.error || 'Invalid credentials');
+      }
+      
+      const userData = await response.json();
+      console.log('Login successful, user data:', userData);
       
       toast({
         title: "Login successful",
         description: "Welcome back to SoZayn!",
       });
       
-      // No need to redirect here, the useEffect hook will handle it
-      // when the user state updates
+      // Directly redirect to dashboard instead of waiting for context to update
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -126,7 +145,9 @@ export default function AuthPage() {
     setIsSubmitting(true);
     
     try {
-      // Register user
+      console.log('Registration attempt with form data:', data);
+      
+      // Register user with direct API call
       const registerResponse = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,23 +155,27 @@ export default function AuthPage() {
           ...data,
           planId: 'free' // Default free plan
         }),
+        credentials: 'include'
       });
+      
+      console.log('Registration response status:', registerResponse.status);
       
       if (!registerResponse.ok) {
         const errorData = await registerResponse.json().catch(() => ({}));
+        console.error('Registration failed:', errorData);
         throw new Error(errorData.error || 'Registration failed');
       }
+      
+      const userData = await registerResponse.json();
+      console.log('Registration successful, user data:', userData);
       
       toast({
         title: "Registration successful",
         description: "Welcome to SoZayn!",
       });
       
-      // Login after registration using the login function from useAuth
-      await login(data.username, data.password);
-      
-      // No need to redirect here, the useEffect hook will handle it
-      // when the user state updates
+      // After successful registration, directly redirect to dashboard
+      window.location.href = '/dashboard';
     } catch (error) {
       console.error('Registration error:', error);
       toast({

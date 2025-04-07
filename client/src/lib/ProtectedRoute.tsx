@@ -36,16 +36,26 @@ export function ProtectedRoute({
       );
     }
     
-    // If not authenticated, redirect directly to auth page
+    // If not authenticated, redirect to auth page using direct window location
     if (!user) {
       console.log("ProtectedRoute - Not authenticated, redirecting to /auth");
-      return <Redirect to="/auth" />;
+      window.location.href = '/auth';
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        </div>
+      );
     }
     
-    // If admin-only and user is not admin, redirect directly to dashboard
+    // If admin-only and user is not admin, redirect to dashboard using direct window location
     if (adminOnly && user.role !== 'admin') {
       console.log("ProtectedRoute - Not admin, redirecting to /dashboard");
-      return <Redirect to="/dashboard" />;
+      window.location.href = '/dashboard';
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        </div>
+      );
     }
     
     // All checks passed, render the actual component

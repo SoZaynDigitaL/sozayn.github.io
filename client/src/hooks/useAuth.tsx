@@ -38,8 +38,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuthStatus = async () => {
       try {
         console.log("Checking auth status...");
-        // Handle 401 errors gracefully by returning null instead of throwing
-        const response = await apiRequest('GET', '/api/auth/me', undefined, { on401: "returnNull" });
+        // Call /api/auth/me but don't throw on 401
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
         
         console.log("Auth status response:", response.status);
         
@@ -67,7 +69,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string) => {
     try {
       console.log('Login attempt with username:', username);
-      const response = await apiRequest('POST', '/api/auth/login', { username, password });
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+        credentials: 'include'
+      });
+      
       console.log('Login response status:', response.status);
       
       if (!response.ok) {
@@ -87,8 +95,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiRequest('POST', '/api/auth/logout');
-      setUser(null);
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        console.log('Logout successful');
+        setUser(null);
+      } else {
+        console.error('Logout failed with status:', response.status);
+      }
     } catch (error) {
       console.error('Logout failed', error);
     }

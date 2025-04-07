@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Calendar,
   PlusCircle,
+  Users,
   Megaphone,
   BarChart
 } from 'lucide-react';
@@ -748,7 +749,7 @@ export default function Marketing() {
             <DashboardCard title="Email Performance" className="h-full">
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
+                  <ReBarChart
                     data={[
                       { name: 'Jan', opens: 22.1, clicks: 4.3 },
                       { name: 'Feb', opens: 21.8, clicks: 4.1 },
@@ -780,7 +781,7 @@ export default function Marketing() {
                     />
                     <Bar dataKey="opens" fill="var(--accent-green)" name="Open Rate" />
                     <Bar dataKey="clicks" fill="var(--accent-orange)" name="Click Rate" />
-                  </BarChart>
+                  </ReBarChart>
                 </ResponsiveContainer>
               </div>
             </DashboardCard>

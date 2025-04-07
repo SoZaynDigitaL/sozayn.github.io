@@ -2,6 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg-dark: #0a0e17;
+  --bg-card: #1a1e27;
+  --bg-chart: #2a2e37;
+  --accent-blue: #4361ee;
+  --accent-purple: #8957e5;
+  --accent-green: #2ea043;
+  --accent-orange: #f97316;
+  --accent-red: #f43f5e;
+  --border-color: #383c44;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -9,5 +23,71 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+  }
+  
+  .bg-bg-dark {
+    background-color: var(--bg-dark);
+  }
+  
+  .bg-bg-card {
+    background-color: var(--bg-card);
+  }
+  
+  .bg-bg-chart {
+    background-color: var(--bg-chart);
+  }
+  
+  .bg-accent-blue {
+    background-color: var(--accent-blue);
+  }
+  
+  .bg-accent-purple {
+    background-color: var(--accent-purple);
+  }
+  
+  .bg-accent-green {
+    background-color: var(--accent-green);
+  }
+  
+  .bg-accent-orange {
+    background-color: var(--accent-orange);
+  }
+  
+  .bg-accent-red {
+    background-color: var(--accent-red);
+  }
+  
+  .text-accent-blue {
+    color: var(--accent-blue);
+  }
+  
+  .text-accent-purple {
+    color: var(--accent-purple);
+  }
+  
+  .text-accent-green {
+    color: var(--accent-green);
+  }
+  
+  .text-accent-orange {
+    color: var(--accent-orange);
+  }
+  
+  .text-accent-red {
+    color: var(--accent-red);
+  }
+  
+  .text-text-primary {
+    color: var(--text-primary);
+  }
+  
+  .text-text-secondary {
+    color: var(--text-secondary);
+  }
+  
+  .border-border-color {
+    border-color: var(--border-color);
   }
 }

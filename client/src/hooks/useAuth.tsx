@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { apiRequest } from '../lib/queryClient';
 
@@ -24,7 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true
 });
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }): React.ReactNode {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

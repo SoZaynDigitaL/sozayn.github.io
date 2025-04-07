@@ -222,9 +222,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json([]);
   });
 
+  // Sample integration data for development
+  let sampleIntegrations = [
+    {
+      id: 1,
+      userId: 0, // Will be set dynamically
+      provider: 'DoorDash',
+      type: 'delivery',
+      apiKey: 'sample-api-key-1',
+      isActive: true,
+      settings: {},
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 2,
+      userId: 0, // Will be set dynamically
+      provider: 'UberEats',
+      type: 'delivery',
+      apiKey: 'sample-api-key-2',
+      isActive: true,
+      settings: {},
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 3,
+      userId: 0, // Will be set dynamically
+      provider: 'Grubhub',
+      type: 'delivery',
+      apiKey: 'sample-api-key-3',
+      isActive: false,
+      settings: {},
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 4,
+      userId: 0, // Will be set dynamically
+      provider: 'Postmates',
+      type: 'delivery',
+      apiKey: 'sample-api-key-4',
+      isActive: true,
+      settings: {},
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 5,
+      userId: 0, // Will be set dynamically
+      provider: 'Toast POS',
+      type: 'pos',
+      apiKey: 'sample-api-key-5',
+      isActive: true,
+      settings: {},
+      createdAt: new Date().toISOString()
+    }
+  ];
+  
+  // Get all integrations
   app.get("/api/integrations", isAuthenticated, (req, res) => {
-    // Return empty array - frontend will generate demo data
-    res.json([]);
+    // Set the user ID for all sample integrations
+    const userIntegrations = sampleIntegrations
+      .filter(integration => integration.userId === 0 || integration.userId === req.session.userId)
+      .map(integration => ({
+        ...integration,
+        userId: req.session.userId
+      }));
+      
+    res.json(userIntegrations);
+  });
+  
+  // Add a new integration
+  app.post("/api/integrations", isAuthenticated, (req, res) => {
+    const newIntegration = {
+      id: sampleIntegrations.length > 0 ? Math.max(...sampleIntegrations.map(i => i.id)) + 1 : 1,
+      userId: req.session.userId,
+      provider: req.body.provider,
+      type: req.body.type || 'delivery',
+      apiKey: req.body.apiKey,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
+      settings: req.body.settings || {},
+      createdAt: new Date().toISOString()
+    };
+    
+    sampleIntegrations.push(newIntegration);
+    res.status(201).json(newIntegration);
+  });
+  
+  // Update an integration
+  app.patch("/api/integrations/:id", isAuthenticated, (req, res) => {
+    const integrationId = parseInt(req.params.id);
+    const integrationIndex = sampleIntegrations.findIndex(i => 
+      i.id === integrationId && (i.userId === 0 || i.userId === req.session.userId)
+    );
+    
+    if (integrationIndex === -1) {
+      return res.status(404).json({ error: "Integration not found" });
+    }
+    
+    // Update the integration properties that were provided
+    sampleIntegrations[integrationIndex] = {
+      ...sampleIntegrations[integrationIndex],
+      ...req.body,
+      id: integrationId, // Ensure ID doesn't change
+      userId: req.session.userId, // Ensure userId doesn't change
+    };
+    
+    res.json(sampleIntegrations[integrationIndex]);
+  });
+  
+  // Delete an integration
+  app.delete("/api/integrations/:id", isAuthenticated, (req, res) => {
+    const integrationId = parseInt(req.params.id);
+    const integrationIndex = sampleIntegrations.findIndex(i => 
+      i.id === integrationId && (i.userId === 0 || i.userId === req.session.userId)
+    );
+    
+    if (integrationIndex === -1) {
+      return res.status(404).json({ error: "Integration not found" });
+    }
+    
+    sampleIntegrations.splice(integrationIndex, 1);
+    res.status(204).send();
   });
 
   app.get("/api/customers", isAdmin, async (req, res) => {

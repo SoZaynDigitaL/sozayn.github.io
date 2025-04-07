@@ -14,12 +14,27 @@ import {
   MessageSquare,
   Share2,
   Megaphone,
-  Mail
+  Mail,
+  Globe
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
+import { CollapsibleMenuItem } from '@/components/ui/collapsible-menu';
+
+interface SubMenuItem {
+  href: string;
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+interface NavigationItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  subItems?: SubMenuItem[];
+}
 
 export default function ClientSidebar() {
   const [location] = useLocation();
@@ -28,42 +43,31 @@ export default function ClientSidebar() {
   
   const isActive = (path: string) => location === path;
   
+  // Marketing submenu items
+  const marketingSubItems: SubMenuItem[] = [
+    { href: '/dashboard/marketing/seo', label: 'SEO', icon: SearchIcon },
+    { href: '/dashboard/marketing/email', label: 'Email Campaigns', icon: Mail },
+    { href: '/dashboard/marketing/automated', label: 'Automated Marketing', icon: Megaphone },
+  ];
+  
   // Navigation items for client dashboard based on the screenshot
-  const navigationItems = [
+  const navigationItems: NavigationItem[] = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
     { href: '/dashboard/delivery-partners', icon: Truck, label: 'Delivery Partners' },
     { href: '/dashboard/e-commerce', icon: ShoppingBag, label: 'E-Commerce' },
     { href: '/dashboard/pos-integration', icon: Terminal, label: 'POS Integration' },
     { href: '/dashboard/management', icon: Menu, label: 'Management' },
-    { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
-    { href: '/dashboard/seo', icon: SearchIcon, label: 'SEO' },
-    { href: '/dashboard/automated-marketing', icon: Megaphone, label: 'Automated Marketing' },
-    { href: '/dashboard/email-campaigns', icon: Mail, label: 'Email Campaigns' },
-    { href: '/dashboard/social-media', icon: Share2, label: 'Social Media' },
+    { 
+      href: '/dashboard/marketing', 
+      icon: BarChart3, 
+      label: 'Marketing',
+      subItems: marketingSubItems
+    },
+    { href: '/dashboard/social-media', icon: Share2, label: 'Social Media Integration' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
-  
-  const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
-    const active = isActive(href);
-    
-    return (
-      <Link href={href}>
-        <div 
-          className={cn(
-            "flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-            active 
-              ? "bg-accent-blue/10 text-accent-blue" 
-              : "text-text-secondary hover:text-text-primary hover:bg-bg-card-hover"
-          )}
-        >
-          <Icon className="h-5 w-5" />
-          <span>{label}</span>
-        </div>
-      </Link>
-    );
-  };
   
   const SidebarContent = () => (
     <>
@@ -77,11 +81,13 @@ export default function ClientSidebar() {
       <div className="px-3 py-2 flex-1">
         <nav className="space-y-1">
           {navigationItems.map((item) => (
-            <NavItem 
+            <CollapsibleMenuItem 
               key={item.href} 
               href={item.href} 
               icon={item.icon} 
-              label={item.label} 
+              label={item.label}
+              subItems={item.subItems}
+              isActive={isActive}
             />
           ))}
         </nav>

@@ -16,6 +16,10 @@ import Clients from "@/pages/dashboard/clients";
 import Integrations from "@/pages/dashboard/integrations";
 import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
+import MarketingSEO from "@/pages/dashboard/marketing/seo";
+import MarketingEmail from "@/pages/dashboard/marketing/email";
+import MarketingAutomated from "@/pages/dashboard/marketing/automated";
+import SocialMedia from "@/pages/dashboard/social-media";
 import POS from "@/pages/dashboard/pos";
 import ECommerce from "@/pages/dashboard/e-commerce";
 import Settings from "@/pages/dashboard/settings";
@@ -50,6 +54,10 @@ function Router() {
       <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} />
       <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly />
       <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly />
+      <ProtectedRoute path="/dashboard/marketing/seo" component={MarketingSEO} adminOnly />
+      <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} adminOnly />
+      <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} adminOnly />
+      <ProtectedRoute path="/dashboard/social-media" component={SocialMedia} />
       <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
       <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
       <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />

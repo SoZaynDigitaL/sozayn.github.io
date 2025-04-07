@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useLocation, Route, Router } from 'wouter';
+import { Route } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
@@ -11,13 +10,9 @@ interface ProtectedRouteProps {
 }
 
 /**
- * ProtectedRoute component that handles authentication, authorization,
- * and route matching.
+ * Simpler ProtectedRoute component with minimal complexity
  * 
- * @param component The component to render when all checks pass
- * @param adminOnly Whether this route should only be accessible to admins
- * @param path The path pattern to match
- * @param exact Whether to match the path exactly or as a prefix
+ * This component wraps a Route and adds authentication/authorization checks
  */
 export function ProtectedRoute({ 
   component: Component, 
@@ -25,69 +20,36 @@ export function ProtectedRoute({
   path, 
   exact = true 
 }: ProtectedRouteProps) {
-  // Auth state
+  // Get auth context
   const { user, isLoading } = useAuth();
-  const [location, navigate] = useLocation();
   
-  // Check if the current location matches this route
-  const isMatch = exact 
-    ? location === path 
-    : location === path || location.startsWith(`${path}/`);
+  // The actual route component
+  const ProtectedComponent = (props: any) => {
+    // If still loading, show a spinner
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        </div>
+      );
+    }
+    
+    // If not authenticated, redirect to auth page
+    if (!user) {
+      window.location.href = '/auth';
+      return null;
+    }
+    
+    // If admin-only and user is not admin, redirect to dashboard
+    if (adminOnly && user.role !== 'admin') {
+      window.location.href = '/dashboard';
+      return null;
+    }
+    
+    // All checks passed, render the actual component
+    return <Component {...props} />;
+  };
   
-  // For routes that should match exactly, use Route's built-in matching
-  if (exact) {
-    return (
-      <Route path={path}>
-        {(params) => {
-          if (isLoading) {
-            return (
-              <div className="flex items-center justify-center min-h-screen">
-                <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
-              </div>
-            );
-          }
-          
-          if (!user) {
-            navigate('/auth');
-            return null;
-          }
-          
-          if (adminOnly && user.role !== 'admin') {
-            navigate('/dashboard');
-            return null;
-          }
-          
-          return <Component />;
-        }}
-      </Route>
-    );
-  }
-  
-  // For prefixed routes, only render if we're on a matching path
-  // This is important for nested routes
-  return (
-    <Route path={`${path}/:rest*`}>
-      {(params) => {
-        if (isLoading) {
-          return (
-            <div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
-            </div>
-          );
-        }
-        
-        if (!user) {
-          navigate('/auth');
-          return null;
-        }
-        
-        if (adminOnly && user.role !== 'admin') {
-          navigate('/dashboard');
-          return null;
-        }
-        
-        return <Component />;
-      }}
-    </Route>
-  );
+  // Use wouter's Route component with the path and our protected component
+  return <Route path={path} component={ProtectedComponent} />;
 }

@@ -65,7 +65,6 @@ export default function ClientSidebar() {
     { href: '/dashboard/delivery-partners', icon: Truck, label: 'Delivery Partners' },
     { href: '/dashboard/e-commerce', icon: ShoppingBag, label: 'E-Commerce' },
     { href: '/dashboard/pos-integration', icon: Terminal, label: 'POS Integration' },
-    { href: '/dashboard/management', icon: Menu, label: 'Management' },
     { 
       href: '/dashboard/marketing', 
       icon: BarChart3, 

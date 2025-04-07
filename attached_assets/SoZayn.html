@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<!-- saved from url=(0066)https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SoZayn</title>
+  <link rel="stylesheet" href="./SoZayn_files/css2">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: #131a29;
+      --bg-card-hover: #1a2336;
+      --bg-chart: #18203a;
+      --text-primary: #f0f6fc;
+      --text-secondary: #a0afce;
+      --accent-blue: #4361ee;
+      --accent-purple: #8957e5;
+      --accent-green: #2ea043;
+      --accent-orange: #ff9f1c;
+      --accent-yellow: #ffbf00;
+      --border-color: #283452;
+      --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      --glow-blue: 0 0 80px rgba(67, 97, 238, 0.25);
+      --glow-purple: 0 0 80px rgba(137, 87, 229, 0.15);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Header Styles */
+    header {
+      padding: 1.5rem 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    
+    .logo-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: -0.3rem;
+      display: block;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .btn-outline {
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      background-color: transparent;
+    }
+    
+    .btn-outline:hover {
+      border-color: var(--text-secondary);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-primary {
+      background-color: var(--accent-blue);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+    }
+    
+    .btn-primary:hover {
+      background-color: rgba(67, 97, 238, 0.9);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(67, 97, 238, 0.35);
+    }
+    
+    /* Hero Section */
+    .hero {
+      padding: 5rem 0;
+      position: relative;
+      overflow: hidden;
+      min-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    /* Background Elements */
+    .bg-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(rgba(67, 97, 238, 0.05) 1px, transparent 1px);
+      background-size: 30px 30px;
+      z-index: 0;
+      opacity: 0.3;
+    }
+    
+    .bg-delivery-path {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+    
+    .delivery-path {
+      position: absolute;
+      top: 20%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        rgba(67, 97, 238, 0), 
+        rgba(67, 97, 238, 0.3), 
+        rgba(67, 97, 238, 0.5), 
+        rgba(67, 97, 238, 0.3), 
+        rgba(67, 97, 238, 0));
+      box-shadow: 0 0 10px rgba(67, 97, 238, 0.5);
+      animation: pathGlow 8s infinite linear;
+    }
+    
+    .delivery-path:nth-child(2) {
+      top: 60%;
+      animation-delay: -4s;
+    }
+    
+    .delivery-path:nth-child(3) {
+      top: 85%;
+      animation-delay: -2s;
+    }
+    
+    .delivery-node {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      box-shadow: 0 0 8px rgba(67, 97, 238, 0.8);
+      animation: moveNode 8s infinite linear;
+    }
+    
+    .delivery-node:nth-child(4) {
+      top: calc(20% - 3px);
+      animation-delay: -1s;
+    }
+    
+    .delivery-node:nth-child(5) {
+      top: calc(60% - 3px);
+      animation-delay: -3s;
+    }
+    
+    .delivery-node:nth-child(6) {
+      top: calc(85% - 3px);
+      animation-delay: -6s;
+    }
+    
+    @keyframes pathGlow {
+      0% { opacity: 0.2; }
+      50% { opacity: 0.7; }
+      100% { opacity: 0.2; }
+    }
+    
+    @keyframes moveNode {
+      0% { left: 0%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { left: 100%; opacity: 0; }
+    }
+    
+    .glow-effect {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: 0;
+    }
+    
+    .glow-blue {
+      top: 20%;
+      right: -5%;
+      width: 500px;
+      height: 500px;
+      background: var(--accent-blue);
+      opacity: 0.1;
+      box-shadow: var(--glow-blue);
+    }
+    
+    .glow-purple {
+      bottom: 5%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: var(--accent-purple);
+      opacity: 0.08;
+      box-shadow: var(--glow-purple);
+    }
+    
+    /* Connection visual */
+    .connection-visual {
+      position: absolute;
+      top: 40%;
+      left: 20%;
+      right: 20%;
+      z-index: 0;
+      opacity: 0.5;
+    }
+    
+    .connection-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        rgba(67, 97, 238, 0.2), 
+        rgba(67, 97, 238, 0.8), 
+        rgba(67, 97, 238, 0.2));
+    }
+    
+    .connection-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-blue);
+      top: calc(50% - 4px);
+      animation: pulseAndMove 4s infinite linear;
+    }
+    
+    @keyframes pulseAndMove {
+      0% { left: 0%; transform: scale(0.5); opacity: 0; }
+      20% { transform: scale(1); opacity: 1; }
+      80% { transform: scale(1); opacity: 1; }
+      100% { left: 100%; transform: scale(0.5); opacity: 0; }
+    }
+    
+    .connection-dot:nth-child(2) {
+      animation-delay: -1s;
+    }
+    
+    .connection-dot:nth-child(3) {
+      animation-delay: -2s;
+    }
+    
+    .connection-dot:nth-child(4) {
+      animation-delay: -3s;
+    }
+    
+    .hero-content {
+      display: flex;
+      gap: 4rem;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .hero-text {
+      flex: 1;
+      position: relative;
+    }
+    
+    .hero-line {
+      position: absolute;
+      top: -50px;
+      left: -15px;
+      width: 5px;
+      height: 120px;
+      background: linear-gradient(to bottom, var(--accent-blue), rgba(67, 97, 238, 0));
+      border-radius: 5px;
+    }
+    
+    .hero-heading {
+      font-size: 3.8rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -2px;
+    }
+    
+    .hero-subtitle {
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+    
+    .partners {
+      margin-top: 2.5rem;
+    }
+    
+    .partners-text {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+    
+    .partners-logos {
+      display: flex;
+      gap: 2.5rem;
+      align-items: center;
+      opacity: 0.7;
+    }
+    
+    .partners-logos span {
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: -0.3px;
+    }
+    
+    .hero-visual {
+      flex: 1;
+      position: relative;
+    }
+    
+    .dashboard-card {
+      background-color: var(--bg-card);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border-color);
+      max-width: 450px;
+      position: relative;
+      overflow: hidden;
+      transform: perspective(1200px) rotateY(-8deg) rotateX(3deg);
+      transition: all 0.5s ease;
+    }
+    
+    .dashboard-card:hover {
+      transform: perspective(1200px) rotateY(-4deg) rotateX(2deg) translateY(-10px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+    }
+    
+    .card-glow {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(67, 97, 238, 0.03), transparent 70%);
+      pointer-events: none;
+    }
+    
+    /* Order Tracking Section */
+    .order-tracking {
+      margin-bottom: 1.5rem;
+    }
+    
+    .order-status-title {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .status-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    
+    .status-line {
+      position: absolute;
+      top: 12px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background-color: var(--border-color);
+      z-index: 1;
+    }
+    
+    .status-line-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 75%;
+      background-color: var(--accent-blue);
+      z-index: 2;
+    }
+    
+    .status-step {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 20%;
+    }
+    
+    .step-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: var(--bg-dark);
+      border: 2px solid var(--border-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      position: relative;
+    }
+    
+    .step-icon.completed {
+      background-color: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+    
+    .step-icon.active {
+      background-color: var(--bg-chart);
+      border-color: var(--accent-blue);
+    }
+    
+    .step-icon.completed::after {
+      content: "✓";
+      color: white;
+    }
+    
+    .step-label {
+      font-size: 0.7rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+    
+    .step-icon.completed + .step-label,
+    .step-icon.active + .step-label {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    .orders-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+      margin-bottom: 1rem;
+    }
+    
+    .order-metric {
+      background-color: var(--bg-chart);
+      border-radius: 8px;
+      padding: 0.7rem;
+      position: relative;
+    }
+    
+    .metric-label {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+    }
+    
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .action-btn {
+      background-color: var(--accent-blue);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(67, 97, 238, 0.35);
+    }
+    
+    .action-indicators {
+      display: flex;
+      gap: 0.7rem;
+    }
+    
+    .indicator {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: rgba(67, 97, 238, 0.15);
+      transition: all 0.3s ease;
+    }
+    
+    .dashboard-card:hover .indicator {
+      background-color: rgba(67, 97, 238, 0.25);
+    }
+    
+    /* Features Section */
+    .features {
+      padding: 6rem 0;
+      position: relative;
+    }
+    
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      letter-spacing: -1px;
+    }
+    
+    .section-subtitle {
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      font-size: 1.1rem;
+    }
+    
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .feature-card {
+      background-color: var(--bg-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.4s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-15px);
+      box-shadow: var(--card-shadow);
+      border-color: var(--accent-blue);
+      background-color: var(--bg-card-hover);
+    }
+    
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+      font-size: 1.2rem;
+      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.25);
+    }
+    
+    .feature-card h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+    }
+    
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    
+    /* Pricing Section */
+    .pricing {
+      padding: 6rem 0;
+      position: relative;
+    }
+    
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    
+    .pricing-card {
+      background-color: var(--bg-card);
+      border-radius: 14px;
+      padding: 2rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.4s ease;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pricing-card.highlighted {
+      border-color: var(--accent-blue);
+      background-color: var(--bg-card-hover);
+      box-shadow: var(--card-shadow);
+      position: relative;
+      z-index: 1;
+    }
+    
+    .pricing-card:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--card-shadow);
+    }
+    
+    .pricing-title {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    
+    .pricing-price {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+      color: var(--text-primary);
+    }
+    
+    .pricing-period {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+    
+    .pricing-features li {
+      padding: 0.5rem 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      position: relative;
+      padding-left: 1.5rem;
+    }
+    
+    .pricing-features li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--accent-blue);
+      font-weight: bold;
+    }
+    
+    /* About Section */
+    #about {
+      padding: 6rem 0;
+      position: relative;
+    }
+    
+    .about-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .about-text {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .about-text p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+    }
+    
+    /* Footer */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .footer-logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+    
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+    
+    /* Responsive styles */
+    @media (max-width: 1024px) {
+      .hero-heading {
+        font-size: 3rem;
+      }
+      
+      .hero-content {
+        flex-direction: column;
+        gap: 3rem;
+      }
+      
+      .dashboard-card {
+        transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+        max-width: 100%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .navbar {
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      
+      .nav-links {
+        order: 3;
+        width: 100%;
+        margin-top: 1rem;
+        justify-content: center;
+      }
+      
+      .hero-heading {
+        font-size: 2.5rem;
+      }
+      
+      .footer-content {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body data-new-gr-c-s-check-loaded="14.1229.0" data-gr-ext-installed="">
+  <header>
+    <div class="container">
+      <nav class="navbar">
+        <a href="https://sozayndigital-e2112b66b875.herokuapp.com/" class="logo">
+          SoZayn
+          <span class="logo-subtitle">Welcome To Digital Era</span>
+        </a>
+        <div class="nav-links">
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#features">Features</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#pricing">Pricing</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#support">Support</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#about">About</a>
+        </div>
+        <div class="cta-buttons">
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-outline">Sign in</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-primary">Get Started</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+  
+  <section class="hero">
+    <!-- Background elements that visualize delivery networks -->
+    <div class="bg-grid"></div>
+    
+    <!-- Animated delivery paths -->
+    <div class="bg-delivery-path">
+      <div class="delivery-path"></div>
+      <div class="delivery-path"></div>
+      <div class="delivery-path"></div>
+      <div class="delivery-node"></div>
+      <div class="delivery-node"></div>
+      <div class="delivery-node"></div>
+    </div>
+    
+    <!-- Connection visualization -->
+    <div class="connection-visual">
+      <div class="connection-line"></div>
+      <div class="connection-dot"></div>
+      <div class="connection-dot"></div>
+      <div class="connection-dot"></div>
+      <div class="connection-dot"></div>
+    </div>
+    
+    <!-- Platform visualization with many points and connections -->
+    <div class="platform-visual" id="platformVisual"><div class="connection-point" style="left: 534.194px; top: 329.203px;"></div><div class="connection-point" style="left: 564.999px; top: 577.861px;"></div><div class="connection-point" style="left: 1137.85px; top: 716.727px;"></div><div class="connection-point" style="left: 479.396px; top: 120.069px;"></div><div class="connection-point" style="left: 43.7482px; top: 127.382px;"></div><div class="connection-point" style="left: 625.369px; top: 933.292px;"></div><div class="connection-point" style="left: 344.723px; top: 515.305px;"></div><div class="connection-point" style="left: 643.368px; top: 592.294px;"></div><div class="connection-point" style="left: 159.272px; top: 38.0043px;"></div><div class="connection-point" style="left: 118.513px; top: 263.259px;"></div><div class="connection-point" style="left: 918.006px; top: 346.624px;"></div><div class="connection-point" style="left: 780.417px; top: 283.861px;"></div><div class="connection-point" style="left: 751.213px; top: 23.3628px;"></div><div class="connection-point" style="left: 729.741px; top: 500.475px;"></div><div class="connection-point" style="left: 281.089px; top: 711.738px;"></div><div class="connection-point" style="left: 423.307px; top: 431.262px;"></div><div class="connection-point" style="left: 506.963px; top: 763.739px;"></div><div class="connection-point" style="left: 1206.02px; top: 554.277px;"></div><div class="connection-point" style="left: 740.684px; top: 584.847px;"></div><div class="connection-point" style="left: 1370.17px; top: 797.536px;"></div><div class="connection-line-visual" style="width: 250.559px; left: 534.194px; top: 329.203px; transform: rotate(82.938deg);"></div><div class="connection-line-visual" style="width: 216.194px; left: 534.194px; top: 329.203px; transform: rotate(-104.683deg);"></div><div class="connection-line-visual" style="width: 265.581px; left: 534.194px; top: 329.203px; transform: rotate(135.514deg);"></div><div class="connection-line-visual" style="width: 284.844px; left: 534.194px; top: 329.203px; transform: rotate(67.4633deg);"></div><div class="connection-line-visual" style="width: 250.362px; left: 534.194px; top: 329.203px; transform: rotate(-10.434deg);"></div><div class="connection-line-visual" style="width: 259.948px; left: 534.194px; top: 329.203px; transform: rotate(41.2139deg);"></div><div class="connection-line-visual" style="width: 150.705px; left: 534.194px; top: 329.203px; transform: rotate(137.374deg);"></div><div class="connection-line-visual" style="width: 228.986px; left: 564.999px; top: 577.861px; transform: rotate(-164.146deg);"></div><div class="connection-line-visual" style="width: 79.6873px; left: 564.999px; top: 577.861px; transform: rotate(10.4356deg);"></div><div class="connection-line-visual" style="width: 182.013px; left: 564.999px; top: 577.861px; transform: rotate(-25.1611deg);"></div><div class="connection-line-visual" style="width: 203.882px; left: 564.999px; top: 577.861px; transform: rotate(-134.025deg);"></div><div class="connection-line-visual" style="width: 194.727px; left: 564.999px; top: 577.861px; transform: rotate(107.34deg);"></div><div class="connection-line-visual" style="width: 176.174px; left: 1137.85px; top: 716.727px; transform: rotate(-67.2355deg);"></div><div class="connection-line-visual" style="width: 245.975px; left: 1137.85px; top: 716.727px; transform: rotate(19.1792deg);"></div><div class="connection-line-visual" style="width: 288.508px; left: 479.396px; top: 120.069px; transform: rotate(-19.5844deg);"></div><div class="connection-line-visual" style="width: 146.062px; left: 43.7482px; top: 127.382px; transform: rotate(-37.7281deg);"></div><div class="connection-line-visual" style="width: 155.088px; left: 43.7482px; top: 127.382px; transform: rotate(61.1788deg);"></div><div class="connection-line-visual" style="width: 206.805px; left: 625.369px; top: 933.292px; transform: rotate(-124.928deg);"></div><div class="connection-line-visual" style="width: 206.483px; left: 344.723px; top: 515.305px; transform: rotate(107.95deg);"></div><div class="connection-line-visual" style="width: 296.717px; left: 344.723px; top: 515.305px; transform: rotate(56.8534deg);"></div><div class="connection-line-visual" style="width: 272.687px; left: 643.368px; top: 592.294px; transform: rotate(-143.805deg);"></div><div class="connection-line-visual" style="width: 219.088px; left: 643.368px; top: 592.294px; transform: rotate(128.507deg);"></div><div class="connection-line-visual" style="width: 97.6005px; left: 643.368px; top: 592.294px; transform: rotate(-4.37645deg);"></div><div class="connection-line-visual" style="width: 228.913px; left: 159.272px; top: 38.0043px; transform: rotate(100.257deg);"></div><div class="connection-line-visual" style="width: 151.228px; left: 918.006px; top: 346.624px; transform: rotate(-155.479deg);"></div><div class="connection-line-visual" style="width: 243.133px; left: 918.006px; top: 346.624px; transform: rotate(140.744deg);"></div><div class="connection-line-visual" style="width: 296.973px; left: 918.006px; top: 346.624px; transform: rotate(126.662deg);"></div><div class="connection-line-visual" style="width: 262.13px; left: 780.417px; top: 283.861px; transform: rotate(-96.3966deg);"></div><div class="connection-line-visual" style="width: 222.462px; left: 780.417px; top: 283.861px; transform: rotate(103.167deg);"></div><div class="connection-line-visual" style="width: 85.0781px; left: 729.741px; top: 500.475px; transform: rotate(82.6104deg);"></div><div class="connection-line-visual" style="width: 231.782px; left: 281.089px; top: 711.738px; transform: rotate(12.9647deg);"></div><div class="connection-line-visual" style="width: 293.464px; left: 1206.02px; top: 554.277px; transform: rotate(55.9883deg);"></div></div>
+    
+    <!-- Glow effects -->
+    <div class="glow-effect glow-blue"></div>
+    <div class="glow-effect glow-purple"></div>
+    
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="hero-line"></div>
+          <h1 class="hero-heading">Integrate Shopify with delivery services</h1>
+          <p class="hero-subtitle">Connect your Shopify store with leading delivery providers to streamline order fulfillment and optimize deliveries.</p>
+          
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-primary" style="padding: 0.8rem 1.5rem; font-size: 1rem;">Start connecting now →</a>
+          
+          <div class="partners">
+            <p class="partners-text">Trusted by merchants delivering with</p>
+            <div class="partners-logos">
+              <span style="font-weight: 600; font-size: 1rem;">UberDirect</span>
+              <span style="font-weight: 600; font-size: 1rem;">JetGo</span>
+              <span style="font-weight: 600; font-size: 1rem;">Shopify</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="hero-visual">
+          <div class="dashboard-card" style="transform: perspective(1200px) rotateY(-8.7125deg) rotateX(3.175deg) translateZ(10px);">
+            <div class="card-glow"></div>
+            <div class="order-tracking">
+              <div class="order-status-title">Order Status</div>
+              
+              <!-- Order Status Tracker -->
+              <div class="status-steps">
+                <div class="status-line">
+                  <div class="status-line-progress"></div>
+                </div>
+                
+                <div class="status-step">
+                  <div class="step-icon completed"></div>
+                  <div class="step-label">Order Received</div>
+                </div>
+                
+                <div class="status-step">
+                  <div class="step-icon completed"></div>
+                  <div class="step-label">Processing</div>
+                </div>
+                
+                <div class="status-step">
+                  <div class="step-icon active"></div>
+                  <div class="step-label">Dispatching</div>
+                </div>
+                
+                <div class="status-step">
+                  <div class="step-icon"></div>
+                  <div class="step-label">In Transit</div>
+                </div>
+                
+                <div class="status-step">
+                  <div class="step-icon"></div>
+                  <div class="step-label">Delivered</div>
+                </div>
+              </div>
+              
+              <!-- Order Metrics -->
+              <div class="orders-summary">
+                <div class="order-metric">
+                  <div class="metric-label">Today's Orders</div>
+                  <div class="metric-value">28</div>
+                </div>
+                <div class="order-metric">
+                  <div class="metric-label">In Transit</div>
+                  <div class="metric-value">14</div>
+                </div>
+                <div class="order-metric">
+                  <div class="metric-label">Success Rate</div>
+                  <div class="metric-value">98%</div>
+                </div>
+                <div class="order-metric">
+                  <div class="metric-label">Avg. Delivery Time</div>
+                  <div class="metric-value">37 min</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="action-row">
+              <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="action-btn">View Dashboard</a>
+              <div class="action-indicators">
+                <div class="indicator"></div>
+                <div class="indicator"></div>
+                <div class="indicator"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Powerful delivery integration</h2>
+      <p class="section-subtitle">Streamline your order fulfillment with our delivery integration platform</p>
+      
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Seamless Shopify Integration</h3>
+          <p>Connect your Shopify store in minutes with our frictionless integration. Automatically sync orders for delivery processing without any manual steps.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🚚</div>
+          <h3>Multi-service Delivery</h3>
+          <p>Access UberDirect and JetGo from a single platform. Choose the right delivery service for each order or let our system pick the optimal option.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Real-time Analytics</h3>
+          <p>Track delivery performance with our comprehensive analytics dashboard. Monitor success rates, delivery times, and customer satisfaction in real-time.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <h3>Advanced Routing</h3>
+          <p>Optimize delivery routes automatically for maximum efficiency. Reduce delivery times and costs with intelligent routing algorithms.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Status Notifications</h3>
+          <p>Keep customers informed with automated status updates. Send notifications at every step of the delivery process to improve satisfaction.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Secure Platform</h3>
+          <p>Protect your data and your customers' information with our enterprise-grade security protocols and encrypted connections.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section id="pricing" class="pricing">
+    <div class="container">
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">Choose the plan that best fits your business needs</p>
+      
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <h3 class="pricing-title">Starter</h3>
+          <div class="pricing-price">$49</div>
+          <div class="pricing-period">per month</div>
+          <ul class="pricing-features">
+            <li>Up to 100 deliveries/month</li>
+            <li>Shopify integration</li>
+            <li>Access to UberDirect and JetGo</li>
+            <li>Basic analytics</li>
+            <li>Email support</li>
+          </ul>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-outline" style="width: 100%;">Get Started</a>
+        </div>
+        
+        <div class="pricing-card highlighted">
+          <h3 class="pricing-title">Professional</h3>
+          <div class="pricing-price">$99</div>
+          <div class="pricing-period">per month</div>
+          <ul class="pricing-features">
+            <li>Up to 500 deliveries/month</li>
+            <li>Shopify integration</li>
+            <li>Access to UberDirect and JetGo</li>
+            <li>Advanced analytics dashboard</li>
+            <li>Priority email &amp; chat support</li>
+            <li>Custom delivery rules</li>
+          </ul>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-primary" style="width: 100%;">Get Started</a>
+        </div>
+        
+        <div class="pricing-card">
+          <h3 class="pricing-title">Enterprise</h3>
+          <div class="pricing-price">Custom</div>
+          <div class="pricing-period">contact us for pricing</div>
+          <ul class="pricing-features">
+            <li>Unlimited deliveries</li>
+            <li>Shopify integration</li>
+            <li>Access to UberDirect and JetGo</li>
+            <li>Advanced analytics &amp; reporting</li>
+            <li>24/7 priority support</li>
+            <li>Custom delivery rules</li>
+            <li>Dedicated account manager</li>
+            <li>SLA guarantees</li>
+          </ul>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#support" class="btn btn-outline" style="width: 100%;">Contact Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section id="about" class="about">
+    <div class="container">
+      <h2 class="section-title">About SoZayn</h2>
+      
+      <div class="about-content">
+        <div class="about-text">
+          <p>SoZayn connects your Shopify store with delivery services like UberDirect and JetGo. We simplify the delivery process, optimize routing, and provide real-time tracking—all through a single platform.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <section id="support" class="cta-section">
+    <div class="container">
+      <h2 class="section-title">Ready to optimize your deliveries?</h2>
+      <p>Get started with SoZayn today and transform how you handle order fulfillment.</p>
+      <div class="cta-buttons">
+        <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth" class="btn btn-primary" style="padding: 0.8rem 1.8rem; font-size: 1rem;">Create account</a>
+        <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#support" class="btn btn-outline" style="padding: 0.8rem 1.8rem; font-size: 1rem;">Contact sales</a>
+      </div>
+    </div>
+  </section>
+  
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">SoZayn</div>
+        <div class="footer-links">
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#about">About</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#pricing">Pricing</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#support">Support</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#privacy">Privacy</a>
+          <a href="https://sozayndigital-e2112b66b875.herokuapp.com/auth?tab=register#terms">Terms</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === "#") return;
+        
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+    
+    // Enhanced 3D effect on dashboard card
+    const dashboardCard = document.querySelector('.dashboard-card');
+    if (dashboardCard) {
+      document.addEventListener('mousemove', function(e) {
+        if (window.innerWidth > 1024) {
+          const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
+          const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+          dashboardCard.style.transform = `perspective(1200px) rotateY(${xAxis}deg) rotateX(${-yAxis}deg) translateZ(10px)`;
+        }
+      });
+      
+      document.addEventListener('mouseleave', function() {
+        dashboardCard.style.transform = 'perspective(1200px) rotateY(-8deg) rotateX(3deg)';
+      });
+    }
+    
+    // Create platform visualization with dynamic connection lines
+    function createPlatformVisualization() {
+      const container = document.getElementById('platformVisual');
+      if (!container) return;
+      
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      
+      // Create points
+      const pointCount = 20;
+      const points = [];
+      
+      for (let i = 0; i < pointCount; i++) {
+        const point = document.createElement('div');
+        point.className = 'connection-point';
+        
+        const x = Math.random() * windowWidth;
+        const y = Math.random() * windowHeight;
+        
+        point.style.left = x + 'px';
+        point.style.top = y + 'px';
+        
+        container.appendChild(point);
+        points.push({ el: point, x, y });
+      }
+      
+      // Create connections between some points
+      for (let i = 0; i < pointCount; i++) {
+        for (let j = i + 1; j < pointCount; j++) {
+          // Only connect some points (not all to all)
+          if (Math.random() > 0.7) continue;
+          
+          const pointA = points[i];
+          const pointB = points[j];
+          
+          const dx = pointB.x - pointA.x;
+          const dy = pointB.y - pointA.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          // Only connect points within a certain distance
+          if (distance > 300) continue;
+          
+          const line = document.createElement('div');
+          line.className = 'connection-line-visual';
+          line.style.width = distance + 'px';
+          line.style.left = pointA.x + 'px';
+          line.style.top = pointA.y + 'px';
+          
+          // Calculate angle
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          line.style.transform = `rotate(${angle}deg)`;
+          
+          container.appendChild(line);
+        }
+      }
+    }
+    
+    // Initialize platform visualization
+    window.addEventListener('load', createPlatformVisualization);
+    window.addEventListener('resize', function() {
+      const container = document.getElementById('platformVisual');
+      if (container) {
+        container.innerHTML = '';
+        createPlatformVisualization();
+      }
+    });
+  </script>
+  <script src="./SoZayn_files/fix-buttons.js"></script>
+
+<script src="./SoZayn_files/button-fix.js"></script><script src="./SoZayn_files/button-fix.js"></script><script src="./SoZayn_files/button-fix.js"></script>
+</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
+      div.grammarly-desktop-integration {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select:none;
+        user-select:none;
+      }
+
+      div.grammarly-desktop-integration:before {
+        content: attr(data-content);
+      }
+    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>

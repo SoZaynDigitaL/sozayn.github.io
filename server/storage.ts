@@ -30,19 +30,31 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Initialize storage with demo user
+// Initialize storage with demo users
 const initializeStorage = async () => {
-  // Check if demo user exists
+  // Check if users exist and create them if needed
   const storage = new DatabaseStorage();
-  const existingUser = await storage.getUserByUsername('demo');
   
-  // Create demo user if it doesn't exist
-  if (!existingUser) {
+  // Check for demo user
+  const existingDemoUser = await storage.getUserByUsername('demo');
+  if (!existingDemoUser) {
     await storage.createUser({
       username: 'demo',
       password: 'password123',
       email: 'demo@example.com',
       businessName: 'Demo Restaurant',
+      businessType: 'restaurant',
+    });
+  }
+  
+  // Check for admin user
+  const existingAdminUser = await storage.getUserByUsername('admin');
+  if (!existingAdminUser) {
+    await storage.createUser({
+      username: 'admin',
+      password: 'admin123',
+      email: 'admin@sozayn.com',
+      businessName: 'SoZayn Admin',
       businessType: 'restaurant',
     });
   }

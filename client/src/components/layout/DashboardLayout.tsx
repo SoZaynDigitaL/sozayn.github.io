@@ -28,6 +28,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     return user.businessName.charAt(0);
   };
 
+  // Helper function to get the page title based on the current location
+  const getPageTitle = () => {
+    // Base dashboard routes
+    if (location === '/dashboard') return 'Dashboard';
+    if (location === '/dashboard/orders') return 'Orders';
+    if (location === '/dashboard/clients') return 'Client Management';
+    if (location === '/dashboard/delivery-partners') return 'Delivery Partners';
+    if (location === '/dashboard/e-commerce') return 'E-Commerce';
+    if (location === '/dashboard/pos-integration') return 'POS Integration';
+    if (location === '/dashboard/management') return 'Restaurant Management';
+    if (location === '/dashboard/settings') return 'Settings';
+    
+    // Marketing routes
+    if (location === '/dashboard/marketing') return 'Marketing';
+    if (location === '/dashboard/marketing/seo') return 'SEO Management';
+    if (location === '/dashboard/marketing/email') return 'Email Campaigns';
+    if (location === '/dashboard/marketing/automated') return 'Automated Marketing';
+    
+    // Social media routes
+    if (location === '/dashboard/social-media') return 'Social Media Integration';
+    
+    // Loyalty routes
+    if (location === '/dashboard/loyalty') return 'Loyalty & Rewards';
+    
+    // Default fallback
+    return 'SoZayn Dashboard';
+  };
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-bg-dark">
       {user?.role === 'admin' ? <DashboardSidebar /> : <ClientSidebar />}
@@ -35,16 +63,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
         <header className="py-4 px-6 border-b border-border-color flex items-center justify-between bg-bg-card sticky top-0 z-20">
           <h1 className="text-lg font-semibold">
-            {location === '/dashboard' && 'Dashboard'}
-            {location === '/dashboard/orders' && 'Orders'}
-            {location === '/dashboard/clients' && 'Client Management'}
-            {location === '/dashboard/delivery-partners' && 'Delivery Partners'}
-            {location === '/dashboard/e-commerce' && 'E-Commerce'}
-            {location === '/dashboard/pos-integration' && 'POS Integration'}
-            {location === '/dashboard/management' && 'Restaurant Management'}
-            {location === '/dashboard/marketing' && 'Marketing'}
-            {location === '/dashboard/loyalty' && 'Loyalty & Rewards'}
-            {location === '/dashboard/settings' && 'Settings'}
+            {getPageTitle()}
           </h1>
           
           <div className="flex items-center space-x-4">

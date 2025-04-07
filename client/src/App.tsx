@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -72,7 +72,7 @@ function Router() {
       <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
       <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
       
-      {/* Fallback to 404 - Note: We need to put this outside of Switch as our ProtectedRoutes are now Route components */}
+      {/* Fallback to 404 */}
       <Route path="/:rest*">
         {() => <NotFound />}
       </Route>

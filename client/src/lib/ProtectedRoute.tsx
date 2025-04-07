@@ -10,45 +10,46 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ component: Component, adminOnly = false, path }: ProtectedRouteProps) {
-  const [location, navigate] = useLocation();
   const { user, isLoading } = useAuth();
-  
-  // We don't need useRoute anymore - using Route component directly
-  
-  // Handle authentication and authorization
-  useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        // Not authenticated, redirect to auth page
-        navigate('/auth');
-      } else if (adminOnly && user.role !== 'admin') {
-        // Not an admin, redirect to a permitted page
-        navigate('/dashboard');
-      }
-    }
-  }, [isLoading, user, navigate, adminOnly]);
+  const [, navigate] = useLocation();
 
-  // Use the Route component from wouter to handle the path matching
+  if (isLoading) {
+    return (
+      <Route path={path}>
+        {() => (
+          <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+          </div>
+        )}
+      </Route>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Route path={path}>
+        {() => {
+          navigate('/auth');
+          return null;
+        }}
+      </Route>
+    );
+  }
+
+  if (adminOnly && user.role !== 'admin') {
+    return (
+      <Route path={path}>
+        {() => {
+          navigate('/dashboard');
+          return null;
+        }}
+      </Route>
+    );
+  }
+
   return (
     <Route path={path}>
-      {(params) => {
-        // If still loading auth state, show a loading spinner
-        if (isLoading) {
-          return (
-            <div className="flex items-center justify-center min-h-screen">
-              <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
-            </div>
-          );
-        }
-        
-        // If the user is authenticated (and admin if required), render the component
-        if (user && (!adminOnly || user.role === 'admin')) {
-          return <Component />;
-        }
-        
-        // This shouldn't be reached due to the redirect in useEffect
-        return null;
-      }}
+      {() => <Component />}
     </Route>
   );
 }

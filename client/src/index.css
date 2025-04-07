@@ -4,16 +4,21 @@
 
 :root {
   --bg-dark: #0a0e17;
-  --bg-card: #1a1e27;
-  --bg-chart: #2a2e37;
+  --bg-card: #131a29;
+  --bg-card-hover: #1a2336;
+  --bg-chart: #18203a;
+  --text-primary: #f0f6fc;
+  --text-secondary: #a0afce;
   --accent-blue: #4361ee;
   --accent-purple: #8957e5;
   --accent-green: #2ea043;
-  --accent-orange: #f97316;
+  --accent-orange: #ff9f1c;
+  --accent-yellow: #ffbf00;
   --accent-red: #f43f5e;
-  --border-color: #383c44;
-  --text-primary: #f9fafb;
-  --text-secondary: #9ca3af;
+  --border-color: #283452;
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --glow-blue: 0 0 80px rgba(67, 97, 238, 0.25);
+  --glow-purple: 0 0 80px rgba(137, 87, 229, 0.15);
 }
 
 @layer base {
@@ -39,6 +44,10 @@
     background-color: var(--bg-chart);
   }
   
+  .bg-bg-card-hover {
+    background-color: var(--bg-card-hover);
+  }
+  
   .bg-accent-blue {
     background-color: var(--accent-blue);
   }
@@ -57,6 +66,10 @@
   
   .bg-accent-red {
     background-color: var(--accent-red);
+  }
+  
+  .bg-accent-yellow {
+    background-color: var(--accent-yellow);
   }
   
   .text-accent-blue {
@@ -79,6 +92,10 @@
     color: var(--accent-red);
   }
   
+  .text-accent-yellow {
+    color: var(--accent-yellow);
+  }
+  
   .text-text-primary {
     color: var(--text-primary);
   }
@@ -89,5 +106,17 @@
   
   .border-border-color {
     border-color: var(--border-color);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--card-shadow);
+  }
+  
+  .shadow-glow-blue {
+    box-shadow: var(--glow-blue);
+  }
+  
+  .shadow-glow-purple {
+    box-shadow: var(--glow-purple);
   }
 }

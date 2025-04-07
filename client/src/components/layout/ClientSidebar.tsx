@@ -9,7 +9,12 @@ import {
   BarChart3,
   Gift, 
   Settings, 
-  Menu
+  Menu,
+  SearchIcon,
+  MessageSquare,
+  Share2,
+  Megaphone,
+  Mail
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -32,6 +37,10 @@ export default function ClientSidebar() {
     { href: '/dashboard/pos-integration', icon: Terminal, label: 'POS Integration' },
     { href: '/dashboard/management', icon: Menu, label: 'Management' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
+    { href: '/dashboard/seo', icon: SearchIcon, label: 'SEO' },
+    { href: '/dashboard/automated-marketing', icon: Megaphone, label: 'Automated Marketing' },
+    { href: '/dashboard/email-campaigns', icon: Mail, label: 'Email Campaigns' },
+    { href: '/dashboard/social-media', icon: Share2, label: 'Social Media' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];

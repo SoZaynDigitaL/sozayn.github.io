@@ -30,7 +30,7 @@ export default function Features() {
     {
       icon: <BarChart2 className="h-6 w-6 text-accent-blue" />,
       title: "Digital Command Center",
-      description: "Get a real-time overview of all your restaurant operations in one intuitive digital command center."
+      description: "Get a real-time overview of all your operations in one intuitive digital command center."
     },
     {
       icon: <Settings className="h-6 w-6 text-accent-purple" />,

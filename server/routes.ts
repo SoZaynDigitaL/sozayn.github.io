@@ -574,6 +574,192 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(userProducts);
   });
   
+  // Social media data for development
+  let socialAccounts = [
+    { 
+      id: 1, 
+      userId: 0, // Will be set dynamically
+      platform: 'instagram', 
+      handle: '@ourrestaurant', 
+      connected: true, 
+      followers: 2450, 
+      engagement: 4.8 
+    },
+    { 
+      id: 2, 
+      userId: 0, // Will be set dynamically
+      platform: 'facebook', 
+      handle: 'Our Restaurant', 
+      connected: true, 
+      followers: 1850, 
+      engagement: 3.2 
+    },
+    { 
+      id: 3, 
+      userId: 0, // Will be set dynamically
+      platform: 'twitter', 
+      handle: '@ourrestaurant', 
+      connected: false, 
+      followers: 0, 
+      engagement: 0 
+    }
+  ];
+  
+  let socialPosts = [
+    { 
+      id: 1, 
+      userId: 0, // Will be set dynamically
+      platform: 'instagram', 
+      content: 'Try our new summer menu items! Fresh and delicious options for the hot weather.', 
+      posted: new Date('2023-06-15').toISOString(), 
+      likes: 248, 
+      comments: 42,
+      scheduled: false,
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=300&auto=format&fit=crop'
+    },
+    { 
+      id: 2, 
+      userId: 0, // Will be set dynamically
+      platform: 'facebook', 
+      content: 'Happy hour is back! Join us every weekday from 4-6pm for special prices on drinks and appetizers.', 
+      posted: new Date('2023-06-10').toISOString(), 
+      likes: 187, 
+      comments: 28,
+      scheduled: false,
+      image: ''
+    },
+    { 
+      id: 3, 
+      userId: 0, // Will be set dynamically
+      platform: 'instagram', 
+      content: 'Weekend special: Buy one get one free on all desserts!', 
+      posted: null, 
+      likes: 0, 
+      comments: 0,
+      scheduled: true,
+      scheduledAt: new Date('2025-04-15').toISOString(),
+      image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=300&auto=format&fit=crop'
+    }
+  ];
+  
+  let socialStats = {
+    followers: 4580,
+    engagement: 6.2,
+    posts: 124,
+    clicks: 840,
+    platformBreakdown: [
+      { platform: 'Instagram', percentage: 45 },
+      { platform: 'Facebook', percentage: 30 },
+      { platform: 'Twitter', percentage: 25 }
+    ],
+    weeklyData: [
+      { name: 'Mon', instagram: 42, facebook: 30 },
+      { name: 'Tue', instagram: 48, facebook: 35 },
+      { name: 'Wed', instagram: 55, facebook: 40 },
+      { name: 'Thu', instagram: 58, facebook: 42 },
+      { name: 'Fri', instagram: 62, facebook: 45 },
+      { name: 'Sat', instagram: 78, facebook: 58 },
+      { name: 'Sun', instagram: 65, facebook: 47 }
+    ]
+  };
+  
+  // Get all social accounts
+  app.get("/api/social/accounts", isAuthenticated, (req, res) => {
+    // Set the user ID for all accounts
+    const userAccounts = socialAccounts
+      .filter(account => account.userId === 0 || account.userId === req.session.userId)
+      .map(account => ({
+        ...account,
+        userId: req.session.userId
+      }));
+      
+    res.json(userAccounts);
+  });
+  
+  // Get social media statistics
+  app.get("/api/social/stats", isAuthenticated, (req, res) => {
+    res.json(socialStats);
+  });
+  
+  // Get all social posts
+  app.get("/api/social/posts", isAuthenticated, (req, res) => {
+    // Set the user ID for all posts
+    const userPosts = socialPosts
+      .filter(post => post.userId === 0 || post.userId === req.session.userId)
+      .map(post => ({
+        ...post,
+        userId: req.session.userId
+      }));
+      
+    res.json(userPosts);
+  });
+  
+  // Add a new social post
+  app.post("/api/social/posts", isAuthenticated, (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    const { platform, message, imageUrl, scheduledAt } = req.body;
+    
+    const newPost = {
+      id: socialPosts.length > 0 ? Math.max(...socialPosts.map(p => p.id)) + 1 : 1,
+      userId: req.session.userId as number,
+      platform,
+      content: message,
+      posted: scheduledAt ? null : new Date().toISOString(),
+      likes: 0,
+      comments: 0,
+      scheduled: !!scheduledAt,
+      scheduledAt: scheduledAt || null,
+      image: imageUrl || ''
+    };
+    
+    socialPosts.push(newPost);
+    res.status(201).json(newPost);
+  });
+  
+  // Connect a social account
+  app.post("/api/social/connect", isAuthenticated, (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    const { platform, handle } = req.body;
+    
+    // Check if account already exists
+    const existingAccountIndex = socialAccounts.findIndex(
+      account => account.platform === platform && 
+      (account.userId === 0 || account.userId === req.session.userId)
+    );
+    
+    if (existingAccountIndex !== -1) {
+      // Update existing account
+      socialAccounts[existingAccountIndex] = {
+        ...socialAccounts[existingAccountIndex],
+        handle,
+        connected: true,
+        userId: req.session.userId as number
+      };
+      
+      return res.json(socialAccounts[existingAccountIndex]);
+    }
+    
+    // Create new account
+    const newAccount = {
+      id: socialAccounts.length > 0 ? Math.max(...socialAccounts.map(a => a.id)) + 1 : 1,
+      userId: req.session.userId as number,
+      platform,
+      handle,
+      connected: true,
+      followers: 0,
+      engagement: 0
+    };
+    
+    socialAccounts.push(newAccount);
+    res.status(201).json(newAccount);
+  });
+  
   // Get product by ID
   app.get("/api/ecommerce/products/:id", isAuthenticated, (req, res) => {
     const productId = parseInt(req.params.id);

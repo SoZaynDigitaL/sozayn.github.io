@@ -233,12 +233,12 @@ export default function SocialMediaPage() {
     { name: 'Sun', instagram: 65, facebook: 47 },
   ];
   
-  // Handle form submission
+  // Handle social post submission
   const onSocialSubmit = (data: SocialPostFormValues) => {
     postMutation.mutate(data);
   };
   
-  // Get platform icon
+  // Get platform-specific icon
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
       case 'instagram':
@@ -252,7 +252,7 @@ export default function SocialMediaPage() {
     }
   };
   
-  // Connect social account
+  // Show connect account dialog/form
   const connectAccount = (platform: string) => {
     // Simple implementation - in real app would show modal for handle input
     const handle = prompt(`Enter your ${platform} handle:`, `@username`);

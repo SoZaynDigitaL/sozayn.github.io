@@ -1,17 +1,31 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { 
+  users, customers, 
+  type User, type InsertUser,
+  type Customer, type InsertCustomer 
+} from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 // Maintain the same interface for compatibility
 export interface IStorage {
+  // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  
+  // Customer management
+  getCustomer(id: number): Promise<Customer | undefined>;
+  getAllCustomers(): Promise<Customer[]>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  updateCustomer(id: number, data: Partial<Customer>): Promise<Customer>;
+  updateCustomerStatus(id: number, isActive: boolean): Promise<Customer>;
+  deleteCustomer(id: number): Promise<void>;
 }
 
 // Database-backed storage implementation
 export class DatabaseStorage implements IStorage {
+  // User Management
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -32,6 +46,58 @@ export class DatabaseStorage implements IStorage {
   
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+  
+  // Customer Management
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer || undefined;
+  }
+  
+  async getAllCustomers(): Promise<Customer[]> {
+    return await db.select().from(customers);
+  }
+  
+  async createCustomer(customerData: InsertCustomer): Promise<Customer> {
+    const [customer] = await db
+      .insert(customers)
+      .values(customerData)
+      .returning();
+    return customer;
+  }
+  
+  async updateCustomer(id: number, data: Partial<Customer>): Promise<Customer> {
+    const [updatedCustomer] = await db
+      .update(customers)
+      .set(data)
+      .where(eq(customers.id, id))
+      .returning();
+    
+    if (!updatedCustomer) {
+      throw new Error(`Customer with ID ${id} not found`);
+    }
+    
+    return updatedCustomer;
+  }
+  
+  async updateCustomerStatus(id: number, isActive: boolean): Promise<Customer> {
+    const [updatedCustomer] = await db
+      .update(customers)
+      .set({ isActive })
+      .where(eq(customers.id, id))
+      .returning();
+    
+    if (!updatedCustomer) {
+      throw new Error(`Customer with ID ${id} not found`);
+    }
+    
+    return updatedCustomer;
+  }
+  
+  async deleteCustomer(id: number): Promise<void> {
+    await db
+      .delete(customers)
+      .where(eq(customers.id, id));
   }
 }
 

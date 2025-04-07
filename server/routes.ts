@@ -69,6 +69,122 @@ function getPayPalClient() {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Cloudflare integration routes
   setupCloudflareRoutes(app);
+
+  // Customer management endpoints
+  app.get("/api/customers", isAuthenticated, async (req, res) => {
+    try {
+      // You can add pagination and filtering later if needed
+      const customers = await storage.getAllCustomers();
+      res.json(customers);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+      res.status(500).json({ error: "Failed to fetch customers" });
+    }
+  });
+
+  app.get("/api/customers/:id", isAuthenticated, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: "Invalid customer ID" });
+      }
+      
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+      
+      res.json(customer);
+    } catch (error) {
+      console.error("Error fetching customer:", error);
+      res.status(500).json({ error: "Failed to fetch customer" });
+    }
+  });
+
+  app.post("/api/customers", isAdmin, async (req, res) => {
+    try {
+      const newCustomer = await storage.createCustomer({
+        ...req.body,
+        userId: req.session.userId!
+      });
+      res.status(201).json(newCustomer);
+    } catch (error) {
+      console.error("Error creating customer:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to create customer" });
+    }
+  });
+
+  app.put("/api/customers/:id", isAdmin, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: "Invalid customer ID" });
+      }
+
+      const existingCustomer = await storage.getCustomer(customerId);
+      if (!existingCustomer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      const updatedCustomer = await storage.updateCustomer(customerId, req.body);
+      res.json(updatedCustomer);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      res.status(500).json({ error: "Failed to update customer" });
+    }
+  });
+
+  app.delete("/api/customers/:id", isAdmin, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: "Invalid customer ID" });
+      }
+
+      const existingCustomer = await storage.getCustomer(customerId);
+      if (!existingCustomer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      await storage.deleteCustomer(customerId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting customer:", error);
+      res.status(500).json({ error: "Failed to delete customer" });
+    }
+  });
+
+  // Toggle customer status (active/inactive)
+  app.patch("/api/customers/:id/status", isAdmin, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: "Invalid customer ID" });
+      }
+
+      const { isActive } = req.body;
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ error: "isActive must be a boolean value" });
+      }
+
+      const existingCustomer = await storage.getCustomer(customerId);
+      if (!existingCustomer) {
+        return res.status(404).json({ error: "Customer not found" });
+      }
+
+      const updatedCustomer = await storage.updateCustomerStatus(customerId, isActive);
+      res.json(updatedCustomer);
+    } catch (error) {
+      console.error("Error updating customer status:", error);
+      res.status(500).json({ error: "Failed to update customer status" });
+    }
+  });
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {

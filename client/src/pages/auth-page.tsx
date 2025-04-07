@@ -68,13 +68,18 @@ export default function AuthPage() {
     }
   }, []);
 
-  // Redirect if already logged in
+  // Redirect if already logged in - with fix for maximum update depth
   useEffect(() => {
-    if ((user || firebaseUser) && !isRedirecting) {
-      setIsRedirecting(true);
-      navigate('/dashboard');
-    }
-  }, [user, firebaseUser, navigate, isRedirecting]);
+    // Only run once on component mount to avoid recursive updates
+    const checkLogin = () => {
+      if (user || firebaseUser) {
+        window.location.href = '/dashboard';
+      }
+    };
+    
+    checkLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({

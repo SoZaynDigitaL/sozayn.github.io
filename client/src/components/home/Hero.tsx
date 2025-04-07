@@ -29,7 +29,7 @@ export default function Hero() {
                 Welcome to Digital Era
               </h1>
               <p className="text-text-secondary text-lg md:text-xl mb-8 max-w-[500px]">
-                Welcome to Restaurants Grocery Retailer
+                Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="#demo">

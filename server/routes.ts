@@ -14,6 +14,7 @@ import Stripe from "stripe";
 import { setupCloudflareRoutes } from "./cloudflare";
 import paypal from "@paypal/checkout-server-sdk";
 import { PlanType, PLANS, FEATURES, getPlanById } from "../shared/plans";
+import { addUserToMailerLite, updateUserPlanInMailerLite } from "./services/mailerLite";
 
 // Extend the Express Session interface
 declare module 'express-session' {
@@ -91,14 +92,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create user
       const newUser = await storage.createUser(userData);
       
+      // Add user to MailerLite - set default FREE plan if planId is not provided
+      const userPlanId = newUser.planId || PlanType.FREE;
+      try {
+        // Add the user to MailerLite with their plan
+        await addUserToMailerLite(
+          newUser.email,
+          newUser.username,
+          userPlanId as PlanType,
+          newUser.businessName
+        );
+        console.log(`User ${newUser.username} added to MailerLite with plan ${userPlanId}`);
+      } catch (mailerliteError) {
+        // Log error but don't fail registration if MailerLite integration fails
+        console.error("Failed to add user to MailerLite:", mailerliteError);
+      }
+      
       // Don't return password
       const { password, ...userWithoutPassword } = newUser;
+      
+      // Set user ID in session
+      req.session.userId = newUser.id;
       
       res.status(201).json(userWithoutPassword);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
+      console.error("Registration error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

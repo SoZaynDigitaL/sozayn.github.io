@@ -5,6 +5,7 @@ import { insertUserSchema } from "../shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
+import { setupCloudflareRoutes } from "./cloudflare";
 
 // Extend the Express Session interface
 declare module 'express-session' {
@@ -23,6 +24,8 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up Cloudflare integration routes
+  setupCloudflareRoutes(app);
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {

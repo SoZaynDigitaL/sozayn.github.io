@@ -1,0 +1,22 @@
+name = "sozayn-edge"
+main = "workers/index.ts"
+compatibility_date = "2023-05-18"
+
+# The route pattern for deploying your Worker
+route = { pattern = "*sozayn.com/*", zone_name = "sozayn.com" }
+
+[vars]
+# Define environment variables for your Worker
+ENVIRONMENT = "production"
+
+# KV Namespace for caching restaurant/grocery data
+[[kv_namespaces]]
+binding = "SOZAYN_CACHE"
+preview_id = "sozayn-cache-preview"
+# id = "Get this from Cloudflare Dashboard after creating KV namespace"
+
+# Environment variables specific to development
+[env.development]
+name = "sozayn-edge-dev"
+[env.development.vars]
+ENVIRONMENT = "development"

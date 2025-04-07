@@ -25,16 +25,26 @@ export function CollapsibleMenuItem({
   isActive 
 }: CollapsibleMenuItemProps) {
   const [location] = useLocation();
+  
+  // Enhanced active state detection
+  // Check if this item or any subitems are active
+  const hasActiveChild = subItems?.some(item => isActive(item.href));
+  const active = isActive(href);
+  
+  // Auto-expand menu if current path matches this item or any subitems
   const [isOpen, setIsOpen] = useState(() => {
-    // Auto-open if a child item is active
-    if (subItems) {
-      return subItems.some(item => isActive(item.href));
+    // Auto-open parent node if it's active or has an active child
+    if (active || hasActiveChild) {
+      return true;
     }
+    
+    // Auto-open if current location starts with this href (for nested routes)
+    if (location.startsWith(href + '/')) {
+      return true;
+    }
+    
     return false;
   });
-  
-  const active = isActive(href);
-  const hasActiveChild = subItems?.some(item => isActive(item.href));
   
   // If this is just a regular menu item with no children
   if (!subItems || subItems.length === 0) {

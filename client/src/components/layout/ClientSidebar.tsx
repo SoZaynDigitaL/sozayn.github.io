@@ -41,7 +41,15 @@ export default function ClientSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   
-  const isActive = (path: string) => location === path;
+  // Updated isActive function to handle nested routes
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && location === '/dashboard') {
+      return true;
+    }
+    
+    // For all other paths, check both exact match and if the current location starts with path
+    return location === path || (path !== '/dashboard' && location.startsWith(`${path}/`));
+  };
   
   // Marketing submenu items
   const marketingSubItems: SubMenuItem[] = [

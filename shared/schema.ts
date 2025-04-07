@@ -17,13 +17,15 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   paypalSubscriptionId: text("paypal_subscription_id"),
+  photoURL: text("photo_url"),
+  firebaseUid: text("firebase_uid"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   planExpiresAt: timestamp("plan_expires_at"),
 });
 
+// Create insert schema from table definition
 export const insertUserSchema = createInsertSchema(users, {
-  planId: z.nativeEnum(PlanType),
-  planFeatures: z.array(z.string()).optional(),
+  planId: z.nativeEnum(PlanType)
 }).pick({
   username: true,
   password: true,
@@ -31,6 +33,9 @@ export const insertUserSchema = createInsertSchema(users, {
   businessName: true,
   businessType: true,
   planId: true,
+  role: true,
+  photoURL: true,
+  firebaseUid: true,
 });
 
 // Integrations (delivery services, POS systems)

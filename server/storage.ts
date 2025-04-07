@@ -2,11 +2,13 @@ import { users, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 import { sql } from "drizzle-orm/sql";
+import { PlanType } from "../shared/plans";
 
 // Maintain the same interface for compatibility
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
 }
@@ -20,6 +22,11 @@ export class DatabaseStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
@@ -50,7 +57,7 @@ const initializeStorage = async () => {
       email: 'demo@example.com',
       businessName: 'Demo Restaurant',
       businessType: 'restaurant',
-      planId: 'free' as any,
+      planId: PlanType.FREE,
     });
   }
   
@@ -65,7 +72,7 @@ const initializeStorage = async () => {
         email: 'admin@sozayn.com',
         businessName: 'SoZayn Admin',
         businessType: 'restaurant',
-        planId: 'free' as any,
+        planId: PlanType.FREE,
       };
       await storage.createUser(adminUser);
       

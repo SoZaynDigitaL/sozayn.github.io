@@ -370,6 +370,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
   
+  // Endpoint to handle Firebase/Google authentication
+  app.post("/api/auth/firebase", async (req, res) => {
+    try {
+      const { email, displayName, uid, photoURL } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Check if user with this email already exists
+      console.log(`Firebase sign-in: checking if user exists with email: ${email}`);
+      const existingUser = await storage.getUserByEmail(email);
+      console.log(`Firebase sign-in: user exists with email? ${!!existingUser}`);
+      
+      if (existingUser) {
+        // User exists - update Firebase information if needed
+        // In a real app, you might update the user with Firebase UID, etc.
+        
+        // Set session
+        req.session.userId = existingUser.id;
+        
+        // Generate auth token
+        const authToken = `${existingUser.id}:${existingUser.username}`;
+        
+        // Don't return password
+        const { password, ...userWithoutPassword } = existingUser;
+        
+        return res.status(200).json({
+          ...userWithoutPassword,
+          authToken,
+          message: "Logged in with Google successfully"
+        });
+      } else {
+        // User doesn't exist - create a new one
+        const username = email.split('@')[0] + '_' + Math.floor(Math.random() * 1000);
+        
+        const newUser = await storage.createUser({
+          username,
+          email,
+          password: "google_" + uid + "_" + Math.random().toString(36).substring(2), // Generate a random password
+          businessName: displayName || "My Business",
+          businessType: "Other",
+          planId: PlanType.FREE,
+          role: "client",
+          photoURL: photoURL || null,
+          firebaseUid: uid
+        });
+        
+        // Set session
+        req.session.userId = newUser.id;
+        
+        // Generate auth token
+        const authToken = `${newUser.id}:${newUser.username}`;
+        
+        // Don't return password
+        const { password, ...userWithoutPassword } = newUser;
+        
+        return res.status(201).json({
+          ...userWithoutPassword,
+          authToken,
+          message: "Created account with Google successfully"
+        });
+      }
+    } catch (error) {
+      console.error("Firebase auth error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+  
   // Endpoint to verify token and return user data
   app.post("/api/auth/verify-token", async (req, res) => {
     try {

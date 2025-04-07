@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/useAuth";
 import { FirebaseAuthProvider } from "./hooks/useFirebaseAuth";
 import { ProtectedRoute } from "./lib/ProtectedRoute";
+import TestFirebaseAuth from "./test-firebase-auth";
 
 // Import all pages
 import NotFound from "@/pages/not-found";
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/plans" component={Plans} />
+      <Route path="/test-firebase" component={TestFirebaseAuth} />
       
       {/* Footer pages */}
       <Route path="/about" component={AboutPage} />

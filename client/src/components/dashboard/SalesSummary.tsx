@@ -142,7 +142,7 @@ export default function SalesSummary() {
     setChartData({
       orders: orderAnalytics.weeklyData,
       revenue: revenueAnalytics.monthlyData,
-      customers: customerAnalytics.tierData
+      customers: customerAnalytics.segmentData
     });
   }, [period]);
   

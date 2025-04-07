@@ -324,6 +324,11 @@ export function getCustomerAnalytics() {
     returning: customers.filter(c => c.totalOrders > 1).length,
   };
   
+  // Calculate percentages for the semi-donut chart
+  const totalCustomers = customers.length;
+  const newPercentage = Math.round((newVsReturning.new / totalCustomers) * 100);
+  const returningPercentage = Math.round((newVsReturning.returning / totalCustomers) * 100);
+  
   return {
     tierData: {
       labels: Object.keys(tierCounts).map(t => t.charAt(0).toUpperCase() + t.slice(1)),
@@ -332,6 +337,11 @@ export function getCustomerAnalytics() {
     customerTypeData: {
       labels: ['New', 'Returning'],
       values: [newVsReturning.new, newVsReturning.returning]
+    },
+    // New formatted data for the semi-donut chart
+    segmentData: {
+      labels: ['New', 'Returning'],
+      values: [newPercentage, returningPercentage]
     }
   };
 }

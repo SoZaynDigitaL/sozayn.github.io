@@ -212,8 +212,8 @@ export function CustomersChart({ data }: ChartProps) {
 
         // Create simulated data if no data is provided
         const chartData = data || {
-          labels: ['New', 'Returning', 'Loyalty Members'],
-          values: [42, 38, 20]
+          labels: ['New', 'Returning'],
+          values: [42, 58]
         };
 
         const ctx = chartRef.current.getContext('2d');
@@ -224,24 +224,40 @@ export function CustomersChart({ data }: ChartProps) {
               labels: chartData.labels,
               datasets: [{
                 data: chartData.values,
-                backgroundColor: ['#4361ee', '#8957e5', '#2ea043'],
+                backgroundColor: ['#4361ee', '#2ea043'],
                 borderWidth: 0,
-                borderRadius: 4
+                borderRadius: 0
               }]
             },
             options: {
               responsive: true,
               cutout: '70%',
+              circumference: 180,
+              rotation: -90,
               plugins: {
                 legend: {
                   position: 'bottom',
                   labels: {
                     boxWidth: 15,
-                    padding: 15
+                    padding: 15,
+                    color: '#fff'
                   }
                 },
                 tooltip: {
-                  backgroundColor: '#131a29'
+                  backgroundColor: '#131a29',
+                  padding: 12,
+                  titleFont: {
+                    size: 14,
+                    weight: 'bold'
+                  },
+                  bodyFont: {
+                    size: 13
+                  },
+                  callbacks: {
+                    label: function(context) {
+                      return ` ${context.label}: ${context.parsed}%`;
+                    }
+                  }
                 }
               }
             }
@@ -258,7 +274,7 @@ export function CustomersChart({ data }: ChartProps) {
   }, [data]);
 
   return (
-    <div>
+    <div className="flex justify-center items-center h-full">
       <canvas ref={chartRef} />
     </div>
   );

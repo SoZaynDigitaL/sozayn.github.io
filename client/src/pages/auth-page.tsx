@@ -283,16 +283,28 @@ export default function AuthPage() {
                                 if (data.authToken) {
                                   localStorage.setItem('authToken', data.authToken);
                                   console.log('Auth token stored in localStorage');
+                                } else {
+                                  console.warn('No auth token received in login response');
                                 }
                                 
                                 // Force page reload to dashboard
                                 window.location.href = '/dashboard';
                               } else {
-                                const error = await response.json();
-                                console.error('Emergency login failed:', error);
+                                // Get detailed error information
+                                let errorMessage = "Unknown error";
+                                try {
+                                  const errorData = await response.json();
+                                  console.error('Emergency login failed:', response.status, errorData);
+                                  errorMessage = errorData.error || JSON.stringify(errorData);
+                                } catch (e) {
+                                  const textError = await response.text();
+                                  console.error('Emergency login failed (text):', response.status, textError);
+                                  errorMessage = textError || `Status code: ${response.status}`;
+                                }
+                                
                                 toast({
                                   title: "Emergency Login Failed",
-                                  description: JSON.stringify(error),
+                                  description: errorMessage,
                                   variant: "destructive",
                                 });
                               }

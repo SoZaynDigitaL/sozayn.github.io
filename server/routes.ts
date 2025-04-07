@@ -179,6 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Login attempt with:", req.body);
       const { username, password } = req.body;
       
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+      
       // First try to find user by username
       let user = await storage.getUserByUsername(username);
       
@@ -197,14 +201,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         console.log(`User not found: ${username}`);
+        // Debug info - log all users
+        const allUsers = await storage.getAllUsers();
+        console.log('Available users:', allUsers.map(u => ({ id: u.id, username: u.username, email: u.email })));
+        
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
       console.log(`User found: ${user.username}, comparing passwords...`);
+      console.log(`User has password: ${!!user.password}, passed password: ${!!password}`);
       
       // Check password (simplified for demo)
       if (user.password !== password) {
         console.log(`Password mismatch for user: ${user.username}`);
+        console.log(`Database password: ${user.password}, Input password: ${password}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
@@ -213,13 +223,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set user ID in session
       req.session.userId = user.id;
       
+      // Save the session explicitly to ensure it's stored
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+        }
+        console.log('Session saved successfully');
+      });
+      
       // Don't return password
       const { password: _, ...userWithoutPassword } = user;
       
       // Generate a simple token (userId:username)
       const authToken = `${user.id}:${user.username}`;
       
-      console.log(`Login successful for user: ${username}`);
+      console.log(`Login successful for user: ${username}, token: ${authToken}`);
       res.json({
         ...userWithoutPassword,
         authToken // Include the token in the response

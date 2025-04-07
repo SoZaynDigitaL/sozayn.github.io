@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User } from 'firebase/auth';
 import { onUserAuthStateChanged, signInWithGoogle, logoutFirebase } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'wouter';
 
 interface FirebaseAuthContextType {
   firebaseUser: User | null;
@@ -9,6 +10,9 @@ interface FirebaseAuthContextType {
   firebaseError: Error | null;
   signInWithGooglePopup: () => Promise<void>;
   firebaseLogout: () => Promise<void>;
+  showAuthGuidance: boolean;
+  setShowAuthGuidance: (show: boolean) => void;
+  currentDomain: string;
 }
 
 const FirebaseAuthContext = createContext<FirebaseAuthContextType>({
@@ -17,13 +21,24 @@ const FirebaseAuthContext = createContext<FirebaseAuthContextType>({
   firebaseError: null,
   signInWithGooglePopup: async () => {},
   firebaseLogout: async () => {},
+  showAuthGuidance: false,
+  setShowAuthGuidance: () => {},
+  currentDomain: ""
 });
 
 export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [firebaseLoading, setFirebaseLoading] = useState(true);
   const [firebaseError, setFirebaseError] = useState<Error | null>(null);
+  const [showAuthGuidance, setShowAuthGuidance] = useState(false);
+  const [currentDomain, setCurrentDomain] = useState("");
+  const [, navigate] = useLocation();
   const { toast } = useToast();
+  
+  // Get current domain on component mount
+  useEffect(() => {
+    setCurrentDomain(window.location.hostname);
+  }, []);
 
   useEffect(() => {
     // Set up Firebase Auth state listener
@@ -45,14 +60,35 @@ export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
         title: "Signed in with Google",
         description: `Welcome ${user.displayName || 'User'}!`,
       });
+      navigate('/dashboard');
     } catch (error) {
       console.error("Google sign-in error:", error);
       setFirebaseError(error as Error);
-      toast({
-        title: "Sign-in Failed",
-        description: (error as Error).message || "Failed to sign in with Google.",
-        variant: "destructive",
-      });
+      
+      // Customize toast message based on error
+      const errorMessage = (error as Error).message;
+      
+      if (errorMessage.includes('not authorized')) {
+        toast({
+          title: "Domain Not Authorized",
+          description: "This website domain is not authorized in Firebase. Please add it to your Firebase project settings.",
+          variant: "destructive",
+        });
+        // Show the domain guidance dialog
+        setShowAuthGuidance(true);
+      } else if (errorMessage.includes('popup-closed') || errorMessage.includes('popup-blocked')) {
+        toast({
+          title: "Sign-in Interrupted",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sign-in Failed",
+          description: errorMessage || "Failed to sign in with Google.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setFirebaseLoading(false);
     }
@@ -88,6 +124,9 @@ export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
         firebaseError,
         signInWithGooglePopup,
         firebaseLogout,
+        showAuthGuidance,
+        setShowAuthGuidance,
+        currentDomain
       }}
     >
       {children}

@@ -75,18 +75,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/login", async (req, res) => {
     try {
+      console.log("Login attempt with:", req.body);
       const { username, password } = req.body;
       
       // Find user
       const user = await storage.getUserByUsername(username);
       if (!user) {
+        console.log(`User not found: ${username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
+      console.log(`User found: ${username}, comparing passwords...`);
+      
       // Check password (simplified for demo)
       if (user.password !== password) {
+        console.log(`Password mismatch for user: ${username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
+      
+      console.log(`Password correct for user: ${username}, setting session`);
       
       // Set user ID in session
       req.session.userId = user.id;
@@ -94,8 +101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Don't return password
       const { password: _, ...userWithoutPassword } = user;
       
+      console.log(`Login successful for user: ${username}`);
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

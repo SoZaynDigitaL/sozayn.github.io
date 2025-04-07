@@ -60,15 +60,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string) => {
     try {
+      console.log('Login attempt with username:', username);
       const response = await apiRequest('POST', '/api/auth/login', { username, password });
+      console.log('Login response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Invalid credentials');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Login failed:', errorData);
+        throw new Error(errorData.error || 'Invalid credentials');
       }
+      
       const userData = await response.json();
+      console.log('Login successful, user data:', userData);
       setUser(userData);
     } catch (error) {
       console.error("Login error:", error);
-      throw new Error('Login failed');
+      throw error;
     }
   };
 

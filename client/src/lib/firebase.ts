@@ -39,9 +39,32 @@ export const signInWithGoogle = async () => {
   try {
     // Use popup for better user experience
     const result = await signInWithPopup(auth, googleProvider);
+    console.log("Google sign-in successful:", result.user.displayName);
     return result.user;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error signing in with Google:", error);
+    
+    // Check for auth/unauthorized-domain error
+    if (error.code === 'auth/unauthorized-domain') {
+      console.error("Domain not authorized in Firebase. Add this domain to your Firebase project's authorized domains list.");
+      const domain = window.location.hostname;
+      throw new Error(`Domain ${domain} not authorized. Please add it to Firebase Console > Authentication > Settings > Authorized domains.`);
+    }
+    
+    // Handle other common Firebase auth errors
+    if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error("Sign-in popup was closed before completing the sign-in.");
+    }
+    
+    if (error.code === 'auth/cancelled-popup-request') {
+      throw new Error("Multiple popup requests were triggered. Only one popup can be open at once.");
+    }
+    
+    if (error.code === 'auth/popup-blocked') {
+      throw new Error("Sign-in popup was blocked by the browser. Please allow popups for this site.");
+    }
+    
+    // For other errors, throw the original error
     throw error;
   }
 };

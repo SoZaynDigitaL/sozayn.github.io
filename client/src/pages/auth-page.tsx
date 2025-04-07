@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
+import AuthGuidanceDialog from '@/components/auth/AuthGuidanceDialog';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -45,7 +46,14 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { user, login, isLoading } = useAuth();
-  const { firebaseUser, signInWithGooglePopup, firebaseLoading } = useFirebaseAuth();
+  const { 
+    firebaseUser, 
+    signInWithGooglePopup, 
+    firebaseLoading,
+    showAuthGuidance,
+    setShowAuthGuidance,
+    currentDomain
+  } = useFirebaseAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -146,17 +154,14 @@ export default function AuthPage() {
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {
     try {
+      console.log("Attempting Google sign-in from auth-page");
       await signInWithGooglePopup();
-      toast({
-        title: "Login successful",
-        description: "Welcome to SoZayn!",
-      });
+      // Note: Success toast will be handled in the useFirebaseAuth hook
+      // The hook will also handle navigation to dashboard if successful
     } catch (error) {
-      toast({
-        title: "Google sign-in failed",
-        description: "There was a problem signing in with Google. Please try again.",
-        variant: "destructive",
-      });
+      console.error("Google sign-in handling error in auth-page:", error);
+      // Error toasts will be handled in the useFirebaseAuth hook
+      // No need to display additional toast here
     }
   };
 
@@ -470,6 +475,13 @@ export default function AuthPage() {
       </main>
       
       <Footer />
+      
+      {/* Firebase Auth Guidance Dialog */}
+      <AuthGuidanceDialog 
+        open={showAuthGuidance} 
+        onOpenChange={setShowAuthGuidance}
+        domain={currentDomain}
+      />
     </div>
   );
 }

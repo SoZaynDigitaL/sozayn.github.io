@@ -15,6 +15,7 @@ import justEatLogo from '@/assets/just-eat-logo.png';
 import doordashLogo from '@/assets/doordash-logo.jpeg';
 import uberDirectLogo from '@/assets/uberdirect-logo.webp';
 import grubhubLogo from '@/assets/grubhub-logo.png';
+import postmatesLogo from '@/assets/postmates-logo.png';
 import {
   Dialog,
   DialogContent,

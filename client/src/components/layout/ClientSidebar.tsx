@@ -111,7 +111,7 @@ export default function ClientSidebar() {
       </Button>
       
       {/* Desktop sidebar */}
-      <div className="hidden md:flex md:flex-col w-64 bg-bg-chart border-r border-border-color">
+      <div className="hidden md:flex md:flex-col w-64 bg-bg-chart border-r border-border-color sticky top-0 h-screen">
         <SidebarContent />
       </div>
     </>

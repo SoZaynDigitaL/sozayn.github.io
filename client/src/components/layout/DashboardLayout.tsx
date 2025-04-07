@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {user?.role === 'admin' ? <DashboardSidebar /> : <ClientSidebar />}
       
       <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
-        <header className="py-4 px-6 border-b border-border-color flex items-center justify-between bg-bg-card z-10">
+        <header className="py-4 px-6 border-b border-border-color flex items-center justify-between bg-bg-card sticky top-0 z-20">
           <h1 className="text-lg font-semibold">
             {location === '/dashboard' && 'Dashboard'}
             {location === '/dashboard/orders' && 'Orders'}
@@ -95,7 +95,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
         
-        <main className="flex-1 overflow-y-auto p-6 bg-bg-dark">
+        <main className="flex-1 overflow-y-auto p-6 bg-bg-dark relative">
           {children}
         </main>
       </div>

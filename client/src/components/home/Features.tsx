@@ -14,11 +14,11 @@ type FeatureProps = {
 };
 
 const Feature = ({ icon, title, description }: FeatureProps) => (
-  <div className="bg-bg-card border border-border-color rounded-xl p-6 shadow-card card-hover-effect transition-all duration-300">
-    <div className="w-12 h-12 bg-accent-blue/20 rounded-lg flex items-center justify-center mb-4">
+  <div className="bg-bg-card border border-border-color rounded-xl p-6 shadow-card glow-effect transition-all duration-300">
+    <div className="w-12 h-12 bg-accent-blue/20 rounded-lg flex items-center justify-center mb-4 shadow-glow-blue-sm">
       {icon}
     </div>
-    <h3 className="text-xl font-bold mb-2">{title}</h3>
+    <h3 className="text-xl font-bold mb-2 glow-text">{title}</h3>
     <p className="text-text-secondary">
       {description}
     </p>

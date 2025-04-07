@@ -8,10 +8,10 @@ type IntegrationCardProps = {
 };
 
 const IntegrationCard = ({ name, letter, colorClass = "text-text-primary" }: IntegrationCardProps) => (
-  <div className="bg-bg-dark/50 border border-border-color rounded-xl p-4 flex items-center justify-center">
+  <div className="bg-bg-dark/50 border border-border-color rounded-xl p-4 flex items-center justify-center glow-effect">
     <div className="text-center">
-      <div className="w-12 h-12 bg-white/10 rounded-full mx-auto flex items-center justify-center mb-2">
-        <span className={`${colorClass} font-bold`}>{letter}</span>
+      <div className="w-12 h-12 bg-white/10 rounded-full mx-auto flex items-center justify-center mb-2 shadow-glow-blue-sm">
+        <span className={`${colorClass} font-bold glow-text`}>{letter}</span>
       </div>
       <p className="text-sm font-medium">{name}</p>
     </div>

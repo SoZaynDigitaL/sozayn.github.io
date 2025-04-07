@@ -18,9 +18,9 @@ const PricingTier = ({
   cta?: string;
 }) => {
   return (
-    <div className={`rounded-xl border ${highlight ? 'border-accent-blue shadow-md shadow-accent-blue/20' : 'border-border-color'} p-6 flex flex-col h-full`}>
+    <div className={`rounded-xl border ${highlight ? 'border-accent-blue shadow-md shadow-accent-blue/20' : 'border-border-color'} p-6 flex flex-col h-full glow-effect ${highlight ? 'shadow-glow-blue-sm' : ''}`}>
       <div className="mb-5">
-        <h3 className="text-xl font-bold">{title}</h3>
+        <h3 className="text-xl font-bold glow-text">{title}</h3>
         <div className="mt-3">
           <span className="text-3xl font-bold">{price}</span>
           {price !== "Free" && <span className="text-text-secondary">/month</span>}
@@ -53,7 +53,7 @@ const PricingTier = ({
       <div className="mt-6">
         <Link href="/auth?tab=register">
           <Button 
-            className={`w-full ${highlight ? 'bg-accent-blue hover:bg-accent-blue/90' : ''}`}
+            className={`w-full ${highlight ? 'bg-accent-blue hover:bg-accent-blue/90 glow-button-blue' : 'glow-border-blue'}`}
             variant={highlight ? "default" : "outline"}
           >
             {cta}
@@ -148,7 +148,7 @@ export default function Pricing() {
             Start saving on every order. Keep your profits, own your data, and give your customers the experience they deserve.
           </p>
           <Link href="/auth?tab=register">
-            <Button className="px-8 py-6 h-auto text-lg bg-accent-blue hover:bg-accent-blue/90">
+            <Button className="px-8 py-6 h-auto text-lg bg-accent-blue hover:bg-accent-blue/90 glow-button-blue">
               Get Started Now
             </Button>
           </Link>

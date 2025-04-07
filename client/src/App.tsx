@@ -10,7 +10,8 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import AuthPage from "@/pages/auth-page";
-import Dashboard from "@/pages/dashboard";
+import AdminDashboard from "@/pages/dashboard/admin";
+import ClientDashboard from "@/pages/dashboard/client";
 import Orders from "@/pages/dashboard/orders";
 import Clients from "@/pages/dashboard/clients";
 import Integrations from "@/pages/dashboard/integrations";
@@ -36,8 +37,12 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
+      {/* Role-based dashboard routes */}
+      <ProtectedRoute path="/dashboard" component={({ user }: { user: any }) => 
+        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
+      } />
+      
       {/* Protected Dashboard routes - available to all authenticated users */}
-      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/dashboard/orders" component={Orders} />
       
       {/* Admin-only routes */}

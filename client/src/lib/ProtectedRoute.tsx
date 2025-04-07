@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
   adminOnly?: boolean;
   path: string;
 }
@@ -37,7 +37,7 @@ export function ProtectedRoute({ component: Component, adminOnly = false, path }
 
   // If the user is authenticated (and is an admin if adminOnly is true), render the component
   if (match && user && (!adminOnly || user.role === 'admin')) {
-    return <Component />;
+    return <Component user={user} />;
   }
 
   // This should not be rendered due to the redirect in useEffect

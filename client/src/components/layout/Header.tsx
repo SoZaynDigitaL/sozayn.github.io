@@ -31,9 +31,9 @@ export default function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           <div>
-            <Link href="/" className="text-2xl font-bold tracking-tighter">
+            <Link href="/" className="text2xl font-bold tracking-tighter">
               SoZayn
-              <span className="block text-xs text-text-secondary mt-[-4px]">Welcome To Digital Era</span>
+              <span className="block text-xs text-text-secondary mt-[-5px]">Welcome To Digital Era</span>
             </Link>
           </div>
           

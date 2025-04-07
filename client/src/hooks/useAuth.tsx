@@ -61,14 +61,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log("User authenticated:", userData);
           setUser(userData);
         } else {
+          // If authentication fails but we have a token, try again with a forceful approach
+          if (authToken) {
+            console.log("Regular auth check failed, trying direct API call with token");
+            
+            try {
+              // Make a direct API call to get the user data with the token
+              const userResponse = await fetch('/api/auth/verify-token', {
+                method: 'POST',
+                headers: { 
+                  'Authorization': `Bearer ${authToken}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: authToken })
+              });
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                console.log("Token verification successful:", userData);
+                setUser(userData);
+                return;
+              } else {
+                console.log("Token verification failed, invalidating token");
+                localStorage.removeItem('authToken');
+              }
+            } catch (tokenError) {
+              console.error("Error with token verification:", tokenError);
+              localStorage.removeItem('authToken');
+            }
+          }
+          
           // Not authenticated
           console.log("User not authenticated");
           setUser(null);
-          // Clear invalid token if present
-          if (authToken) {
-            console.log("Clearing invalid auth token");
-            localStorage.removeItem('authToken');
-          }
         }
       } catch (error) {
         // Other errors

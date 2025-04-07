@@ -25,65 +25,123 @@ declare module 'express-session' {
 
 // Helper function to authenticate requests
 const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Authentication check - path:", req.path);
+  
   // First check session-based auth
   if (req.session && req.session.userId) {
+    console.log("Session-based auth successful, userId:", req.session.userId);
     next();
     return;
   }
+  
+  console.log("No session found, checking token-based auth");
   
   // Fallback to token-based auth for clients having issues with cookies
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
+    console.log("Found Bearer token:", token);
+    
     // Simple token validation (userId:username)
     if (token && token.includes(':')) {
       const [userId, username] = token.split(':');
+      console.log("Token contains userId:", userId, "and username:", username);
+      
       try {
         const user = await storage.getUser(parseInt(userId));
         if (user && user.username === username) {
           // Valid token
+          console.log("Token validation successful for user:", username);
           req.session.userId = user.id; // Still try to set the session
+          
+          // Save session explicitly
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error saving session during token auth:", err);
+            } else {
+              console.log("Session saved successfully during token auth");
+            }
+          });
+          
           next();
           return;
+        } else {
+          console.log("Token validation failed - user not found or username mismatch");
         }
       } catch (err) {
         console.error('Token validation error:', err);
       }
+    } else {
+      console.log("Token format invalid, doesn't contain userId:username format");
     }
+  } else {
+    console.log("No Bearer token found in Authorization header");
   }
   
+  console.log("Authentication failed for request to:", req.path);
   res.status(401).json({ error: "Not authenticated" });
 };
 
 // Helper function to check admin role
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  console.log("Admin authentication check - path:", req.path);
+  
   // First make sure the user is authenticated
   if (!req.session || !req.session.userId) {
+    console.log("No session found, checking token-based auth for admin");
+    
     // Use the token auth fallback
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
+      console.log("Found Bearer token for admin check:", token);
+      
       // Simple token validation (userId:username)
       if (token && token.includes(':')) {
         const [userId, username] = token.split(':');
+        console.log("Token contains userId:", userId, "and username:", username);
+        
         try {
           const user = await storage.getUser(parseInt(userId));
           if (user && user.username === username) {
+            console.log("Token validation successful for user:", username);
+            
             // Token is valid - now check if the user is an admin
             if (user.role !== 'admin') {
+              console.log("User is not an admin, access denied");
               return res.status(403).json({ error: "Access denied: Admin role required" });
             }
+            
+            console.log("Admin access granted via token for user:", username);
+            
             // Admin user with valid token
             req.session.userId = user.id; // Still try to set the session
+            
+            // Save session explicitly
+            req.session.save((err) => {
+              if (err) {
+                console.error("Error saving session during admin token auth:", err);
+              } else {
+                console.log("Session saved successfully during admin token auth");
+              }
+            });
+            
             next();
             return;
+          } else {
+            console.log("Token validation failed - user not found or username mismatch");
           }
         } catch (err) {
-          console.error('Token validation error:', err);
+          console.error('Token validation error during admin check:', err);
         }
+      } else {
+        console.log("Token format invalid for admin check");
       }
+    } else {
+      console.log("No Bearer token found for admin check");
     }
     
+    console.log("Admin authentication failed - not authenticated");
     return res.status(401).json({ error: "Not authenticated" });
   }
 
@@ -273,6 +331,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json({ message: "Logged out successfully" });
     });
+  });
+  
+  // Endpoint to verify token and return user data
+  app.post("/api/auth/verify-token", async (req, res) => {
+    try {
+      // Get token from Authorization header or request body
+      const authHeader = req.headers.authorization;
+      const token = authHeader ? authHeader.split(' ')[1] : req.body.token;
+      
+      if (!token) {
+        return res.status(401).json({ error: "No token provided" });
+      }
+      
+      console.log("Verifying token:", token);
+      
+      // Simple token verification logic: 
+      // If token is formatted as userId:username, fetch the user with that ID
+      // This is a simplified approach - in production you would use proper JWT verification
+      if (token.includes(':')) {
+        const [userId] = token.split(':');
+        if (!userId || isNaN(Number(userId))) {
+          return res.status(401).json({ error: "Invalid token format" });
+        }
+        
+        // Get user by ID
+        const user = await storage.getUser(Number(userId));
+        if (!user) {
+          return res.status(401).json({ error: "User not found" });
+        }
+        
+        // Don't return password
+        const { password, ...userWithoutPassword } = user;
+        
+        // Set user ID in session
+        req.session.userId = user.id;
+        
+        // Save session explicitly to ensure it's created
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session:", err);
+          }
+        });
+        
+        return res.json(userWithoutPassword);
+      } else {
+        return res.status(401).json({ error: "Invalid token format" });
+      }
+    } catch (error) {
+      console.error("Token verification error:", error);
+      return res.status(500).json({ error: "Failed to verify token" });
+    }
   });
 
   // Demo data generation

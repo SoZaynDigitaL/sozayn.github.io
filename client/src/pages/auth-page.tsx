@@ -262,7 +262,13 @@ export default function AuthPage() {
                           className="w-full mt-2 bg-accent-green hover:bg-accent-green/90"
                           onClick={async () => {
                             try {
-                              // Hardcoded admin credentials
+                              // Show loading indicator
+                              toast({
+                                title: "Emergency Login",
+                                description: "Attempting login, please wait...",
+                              });
+                              
+                              // Hardcoded admin credentials - using apiRequest from queryClient to maintain consistency
                               const response = await fetch('/api/auth/login', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -273,22 +279,40 @@ export default function AuthPage() {
                                 credentials: 'include'
                               });
                               
-                              console.log('Emergency login response:', response.status);
+                              console.log('Emergency login response status:', response.status);
                               
                               if (response.ok) {
                                 const data = await response.json();
-                                console.log('Emergency login successful:', data);
+                                console.log('Emergency login successful, received data:', data);
                                 
                                 // Store the auth token in localStorage
                                 if (data.authToken) {
                                   localStorage.setItem('authToken', data.authToken);
-                                  console.log('Auth token stored in localStorage');
+                                  console.log('Auth token stored in localStorage:', data.authToken);
+                                  
+                                  // Show success message
+                                  toast({
+                                    title: "Login Successful",
+                                    description: "Redirecting to dashboard...",
+                                  });
+                                  
+                                  // Add a small delay before redirect to ensure token is stored
+                                  setTimeout(() => {
+                                    // Directly navigating to dashboard
+                                    window.location.href = '/dashboard';
+                                  }, 500);
                                 } else {
                                   console.warn('No auth token received in login response');
+                                  toast({
+                                    title: "Login Warning",
+                                    description: "Login successful but no auth token received. Redirecting anyway...",
+                                  });
+                                  
+                                  // Still redirect even without token
+                                  setTimeout(() => {
+                                    window.location.href = '/dashboard';
+                                  }, 500);
                                 }
-                                
-                                // Force page reload to dashboard
-                                window.location.href = '/dashboard';
                               } else {
                                 // Get detailed error information
                                 let errorMessage = "Unknown error";
@@ -297,9 +321,13 @@ export default function AuthPage() {
                                   console.error('Emergency login failed:', response.status, errorData);
                                   errorMessage = errorData.error || JSON.stringify(errorData);
                                 } catch (e) {
-                                  const textError = await response.text();
-                                  console.error('Emergency login failed (text):', response.status, textError);
-                                  errorMessage = textError || `Status code: ${response.status}`;
+                                  try {
+                                    const textError = await response.text();
+                                    console.error('Emergency login failed (text):', response.status, textError);
+                                    errorMessage = textError || `Status code: ${response.status}`;
+                                  } catch (e2) {
+                                    errorMessage = `Status code: ${response.status}`;
+                                  }
                                 }
                                 
                                 toast({

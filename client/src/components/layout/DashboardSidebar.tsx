@@ -9,7 +9,8 @@ import {
   Gift, 
   Settings, 
   Menu, 
-  X
+  X,
+  ShoppingCart
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';

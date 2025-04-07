@@ -7,7 +7,8 @@ import {
   BarChart3, 
   Gift, 
   Settings, 
-  Menu
+  Menu,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -52,6 +53,7 @@ export default function DashboardSidebar() {
   const adminNavigationItems = [
     { href: '/dashboard/clients', icon: Users, label: 'Clients' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
+    { href: '/dashboard/feature-access', icon: Lock, label: 'Feature Access' },
   ];
   
   // Combine navigation items based on user role

@@ -38,6 +38,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     if (location === '/dashboard/e-commerce') return 'E-Commerce';
     if (location === '/dashboard/pos-integration') return 'POS Integration';
     if (location === '/dashboard/management') return 'Restaurant Management';
+    if (location === '/dashboard/feature-access') return 'Feature Access Control';
     if (location === '/dashboard/settings') return 'Settings';
     
     // Marketing routes

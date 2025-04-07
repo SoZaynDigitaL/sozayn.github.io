@@ -119,10 +119,10 @@ export const PLANS: Plan[] = [
     description: 'Everything you need to grow your business online',
     priceMonthly: 29,
     priceAnnual: 290, // Save 2 months with annual billing
-    stripeMonthlyPriceId: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID,
-    stripeAnnualPriceId: process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID,
-    paypalMonthlyPlanId: process.env.PAYPAL_GROWTH_MONTHLY_PLAN_ID,
-    paypalAnnualPlanId: process.env.PAYPAL_GROWTH_ANNUAL_PLAN_ID,
+    stripeMonthlyPriceId: import.meta.env.VITE_STRIPE_GROWTH_MONTHLY_PRICE_ID,
+    stripeAnnualPriceId: import.meta.env.VITE_STRIPE_GROWTH_ANNUAL_PRICE_ID,
+    paypalMonthlyPlanId: import.meta.env.VITE_PAYPAL_GROWTH_MONTHLY_PLAN_ID,
+    paypalAnnualPlanId: import.meta.env.VITE_PAYPAL_GROWTH_ANNUAL_PLAN_ID,
     isPopular: true,
     features: [
       FEATURES.ONLINE_ORDERING.id,
@@ -139,10 +139,10 @@ export const PLANS: Plan[] = [
     description: 'Advanced tools for established businesses',
     priceMonthly: 79,
     priceAnnual: 790, // Save 2 months with annual billing
-    stripeMonthlyPriceId: process.env.STRIPE_PRO_MONTHLY_PRICE_ID,
-    stripeAnnualPriceId: process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
-    paypalMonthlyPlanId: process.env.PAYPAL_PRO_MONTHLY_PLAN_ID,
-    paypalAnnualPlanId: process.env.PAYPAL_PRO_ANNUAL_PLAN_ID,
+    stripeMonthlyPriceId: import.meta.env.VITE_STRIPE_PRO_MONTHLY_PRICE_ID,
+    stripeAnnualPriceId: import.meta.env.VITE_STRIPE_PRO_ANNUAL_PRICE_ID,
+    paypalMonthlyPlanId: import.meta.env.VITE_PAYPAL_PRO_MONTHLY_PLAN_ID,
+    paypalAnnualPlanId: import.meta.env.VITE_PAYPAL_PRO_ANNUAL_PLAN_ID,
     features: [
       FEATURES.ONLINE_ORDERING.id,
       FEATURES.ADVANCED_ANALYTICS.id,

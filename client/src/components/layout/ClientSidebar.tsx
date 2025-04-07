@@ -15,7 +15,8 @@ import {
   Share2,
   Megaphone,
   Mail,
-  Globe
+  Globe,
+  Lock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -82,6 +83,7 @@ export default function ClientSidebar() {
     },
     { href: '/dashboard/social-media', icon: Share2, label: 'Social Media Integration' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
+    { href: '/dashboard/feature-access', icon: Lock, label: 'Feature Access' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
   

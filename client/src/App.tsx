@@ -26,6 +26,7 @@ import Settings from "@/pages/dashboard/settings";
 import ManagementPage from "@/pages/dashboard/management";
 import DeliveryPartners from "@/pages/dashboard/delivery-partners";
 import POSIntegration from "@/pages/dashboard/pos-integration";
+import FeatureAccess from "@/pages/dashboard/feature-access";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import PaymentSuccess from "@/pages/payment-success";
@@ -65,6 +66,7 @@ function Router() {
       <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
       <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
       <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
+      <ProtectedRoute path="/dashboard/feature-access" component={FeatureAccess} />
       <ProtectedRoute path="/dashboard/settings" component={Settings} />
       
       {/* Payment routes - protected but available to all users */}

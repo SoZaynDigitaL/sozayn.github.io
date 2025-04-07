@@ -3,6 +3,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/home/Hero';
 import Features from '@/components/home/Features';
+import Dashboard from '@/components/home/Dashboard';
 import Pricing from '@/components/home/Pricing';
 import Integrations from '@/components/home/Integrations';
 import CTASection from '@/components/home/CTASection';
@@ -14,6 +15,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Features />
+      <Dashboard />
       <DemoSection />
       <Pricing />
       <Integrations />

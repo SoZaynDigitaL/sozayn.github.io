@@ -1,5 +1,6 @@
 # SoZayn - Welcome to the Digital Era
-Welcome to SoZayn, a comprehensive digital platform for restaurants and groceries. 
+e-commerce Restuarant Grocery Retailer
+Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.
 
 ## Features
 - Modern dashboard interface
@@ -9,5 +10,11 @@ Welcome to SoZayn, a comprehensive digital platform for restaurants and grocerie
 - Marketing automation
 - Third-party delivery integration
 
-## Deployment
+
+One Digital Hub, Multiple Solutions
+SoZayn connects business-proving services through a powerful digital platform for the modern era.
+
+# Deployment
 SoZayn Technologies
+
+www.sozayndigital.com

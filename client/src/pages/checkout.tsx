@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
+import { Separator } from '@/components/ui/separator';
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
@@ -201,9 +202,22 @@ export default function Checkout() {
         </CardHeader>
         <CardContent>
           {stripePromise ? (
-            <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <CheckoutForm />
-            </Elements>
+            <>
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <CheckoutForm />
+              </Elements>
+              
+              <div className="mt-6 pt-6 text-center">
+                <Separator className="my-4" />
+                <p className="text-sm text-muted-foreground mb-4">Or pay with PayPal</p>
+                <Button 
+                  onClick={() => setLocation('/paypal-checkout')}
+                  className="bg-[#0070ba] hover:bg-[#003087] w-full"
+                >
+                  PayPal Checkout
+                </Button>
+              </div>
+            </>
           ) : (
             <div className="text-center p-4">
               <p className="text-red-500">Stripe API key is not configured.</p>

@@ -18,6 +18,8 @@ import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import PaymentSuccess from "@/pages/payment-success";
 import SubscriptionSuccess from "@/pages/subscription-success";
+import PayPalCheckout from "@/pages/paypal-checkout";
+import PayPalSuccess from "@/pages/paypal-success";
 
 function Router() {
   return (
@@ -37,8 +39,10 @@ function Router() {
       
       {/* Payment routes */}
       <Route path="/checkout" component={Checkout} />
+      <Route path="/paypal-checkout" component={PayPalCheckout} />
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/payment-success" component={PaymentSuccess} />
+      <Route path="/paypal-success" component={PayPalSuccess} />
       <Route path="/subscription-success" component={SubscriptionSuccess} />
       
       {/* Fallback to 404 */}

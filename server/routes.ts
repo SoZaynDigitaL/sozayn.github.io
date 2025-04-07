@@ -6,6 +6,7 @@ import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
 import { setupCloudflareRoutes } from "./cloudflare";
+import paypal from "@paypal/checkout-server-sdk";
 
 // Extend the Express Session interface
 declare module 'express-session' {
@@ -22,6 +23,25 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
     res.status(401).json({ error: "Not authenticated" });
   }
 };
+
+// Function to create a PayPal environment
+function getPayPalEnvironment() {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  
+  if (!clientId || !clientSecret) {
+    throw new Error("PayPal client ID or secret is not set");
+  }
+
+  // By default, we'll use the sandbox environment for testing
+  return new paypal.core.SandboxEnvironment(clientId, clientSecret);
+}
+
+// Create a PayPal client
+function getPayPalClient() {
+  const environment = getPayPalEnvironment();
+  return new paypal.core.PayPalHttpClient(environment);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up Cloudflare integration routes
@@ -203,6 +223,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Error creating subscription", 
         message: error.message 
+      });
+    }
+  });
+
+  // PayPal payment routes
+  app.post("/api/paypal/create-order", isAuthenticated, async (req, res) => {
+    try {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+        return res.status(500).json({
+          error: "PayPal credentials are not set. Please configure PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables."
+        });
+      }
+
+      const { amount } = req.body;
+
+      try {
+        const client = getPayPalClient();
+        
+        // Create order request
+        const request = new paypal.orders.OrdersCreateRequest();
+        request.prefer("return=representation");
+        
+        // Define the order
+        request.requestBody({
+          intent: "CAPTURE",
+          purchase_units: [
+            {
+              amount: {
+                currency_code: "USD",
+                value: amount.toString()
+              },
+              description: "SoZayn Digital Restaurant Platform"
+            }
+          ],
+          application_context: {
+            return_url: `${req.protocol}://${req.get('host')}/paypal-success`,
+            cancel_url: `${req.protocol}://${req.get('host')}/checkout`
+          }
+        });
+
+        // Execute the order creation
+        const response = await client.execute<paypal.PayPalOrderResponse>(request);
+        
+        // Find the approval URL
+        const approvalUrl = response.result.links.find(link => link.rel === "approve")?.href;
+        
+        if (!approvalUrl) {
+          throw new Error("Approval URL not found in PayPal response");
+        }
+
+        // Return the approval URL to redirect the user
+        res.json({ approvalUrl, orderId: response.result.id });
+      } catch (error: any) {
+        console.error("Error creating PayPal order:", error);
+        res.status(500).json({
+          error: "Failed to create PayPal order",
+          message: error.message
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        error: "Error in PayPal order creation",
+        message: error.message
+      });
+    }
+  });
+
+  app.post("/api/paypal/capture-order", isAuthenticated, async (req, res) => {
+    try {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+        return res.status(500).json({
+          error: "PayPal credentials are not set. Please configure PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET environment variables."
+        });
+      }
+
+      const { orderId } = req.body;
+      
+      if (!orderId) {
+        return res.status(400).json({ error: "Order ID is required" });
+      }
+
+      try {
+        const client = getPayPalClient();
+        
+        // Create capture request
+        const request = new paypal.orders.OrdersCaptureRequest(orderId);
+        request.requestBody({});
+        
+        // Execute the capture
+        const response = await client.execute<paypal.PayPalCaptureResponse>(request);
+        
+        // Check if payment was successful
+        if (response.result.status === "COMPLETED") {
+          // Here you would typically update your database to mark the order as paid
+          // and handle any other business logic (send emails, update inventory, etc.)
+          
+          res.json({ 
+            success: true,
+            orderId: response.result.id,
+            status: response.result.status
+          });
+        } else {
+          res.status(400).json({
+            error: "Payment not completed",
+            status: response.result.status
+          });
+        }
+      } catch (error: any) {
+        console.error("Error capturing PayPal order:", error);
+        res.status(500).json({
+          error: "Failed to capture PayPal payment",
+          message: error.message
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        error: "Error in PayPal payment capture",
+        message: error.message
       });
     }
   });

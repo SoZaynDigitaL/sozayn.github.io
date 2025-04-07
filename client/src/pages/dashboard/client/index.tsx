@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -15,9 +15,9 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { format } from 'date-fns';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
+// Match exactly the layout shown in the screenshot
 export default function ClientDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -38,7 +38,6 @@ export default function ClientDashboard() {
         title: "Demo data generated",
         description: "Sample data has been added to your account",
       });
-      // Invalidate all queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders/recent'] });
       queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
@@ -153,10 +152,23 @@ export default function ClientDashboard() {
             </div>
             <div className="flex space-x-4">
               <div className="flex space-x-2">
-                <Button variant="ghost" className="text-sm text-gray-400 hover:text-white px-2 py-1 h-auto">Orders</Button>
-                <Button variant="ghost" className="text-sm text-gray-400 hover:text-white px-2 py-1 h-auto">Revenue</Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-sm font-medium text-gray-300 hover:text-white px-2 py-1 h-auto"
+                >
+                  Orders
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="text-sm text-gray-400 hover:text-white px-2 py-1 h-auto"
+                >
+                  Revenue
+                </Button>
               </div>
-              <Button variant="outline" className="flex items-center gap-1 h-8 text-sm bg-[#141b2d] border-[#2d3748] text-gray-300">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-1 h-8 text-sm bg-[#141b2d] border-[#2d3748] text-gray-300"
+              >
                 Weekly
                 <ChevronDown className="h-4 w-4" />
               </Button>
@@ -165,7 +177,10 @@ export default function ClientDashboard() {
           
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
+              <BarChart 
+                data={chartData}
+                margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+              >
                 <XAxis 
                   dataKey="name" 
                   axisLine={false}
@@ -206,7 +221,7 @@ export default function ClientDashboard() {
                     <p className="text-xs text-gray-400">$12.00</p>
                   </div>
                 </div>
-                <div className="h-2 w-24 bg-blue-500/20 rounded-full overflow-hidden">
+                <div className="w-24 h-1.5 bg-blue-500/20 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: '80%' }}></div>
                 </div>
               </div>
@@ -221,7 +236,7 @@ export default function ClientDashboard() {
                     <p className="text-xs text-gray-400">$10.99</p>
                   </div>
                 </div>
-                <div className="h-2 w-24 bg-blue-500/20 rounded-full overflow-hidden">
+                <div className="w-24 h-1.5 bg-blue-500/20 rounded-full overflow-hidden">
                   <div className="h-full bg-blue-500 rounded-full" style={{ width: '60%' }}></div>
                 </div>
               </div>

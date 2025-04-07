@@ -68,10 +68,10 @@ export default function AuthPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user || firebaseUser) {
+    if (!isLoading && !firebaseLoading && (user || firebaseUser)) {
       navigate('/dashboard');
     }
-  }, [user, firebaseUser, navigate]);
+  }, [user, firebaseUser, navigate, isLoading, firebaseLoading]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({

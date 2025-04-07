@@ -28,6 +28,7 @@ import PaymentSuccess from "@/pages/payment-success";
 import SubscriptionSuccess from "@/pages/subscription-success";
 import PayPalCheckout from "@/pages/paypal-checkout";
 import PayPalSuccess from "@/pages/paypal-success";
+import Plans from "@/pages/plans";
 
 function Router() {
   return (
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/plans" component={Plans} />
       
       {/* Protected Dashboard routes - available to all authenticated users */}
       <ProtectedRoute path="/dashboard" component={Dashboard} />

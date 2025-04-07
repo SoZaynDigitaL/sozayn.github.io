@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { PlanType } from "./plans";
 
 // Users (restaurant owners/managers)
 export const users = pgTable("users", {
@@ -11,15 +12,25 @@ export const users = pgTable("users", {
   businessName: text("business_name").notNull(),
   businessType: text("business_type").notNull(), // restaurant, grocery, etc.
   role: text("role").default("client").notNull(), // admin or client
+  planId: text("plan_id").default(PlanType.FREE).notNull(), // free, growth, pro
+  planFeatures: json("plan_features").default([]), // JSON array of feature IDs
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  paypalSubscriptionId: text("paypal_subscription_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  planExpiresAt: timestamp("plan_expires_at"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
+export const insertUserSchema = createInsertSchema(users, {
+  planId: z.nativeEnum(PlanType),
+  planFeatures: z.array(z.string()).optional(),
+}).pick({
   username: true,
   password: true,
   email: true,
   businessName: true,
   businessType: true,
+  planId: true,
 });
 
 // Integrations (delivery services, POS systems)
@@ -101,5 +112,66 @@ export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
+// Subscriptions
+export const subscriptions = pgTable("subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  planId: text("plan_id").notNull(), // free, growth, pro
+  status: text("status").notNull(), // active, canceled, expired, past_due
+  billingCycle: text("billing_cycle").notNull(), // monthly, annual
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"),
+  amount: integer("amount").notNull(), // in cents
+  provider: text("provider"), // stripe, paypal
+  providerId: text("provider_id"), // ID from payment provider
+  paymentMethodId: text("payment_method_id"), // ID of payment method used
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).pick({
+  userId: true,
+  planId: true,
+  status: true,
+  billingCycle: true,
+  startDate: true,
+  endDate: true,
+  amount: true,
+  provider: true,
+  providerId: true,
+  paymentMethodId: true,
+});
+
+// Subscription Transactions
+export const subscriptionTransactions = pgTable("subscription_transactions", {
+  id: serial("id").primaryKey(),
+  subscriptionId: integer("subscription_id").notNull().references(() => subscriptions.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // payment, refund, credit
+  status: text("status").notNull(), // successful, failed, pending
+  amount: integer("amount").notNull(), // in cents
+  provider: text("provider"), // stripe, paypal
+  providerId: text("provider_id"), // Transaction ID from payment provider
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertSubscriptionTransactionSchema = createInsertSchema(subscriptionTransactions).pick({
+  subscriptionId: true,
+  userId: true,
+  type: true,
+  status: true,
+  amount: true,
+  provider: true,
+  providerId: true,
+  description: true,
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+export type SubscriptionTransaction = typeof subscriptionTransactions.$inferSelect;
+export type InsertSubscriptionTransaction = z.infer<typeof insertSubscriptionTransactionSchema>;

@@ -1,12 +1,19 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, type User } from "../shared/schema";
+import { 
+  insertUserSchema, 
+  insertSubscriptionSchema, 
+  insertSubscriptionTransactionSchema, 
+  type User,
+  type Subscription 
+} from "../shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
 import { setupCloudflareRoutes } from "./cloudflare";
 import paypal from "@paypal/checkout-server-sdk";
+import { PlanType, PLANS, FEATURES, getPlanById } from "../shared/plans";
 
 // Extend the Express Session interface
 declare module 'express-session' {
@@ -427,6 +434,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: error.message
       });
     }
+  });
+
+  // Subscription Plan Management
+  app.get("/api/plans", (req, res) => {
+    res.json(PLANS.map(plan => ({
+      ...plan,
+      features: plan.features.map(featureId => FEATURES[featureId])
+    })));
+  });
+
+  app.get("/api/user/plan", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const user = await storage.getUser(userId as number);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const plan = getPlanById(user.planId as PlanType);
+      if (!plan) {
+        return res.status(404).json({ error: "Plan not found" });
+      }
+      
+      // Get user plan details and features
+      const planDetails = {
+        ...plan,
+        features: plan.features.map(featureId => FEATURES[featureId]),
+        planExpiresAt: user.planExpiresAt
+      };
+      
+      res.json(planDetails);
+    } catch (error) {
+      console.error("Error fetching user plan:", error);
+      res.status(500).json({ error: "Failed to fetch user plan" });
+    }
+  });
+
+  app.post("/api/user/plan/upgrade", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { planId, billingCycle } = req.body;
+      
+      if (!planId || !billingCycle) {
+        return res.status(400).json({ error: "Plan ID and billing cycle are required" });
+      }
+      
+      if (!Object.values(PlanType).includes(planId as PlanType)) {
+        return res.status(400).json({ error: "Invalid plan ID" });
+      }
+      
+      if (!["monthly", "annual"].includes(billingCycle)) {
+        return res.status(400).json({ error: "Billing cycle must be 'monthly' or 'annual'" });
+      }
+      
+      const plan = getPlanById(planId as PlanType);
+      if (!plan) {
+        return res.status(404).json({ error: "Plan not found" });
+      }
+      
+      // This would be where you would create a subscription record and redirect
+      // to the payment page or create a payment intent
+      res.json({
+        success: true,
+        redirectTo: billingCycle === "monthly" ? "/subscribe?plan=" + planId : "/subscribe/annual?plan=" + planId
+      });
+    } catch (error) {
+      console.error("Error upgrading plan:", error);
+      res.status(500).json({ error: "Failed to upgrade plan" });
+    }
+  });
+
+  app.get("/api/user/subscriptions", isAuthenticated, async (req, res) => {
+    try {
+      // This endpoint would return a user's subscription history
+      // For now, return a mock empty array
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching subscriptions:", error);
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.get("/api/admin/subscriptions", isAdmin, async (req, res) => {
+    try {
+      // This endpoint would return all subscriptions for admin viewing
+      // For now, return a mock empty array
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching all subscriptions:", error);
+      res.status(500).json({ error: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.post("/api/subscription/cancel", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { subscriptionId } = req.body;
+      
+      if (!subscriptionId) {
+        return res.status(400).json({ error: "Subscription ID is required" });
+      }
+      
+      // This would be where you would cancel a subscription with the payment provider
+      // and update the subscription record in the database
+      res.json({
+        success: true,
+        message: "Subscription has been canceled. You will have access until the end of your billing period."
+      });
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      res.status(500).json({ error: "Failed to cancel subscription" });
+    }
+  });
+
+  // Feature access control middleware - can be used to protect routes based on user's plan
+  const hasFeatureAccess = (featureId: string) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      if (!req.session || !req.session.userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      try {
+        const user = await storage.getUser(req.session.userId);
+        if (!user) {
+          return res.status(401).json({ error: "User not found" });
+        }
+        
+        // Admin users have access to all features
+        if (user.role === 'admin') {
+          return next();
+        }
+        
+        const plan = getPlanById(user.planId as PlanType);
+        if (!plan) {
+          return res.status(403).json({ error: "Invalid plan" });
+        }
+        
+        // Check if the user's plan includes the required feature
+        if (!plan.features.includes(featureId)) {
+          return res.status(403).json({ 
+            error: "Feature not available in your plan",
+            requiredPlan: PLANS.find(p => p.features.includes(featureId))?.id || null,
+            upgrade: true
+          });
+        }
+        
+        // Check if subscription is expired
+        if (user.planExpiresAt && new Date(user.planExpiresAt) < new Date()) {
+          return res.status(403).json({ 
+            error: "Your subscription has expired",
+            expired: true
+          });
+        }
+        
+        next();
+      } catch (error) {
+        console.error("Error checking feature access:", error);
+        res.status(500).json({ error: "Internal server error" });
+      }
+    };
+  };
+
+  // Example of a feature-protected route
+  app.get("/api/pos-integration", isAuthenticated, hasFeatureAccess(FEATURES.POS_INTEGRATION.id), (req, res) => {
+    res.json({ message: "POS Integration data" });
+  });
+
+  app.get("/api/delivery-integration", isAuthenticated, hasFeatureAccess(FEATURES.DELIVERY_INTEGRATION.id), (req, res) => {
+    res.json({ message: "Delivery Integration data" });
+  });
+
+  app.get("/api/e-commerce", isAuthenticated, hasFeatureAccess(FEATURES.E_COMMERCE.id), (req, res) => {
+    res.json({ message: "E-Commerce data" });
   });
 
   const httpServer = createServer(app);

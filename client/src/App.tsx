@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import Orders from "@/pages/dashboard/orders";
 import Integrations from "@/pages/dashboard/integrations";
@@ -28,6 +29,7 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={Home} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       

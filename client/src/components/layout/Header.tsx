@@ -29,7 +29,7 @@ export default function Header() {
           
           <nav className="hidden md:flex space-x-8">
             <Link href="/#features" className={`text-${isActive('/#features') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Features</Link>
-            <Link href="/#dashboard" className={`text-${isActive('/#dashboard') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Dashboard</Link>
+            <Link href="/#pricing" className={`text-${isActive('/#pricing') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Pricing</Link>
             <Link href="/#integrations" className={`text-${isActive('/#integrations') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Integrations</Link>
             {user && <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition">My Dashboard</Link>}
           </nav>
@@ -37,10 +37,10 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             {!user ? (
               <>
-                <Link href="/login" className="hidden sm:inline-flex">
+                <Link href="/auth?tab=login" className="hidden sm:inline-flex">
                   <Button variant="outline" size="sm">Log in</Button>
                 </Link>
-                <Link href="/register">
+                <Link href="/auth?tab=register">
                   <Button variant="default" size="sm" className="bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition">
                     Get Started
                   </Button>
@@ -73,8 +73,8 @@ export default function Header() {
                   <Link href="/#features" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
                     Features
                   </Link>
-                  <Link href="/#dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
-                    Dashboard
+                  <Link href="/#pricing" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
+                    Pricing
                   </Link>
                   <Link href="/#integrations" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
                     Integrations
@@ -82,10 +82,10 @@ export default function Header() {
                   
                   {!user ? (
                     <>
-                      <Link href="/login" className="w-full">
+                      <Link href="/auth?tab=login" className="w-full">
                         <Button variant="outline" className="w-full">Log in</Button>
                       </Link>
-                      <Link href="/register" className="w-full">
+                      <Link href="/auth?tab=register" className="w-full">
                         <Button variant="default" className="w-full bg-accent-blue">Get Started</Button>
                       </Link>
                     </>

@@ -27,7 +27,7 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute top-[-50px] left-[-15px] w-[5px] h-[120px] bg-gradient-to-b from-accent-blue to-transparent rounded-md"></div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
-                Streamline Your Restaurant's Online Presence
+                Welcome to Digital Era
               </h1>
               <p className="text-text-secondary text-lg md:text-xl mb-8 max-w-[500px]">
                 Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.

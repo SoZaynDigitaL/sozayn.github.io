@@ -29,8 +29,8 @@ export default function Features() {
   const features = [
     {
       icon: <BarChart2 className="h-6 w-6 text-accent-blue" />,
-      title: "User-Friendly Dashboard",
-      description: "Get a real-time overview of all your restaurant operations in one intuitive dashboard."
+      title: "Digital Command Center",
+      description: "Get a real-time overview of all your restaurant operations in one intuitive digital command center."
     },
     {
       icon: <Settings className="h-6 w-6 text-accent-purple" />,
@@ -63,9 +63,9 @@ export default function Features() {
     <section id="features" className="py-20 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">One Gateway, Multiple Solutions</h2>
+          <h2 className="text-4xl font-bold mb-4">One Digital Hub, Multiple Solutions</h2>
           <p className="text-text-secondary text-xl max-w-3xl mx-auto">
-            SoZayn connects all your restaurant services through a single, powerful API gateway.
+            SoZayn connects all your restaurant services through a powerful digital platform for the modern era.
           </p>
         </div>
         

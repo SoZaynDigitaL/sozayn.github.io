@@ -10,9 +10,9 @@ export default function CTASection() {
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-blue opacity-5 blur-[100px] rounded-full z-0"></div>
           
           <div className="relative z-1 max-w-3xl">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Simplify Your Restaurant Operations?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Enter the Digital Era?</h2>
             <p className="text-text-secondary text-lg md:text-xl mb-8">
-              Join hundreds of restaurants that are already saving time and increasing sales with SoZayn's API gateway.
+              Join hundreds of restaurants that are already saving time and increasing sales with SoZayn's powerful solution.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">

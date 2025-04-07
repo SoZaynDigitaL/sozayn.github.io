@@ -119,10 +119,10 @@ export default function Dashboard() {
           </div>
           
           <div className="w-full lg:w-1/2 order-1 lg:order-2">
-            <span className="text-accent-blue font-semibold text-sm uppercase tracking-wider">Smart Dashboard</span>
+            <span className="text-accent-blue font-semibold text-sm uppercase tracking-wider">Digital Control Hub</span>
             <h2 className="text-4xl font-bold mt-2 mb-6">All Your Data in One Place</h2>
             <p className="text-text-secondary text-xl mb-8">
-              Get a comprehensive view of your restaurant operations with our intuitive dashboard that combines data from all your delivery services.
+              Get a comprehensive view of your restaurant operations with our intuitive digital command center that combines data from all your delivery services.
             </p>
             
             <div className="space-y-6">

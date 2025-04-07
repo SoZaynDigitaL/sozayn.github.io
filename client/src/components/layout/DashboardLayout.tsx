@@ -36,9 +36,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <h1 className="text-lg font-semibold">
             {location === '/dashboard' && 'Dashboard'}
             {location === '/dashboard/orders' && 'Orders'}
-            {location === '/dashboard/integrations' && 'Delivery Integrations'}
-            {location === '/dashboard/ecommerce' && 'E-Commerce'}
-            {location === '/dashboard/pos' && 'POS Integration'}
+            {location === '/dashboard/clients' && 'Client Management'}
             {location === '/dashboard/management' && 'Restaurant Management'}
             {location === '/dashboard/marketing' && 'Marketing'}
             {location === '/dashboard/loyalty' && 'Loyalty & Rewards'}

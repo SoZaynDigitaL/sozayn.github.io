@@ -11,6 +11,7 @@ import Register from "@/pages/register";
 import AuthPage from "@/pages/auth-page";
 import Dashboard from "@/pages/dashboard";
 import Orders from "@/pages/dashboard/orders";
+import Clients from "@/pages/dashboard/clients";
 import Integrations from "@/pages/dashboard/integrations";
 import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
@@ -37,6 +38,7 @@ function Router() {
       {/* Dashboard routes */}
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/dashboard/orders" component={Orders} />
+      <Route path="/dashboard/clients" component={Clients} />
       <Route path="/dashboard/integrations" component={Integrations} />
       <Route path="/dashboard/ecommerce" component={ECommerce} />
       <Route path="/dashboard/loyalty" component={Loyalty} />

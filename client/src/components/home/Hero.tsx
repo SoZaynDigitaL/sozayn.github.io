@@ -26,7 +26,7 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute top-[-50px] left-[-15px] w-[5px] h-[120px] bg-gradient-to-b from-accent-blue to-transparent rounded-md"></div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
-                Welcome to Digital Era
+                e-commerce Restuarants Grocery Retailer
               </h1>
               <p className="text-text-secondary text-lg md:text-xl mb-8 max-w-[500px]">
                 Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.
@@ -46,12 +46,12 @@ export default function Hero() {
               </div>
               
               <div className="mt-12">
-                <p className="text-sm text-text-secondary mb-4">Trusted by leading restaurants</p>
+                <p className="text-sm text-text-secondary mb-8">Trusted by</p>
                 <div className="flex flex-wrap items-center gap-8 opacity-70">
-                  <span className="font-semibold text-text-primary">BurgerHub</span>
-                  <span className="font-semibold text-text-primary">FreshEats</span>
-                  <span className="font-semibold text-text-primary">PizzaCo</span>
-                  <span className="font-semibold text-text-primary">GreenGrocery</span>
+                  <span className="font-semibold text-text-primary">Turkish Kebab</span>
+                  <span className="font-semibold text-text-primary">Halal Bite</span>
+                  <span className="font-semibold text-text-primary">Pizza Co</span>
+                  <span className="font-semibold text-text-primary">Burger Hub</span>
                 </div>
               </div>
             </div>

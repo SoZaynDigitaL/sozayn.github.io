@@ -3,14 +3,11 @@ import { cn } from '@/lib/utils';
 import { 
   Home, 
   Package, 
-  Layers, 
-  ExternalLink, 
+  Users, 
   BarChart3, 
   Gift, 
   Settings, 
-  Menu, 
-  X,
-  ShoppingCart
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -25,9 +22,7 @@ export default function DashboardSidebar() {
   const navigationItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
-    { href: '/dashboard/integrations', icon: ExternalLink, label: 'Delivery Partners' },
-    { href: '/dashboard/ecommerce', icon: ShoppingCart, label: 'E-Commerce' },
-    { href: '/dashboard/pos', icon: Layers, label: 'POS Integration' },
+    { href: '/dashboard/clients', icon: Users, label: 'Clients' },
     { href: '/dashboard/management', icon: Menu, label: 'Management' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
@@ -59,7 +54,7 @@ export default function DashboardSidebar() {
       <div className="px-4 py-6">
         <Link href="/" className="text-xl font-bold tracking-tighter">
           SoZayn
-          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Restaurants Grocery Retailer</span>
+          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Digital Era</span>
         </Link>
       </div>
       

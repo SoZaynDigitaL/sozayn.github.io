@@ -82,7 +82,6 @@ export const customers = pgTable("customers", {
   pointsBalance: integer("points_balance").default(0),
   totalOrders: integer("total_orders").default(0),
   totalSpent: integer("total_spent").default(0), // in cents
-  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -91,7 +90,6 @@ export const insertCustomerSchema = createInsertSchema(customers).pick({
   email: true,
   name: true,
   phone: true,
-  isActive: true,
 });
 
 export type User = typeof users.$inferSelect;

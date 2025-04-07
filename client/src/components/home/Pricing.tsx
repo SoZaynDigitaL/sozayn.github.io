@@ -147,8 +147,13 @@ export default function Pricing() {
           <p className="text-text-secondary max-w-2xl mx-auto mb-8">
             Start saving on every order. Keep your profits, own your data, and give your customers the experience they deserve.
           </p>
+          <Link href="/auth?tab=register">
+            <Button className="px-8 py-6 h-auto text-lg bg-accent-blue hover:bg-accent-blue/90 glow-button-blue">
+              Get Started Now
+            </Button>
+          </Link>
           
-          <p className="text-text-secondary italic">
+          <p className="mt-8 text-text-secondary italic">
             Want to migrate from another platform? We'll help you switch — for free.
           </p>
         </div>

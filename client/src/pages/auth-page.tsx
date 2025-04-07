@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,7 +56,6 @@ export default function AuthPage() {
   } = useFirebaseAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [redirectChecked, setRedirectChecked] = useState(false);
 
   // Parse tab from URL
   useEffect(() => {
@@ -67,17 +66,12 @@ export default function AuthPage() {
     }
   }, []);
 
-  // Redirect if already logged in - separated from other useEffects to avoid an infinite loop
+  // Redirect if already logged in
   useEffect(() => {
-    if (redirectChecked) return;
-
-    if (!isLoading && !firebaseLoading) {
-      setRedirectChecked(true);
-      if (user || firebaseUser) {
-        navigate('/dashboard');
-      }
+    if (user || firebaseUser) {
+      navigate('/dashboard');
     }
-  }, [user, firebaseUser, navigate, isLoading, firebaseLoading, redirectChecked]);
+  }, [user, firebaseUser, navigate]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({

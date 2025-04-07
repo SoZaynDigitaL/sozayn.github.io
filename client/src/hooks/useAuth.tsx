@@ -37,14 +37,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
+        console.log("Checking auth status...");
         // Handle 401 errors gracefully by returning null instead of throwing
         const response = await apiRequest('GET', '/api/auth/me', undefined, { on401: "returnNull" });
         
+        console.log("Auth status response:", response.status);
+        
         if (response.ok) {
           const userData = await response.json();
+          console.log("User authenticated:", userData);
           setUser(userData);
         } else {
           // Not authenticated
+          console.log("User not authenticated");
           setUser(null);
         }
       } catch (error) {

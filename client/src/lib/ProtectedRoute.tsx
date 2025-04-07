@@ -2,6 +2,7 @@ import { Route, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { useEffect } from 'react';
+import { Redirect } from 'wouter';
 
 interface ProtectedRouteProps {
   component: React.ComponentType;
@@ -26,20 +27,6 @@ export function ProtectedRoute({
   
   // The actual route component
   const ProtectedComponent = (props: any) => {
-    const [, setLocation] = useLocation();
-    
-    useEffect(() => {
-      // If not authenticated, redirect to auth page
-      if (!isLoading && !user) {
-        setLocation('/auth');
-      }
-      
-      // If admin-only and user is not admin, redirect to dashboard
-      if (!isLoading && user && adminOnly && user.role !== 'admin') {
-        setLocation('/dashboard');
-      }
-    }, [user, isLoading, setLocation]);
-    
     // If still loading, show a spinner
     if (isLoading) {
       return (
@@ -49,25 +36,20 @@ export function ProtectedRoute({
       );
     }
     
-    // If not authenticated, show spinner while redirecting
+    // If not authenticated, redirect directly to auth page
     if (!user) {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
-        </div>
-      );
+      console.log("ProtectedRoute - Not authenticated, redirecting to /auth");
+      return <Redirect to="/auth" />;
     }
     
-    // If admin-only and user is not admin, show spinner while redirecting
+    // If admin-only and user is not admin, redirect directly to dashboard
     if (adminOnly && user.role !== 'admin') {
-      return (
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
-        </div>
-      );
+      console.log("ProtectedRoute - Not admin, redirecting to /dashboard");
+      return <Redirect to="/dashboard" />;
     }
     
     // All checks passed, render the actual component
+    console.log("ProtectedRoute - Authentication passed, rendering component");
     return <Component {...props} />;
   };
   

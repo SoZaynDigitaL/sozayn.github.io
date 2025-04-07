@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema } from "../shared/schema";
+import { insertUserSchema, type User } from "../shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
@@ -78,18 +78,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Login attempt with:", req.body);
       const { username, password } = req.body;
       
-      // Find user
-      const user = await storage.getUserByUsername(username);
+      // First try to find user by username
+      let user = await storage.getUserByUsername(username);
+      
+      // If not found, try by email (assuming the username field might contain an email)
+      if (!user) {
+        // Check if username includes @ symbol (likely an email)
+        if (username.includes('@')) {
+          // Try to find user with matching email
+          const users = await storage.getAllUsers();
+          user = users.find((u: User) => u.email === username);
+          if (user) {
+            console.log(`User found by email: ${username}`);
+          }
+        }
+      }
+      
       if (!user) {
         console.log(`User not found: ${username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      console.log(`User found: ${username}, comparing passwords...`);
+      console.log(`User found: ${user.username}, comparing passwords...`);
       
       // Check password (simplified for demo)
       if (user.password !== password) {
-        console.log(`Password mismatch for user: ${username}`);
+        console.log(`Password mismatch for user: ${user.username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       

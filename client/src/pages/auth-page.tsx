@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Login form schema
 const loginSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
+  username: z.string().min(3, 'Username or email must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -204,9 +204,9 @@ export default function AuthPage() {
                           name="username"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Username</FormLabel>
+                              <FormLabel>Username or Email</FormLabel>
                               <FormControl>
-                                <Input placeholder="Enter your username" {...field} />
+                                <Input placeholder="Enter your username or email" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

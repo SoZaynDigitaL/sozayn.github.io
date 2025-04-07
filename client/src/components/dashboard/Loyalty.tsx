@@ -583,13 +583,13 @@ export default function Loyalty() {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div 
-                      className={
-                        tier.name === 'Platinum' ? 'text-accent-purple bg-accent-purple/20' :
+                      className={`
+                        p-1.5 rounded-full
+                        ${tier.name === 'Platinum' ? 'text-accent-purple bg-accent-purple/20' :
                         tier.name === 'Gold' ? 'text-accent-yellow bg-accent-yellow/20' :
                         tier.name === 'Silver' ? 'text-gray-400 bg-gray-400/20' :
-                        'text-amber-700 bg-amber-700/20'
-                      }
-                      className="p-1.5 rounded-full"
+                        'text-amber-700 bg-amber-700/20'}
+                      `}
                     >
                       <Crown className="h-4 w-4" />
                     </div>

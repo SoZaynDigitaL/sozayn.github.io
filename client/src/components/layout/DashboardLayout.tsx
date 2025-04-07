@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import DashboardSidebar from './DashboardSidebar';
+import ClientSidebar from './ClientSidebar';
 import { Bell } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-bg-dark">
-      <DashboardSidebar />
+      {user?.role === 'admin' ? <DashboardSidebar /> : <ClientSidebar />}
       
       <div className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
         <header className="py-4 px-6 border-b border-border-color flex items-center justify-between bg-bg-card z-10">
@@ -37,6 +38,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {location === '/dashboard' && 'Dashboard'}
             {location === '/dashboard/orders' && 'Orders'}
             {location === '/dashboard/clients' && 'Client Management'}
+            {location === '/dashboard/delivery-partners' && 'Delivery Partners'}
+            {location === '/dashboard/e-commerce' && 'E-Commerce'}
+            {location === '/dashboard/pos-integration' && 'POS Integration'}
             {location === '/dashboard/management' && 'Restaurant Management'}
             {location === '/dashboard/marketing' && 'Marketing'}
             {location === '/dashboard/loyalty' && 'Loyalty & Rewards'}

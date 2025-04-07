@@ -17,9 +17,11 @@ import Integrations from "@/pages/dashboard/integrations";
 import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
-import ECommerce from "@/pages/dashboard/ecommerce";
+import ECommerce from "@/pages/dashboard/e-commerce";
 import Settings from "@/pages/dashboard/settings";
 import ManagementPage from "@/pages/dashboard/management";
+import DeliveryPartners from "@/pages/dashboard/delivery-partners";
+import POSIntegration from "@/pages/dashboard/pos-integration";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import PaymentSuccess from "@/pages/payment-success";
@@ -43,11 +45,13 @@ function Router() {
       {/* Admin-only routes */}
       <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
       <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
-      <ProtectedRoute path="/dashboard/ecommerce" component={ECommerce} adminOnly />
+      <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} />
       <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly />
       <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly />
       <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
       <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
+      <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
+      <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
       <ProtectedRoute path="/dashboard/settings" component={Settings} />
       
       {/* Payment routes - protected but available to all users */}

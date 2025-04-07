@@ -1,6 +1,7 @@
-import { Route } from 'wouter';
+import { Route, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   component: React.ComponentType;
@@ -25,6 +26,20 @@ export function ProtectedRoute({
   
   // The actual route component
   const ProtectedComponent = (props: any) => {
+    const [, setLocation] = useLocation();
+    
+    useEffect(() => {
+      // If not authenticated, redirect to auth page
+      if (!isLoading && !user) {
+        setLocation('/auth');
+      }
+      
+      // If admin-only and user is not admin, redirect to dashboard
+      if (!isLoading && user && adminOnly && user.role !== 'admin') {
+        setLocation('/dashboard');
+      }
+    }, [user, isLoading, setLocation]);
+    
     // If still loading, show a spinner
     if (isLoading) {
       return (
@@ -34,19 +49,22 @@ export function ProtectedRoute({
       );
     }
     
-    // If not authenticated, redirect to auth page
+    // If not authenticated, show spinner while redirecting
     if (!user) {
-      // Use direct window location change to force a complete page refresh
-      // This is more reliable than wouter's navigate which can sometimes fail
-      window.location.href = '/auth';
-      return null;
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        </div>
+      );
     }
     
-    // If admin-only and user is not admin, redirect to dashboard
+    // If admin-only and user is not admin, show spinner while redirecting
     if (adminOnly && user.role !== 'admin') {
-      // Use direct window location change for admin-restricted pages
-      window.location.href = '/dashboard';
-      return null;
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+        </div>
+      );
     }
     
     // All checks passed, render the actual component

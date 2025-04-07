@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -19,6 +19,8 @@ import Footer from '@/components/layout/Footer';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
 
 // Login form schema
 const loginSchema = z.object({
@@ -40,8 +42,17 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const { toast } = useToast();
+  const { user, login } = useAuth();
+  const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      setLocation('/dashboard');
+    }
+  }, [user, setLocation]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -84,24 +95,16 @@ export default function AuthPage() {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Invalid credentials');
-      }
+      // Use the login function from useAuth context
+      await login(data.username, data.password);
       
       toast({
         title: "Login successful",
         description: "Welcome back to SoZayn!",
       });
       
-      // Redirect to dashboard
-      window.location.href = '/dashboard';
+      // No need to redirect here, the useEffect hook will handle it
+      // when the user state updates
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -141,22 +144,11 @@ export default function AuthPage() {
         description: "Welcome to SoZayn!",
       });
       
-      // Login after registration
-      const loginResponse = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: data.username,
-          password: data.password,
-        }),
-      });
+      // Login after registration using the login function from useAuth
+      await login(data.username, data.password);
       
-      if (!loginResponse.ok) {
-        throw new Error('Login after registration failed');
-      }
-      
-      // Redirect to dashboard
-      window.location.href = '/dashboard';
+      // No need to redirect here, the useEffect hook will handle it
+      // when the user state updates
     } catch (error) {
       console.error('Registration error:', error);
       toast({

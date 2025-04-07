@@ -44,11 +44,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const headers: HeadersInit = {};
         
         if (authToken) {
-          console.log("Found auth token in localStorage, adding to request");
+          console.log("Found auth token in localStorage:", authToken);
           headers['Authorization'] = `Bearer ${authToken}`;
+          
+          // Always try the token verification endpoint first for more reliable token-based auth
+          console.log("Trying token verification endpoint directly");
+          try {
+            const verifyResponse = await fetch('/api/auth/verify-token', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ token: authToken }),
+              credentials: 'include'
+            });
+            
+            if (verifyResponse.ok) {
+              const userData = await verifyResponse.json();
+              console.log("Token verification successful on first attempt:", userData);
+              setUser(userData);
+              setIsLoading(false);
+              return;
+            } else {
+              console.log("Token verification failed, status:", verifyResponse.status);
+            }
+          } catch (verifyError) {
+            console.error("Token verification endpoint error:", verifyError);
+          }
+        } else {
+          console.log("No auth token found in localStorage");
         }
         
-        // Call /api/auth/me with potential token
+        // Fallback to regular /api/auth/me with session cookies
+        console.log("Falling back to session-based auth check");
         const response = await fetch('/api/auth/me', {
           credentials: 'include',
           headers
@@ -58,37 +87,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (response.ok) {
           const userData = await response.json();
-          console.log("User authenticated:", userData);
+          console.log("User authenticated via session:", userData);
           setUser(userData);
         } else {
-          // If authentication fails but we have a token, try again with a forceful approach
+          // If we have a token but both verification methods failed, clear it
           if (authToken) {
-            console.log("Regular auth check failed, trying direct API call with token");
-            
-            try {
-              // Make a direct API call to get the user data with the token
-              const userResponse = await fetch('/api/auth/verify-token', {
-                method: 'POST',
-                headers: { 
-                  'Authorization': `Bearer ${authToken}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token: authToken })
-              });
-              
-              if (userResponse.ok) {
-                const userData = await userResponse.json();
-                console.log("Token verification successful:", userData);
-                setUser(userData);
-                return;
-              } else {
-                console.log("Token verification failed, invalidating token");
-                localStorage.removeItem('authToken');
-              }
-            } catch (tokenError) {
-              console.error("Error with token verification:", tokenError);
-              localStorage.removeItem('authToken');
-            }
+            console.log("Both auth methods failed with token, removing invalid token");
+            localStorage.removeItem('authToken');
           }
           
           // Not authenticated

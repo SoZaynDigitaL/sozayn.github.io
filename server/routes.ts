@@ -341,6 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = authHeader ? authHeader.split(' ')[1] : req.body.token;
       
       if (!token) {
+        console.log("No token provided in verification request");
         return res.status(401).json({ error: "No token provided" });
       }
       
@@ -350,16 +351,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If token is formatted as userId:username, fetch the user with that ID
       // This is a simplified approach - in production you would use proper JWT verification
       if (token.includes(':')) {
-        const [userId] = token.split(':');
+        const [userId, username] = token.split(':');
         if (!userId || isNaN(Number(userId))) {
+          console.log("Invalid token format - userId is not a number:", userId);
           return res.status(401).json({ error: "Invalid token format" });
         }
         
         // Get user by ID
         const user = await storage.getUser(Number(userId));
         if (!user) {
+          console.log("User not found for token userId:", userId);
           return res.status(401).json({ error: "User not found" });
         }
+        
+        // Verify username in token matches user
+        if (user.username !== username) {
+          console.log("Username mismatch in token. Expected:", user.username, "Got:", username);
+          return res.status(401).json({ error: "Invalid token" });
+        }
+        
+        console.log("Token verification successful for user:", user.username);
         
         // Don't return password
         const { password, ...userWithoutPassword } = user;
@@ -370,12 +381,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Save session explicitly to ensure it's created
         req.session.save((err) => {
           if (err) {
-            console.error("Error saving session:", err);
+            console.error("Error saving session during token verification:", err);
+          } else {
+            console.log("Session saved successfully during token verification");
           }
         });
         
         return res.json(userWithoutPassword);
       } else {
+        console.log("Invalid token format - doesn't contain colon separator");
         return res.status(401).json({ error: "Invalid token format" });
       }
     } catch (error) {

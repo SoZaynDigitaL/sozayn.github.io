@@ -36,24 +36,34 @@ export function ProtectedRoute({
       );
     }
     
-    // If not authenticated, redirect to auth page using direct window location
+    // If not authenticated, redirect to auth page
     if (!user) {
       console.log("ProtectedRoute - Not authenticated, redirecting to /auth");
-      window.location.href = '/auth';
+      // Custom useEffect will run only once to change location
+      useEffect(() => {
+        window.location.href = '/auth';
+      }, []);
+      
       return (
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+          <span className="ml-2">Redirecting to login page...</span>
         </div>
       );
     }
     
-    // If admin-only and user is not admin, redirect to dashboard using direct window location
+    // If admin-only and user is not admin, redirect to dashboard
     if (adminOnly && user.role !== 'admin') {
       console.log("ProtectedRoute - Not admin, redirecting to /dashboard");
-      window.location.href = '/dashboard';
+      // Custom useEffect will run only once to change location
+      useEffect(() => {
+        window.location.href = '/dashboard';
+      }, []);
+      
       return (
         <div className="flex items-center justify-center min-h-screen">
           <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
+          <span className="ml-2">Access denied. Redirecting...</span>
         </div>
       );
     }

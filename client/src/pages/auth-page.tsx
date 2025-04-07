@@ -262,87 +262,95 @@ export default function AuthPage() {
                           className="w-full mt-2 bg-accent-green hover:bg-accent-green/90"
                           onClick={async () => {
                             try {
+                              // Clear any existing token first
+                              localStorage.removeItem('authToken');
+                              
                               // Show loading indicator
                               toast({
                                 title: "Emergency Login",
-                                description: "Attempting login, please wait...",
+                                description: "Attempting admin login, please wait...",
                               });
                               
-                              // Hardcoded admin credentials - using apiRequest from queryClient to maintain consistency
-                              const response = await fetch('/api/auth/login', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ 
-                                  username: 'admin', 
-                                  password: 'admin123' 
-                                }),
-                                credentials: 'include'
-                              });
+                              // Use the login function from useAuth hook for consistency
+                              await login('admin', 'admin123');
                               
-                              console.log('Emergency login response status:', response.status);
+                              // The login function from useAuth hook should handle token storage
+                              console.log('Emergency admin login successful');
                               
-                              if (response.ok) {
-                                const data = await response.json();
-                                console.log('Emergency login successful, received data:', data);
-                                
-                                // Store the auth token in localStorage
-                                if (data.authToken) {
-                                  localStorage.setItem('authToken', data.authToken);
-                                  console.log('Auth token stored in localStorage:', data.authToken);
-                                  
-                                  // Show success message
-                                  toast({
-                                    title: "Login Successful",
-                                    description: "Redirecting to dashboard...",
-                                  });
-                                  
-                                  // Add a small delay before redirect to ensure token is stored
-                                  setTimeout(() => {
-                                    // Directly navigating to dashboard
-                                    window.location.href = '/dashboard';
-                                  }, 500);
-                                } else {
-                                  console.warn('No auth token received in login response');
-                                  toast({
-                                    title: "Login Warning",
-                                    description: "Login successful but no auth token received. Redirecting anyway...",
-                                  });
-                                  
-                                  // Still redirect even without token
-                                  setTimeout(() => {
-                                    window.location.href = '/dashboard';
-                                  }, 500);
-                                }
-                              } else {
-                                // Get detailed error information
-                                let errorMessage = "Unknown error";
-                                try {
-                                  const errorData = await response.json();
-                                  console.error('Emergency login failed:', response.status, errorData);
-                                  errorMessage = errorData.error || JSON.stringify(errorData);
-                                } catch (e) {
-                                  try {
-                                    const textError = await response.text();
-                                    console.error('Emergency login failed (text):', response.status, textError);
-                                    errorMessage = textError || `Status code: ${response.status}`;
-                                  } catch (e2) {
-                                    errorMessage = `Status code: ${response.status}`;
-                                  }
-                                }
-                                
-                                toast({
-                                  title: "Emergency Login Failed",
-                                  description: errorMessage,
-                                  variant: "destructive",
-                                });
-                              }
-                            } catch (error) {
-                              console.error('Emergency login error:', error);
+                              // Show success message
                               toast({
-                                title: "Emergency Login Error",
+                                title: "Admin Login Successful",
+                                description: "Redirecting to dashboard...",
+                              });
+                              
+                              // Add a small delay before redirect
+                              setTimeout(() => {
+                                // Ensure the token is in localStorage before navigating
+                                const token = localStorage.getItem('authToken');
+                                console.log('Auth token before redirect:', token ? 'Present' : 'Missing');
+                                
+                                // Directly navigate to dashboard
+                                window.location.href = '/dashboard';
+                              }, 500);
+                            } catch (error) {
+                              console.error('Emergency admin login error:', error);
+                              toast({
+                                title: "Emergency Login Failed",
                                 description: error instanceof Error ? error.message : "Unknown error",
                                 variant: "destructive",
                               });
+                              
+                              // Try a direct approach as fallback
+                              try {
+                                console.log('Trying direct API call as fallback...');
+                                
+                                // Direct API call as fallback
+                                const response = await fetch('/api/auth/login', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ 
+                                    username: 'admin', 
+                                    password: 'admin123' 
+                                  }),
+                                  credentials: 'include'
+                                });
+                                
+                                console.log('Fallback login response status:', response.status);
+                                
+                                if (response.ok) {
+                                  const data = await response.json();
+                                  console.log('Fallback login successful:', data);
+                                  
+                                  // Store auth token manually
+                                  if (data.authToken) {
+                                    localStorage.setItem('authToken', data.authToken);
+                                    console.log('Auth token stored manually:', data.authToken);
+                                    
+                                    toast({
+                                      title: "Fallback Login Successful",
+                                      description: "Redirecting to dashboard...",
+                                    });
+                                    
+                                    setTimeout(() => {
+                                      window.location.href = '/dashboard';
+                                    }, 500);
+                                  }
+                                } else {
+                                  console.error('Fallback login failed with status:', response.status);
+                                  toast({
+                                    title: "All Login Attempts Failed",
+                                    description: "Please contact support for assistance.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              } catch (fallbackError) {
+                                console.error('Fallback login error:', fallbackError);
+                                toast({
+                                  title: "All Login Attempts Failed",
+                                  description: "Please contact support for assistance.",
+                                  variant: "destructive",
+                                });
+                              }
                             }
                           }}
                         >

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="60" viewBox="0 0 180 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4361EE" />
+      <stop offset="100%" stop-color="#8957E5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Stylized letter S with gradient -->
+  <path d="M25 15C18.5 15 15 18.5 15 22.5C15 26.5 18 28.5 25 30.5C32 32.5 35 34.5 35 38.5C35 42.5 31.5 45 25 45C19.5 45 16 42.5 15 38" stroke="url(#logoGradient)" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Text "oZayn" -->
+  <text x="40" y="38" font-family="Arial, sans-serif" font-weight="bold" font-size="28" fill="white">oZayn</text>
+  
+  <!-- Digital graphic elements -->
+  <circle cx="150" cy="20" r="3" fill="#4361EE" />
+  <circle cx="160" cy="20" r="3" fill="#8957E5" />
+  <line x1="150" y1="20" x2="160" y2="20" stroke="#4361EE" stroke-width="1.5" />
+  <line x1="150" y1="20" x2="142" y2="28" stroke="#8957E5" stroke-width="1.5" />
+</svg>

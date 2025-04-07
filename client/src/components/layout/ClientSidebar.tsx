@@ -41,10 +41,19 @@ export default function ClientSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   
-  // Updated isActive function to handle nested routes
+  // Improved isActive function to better handle all routing edge cases
   const isActive = (path: string) => {
+    // Exact match for dashboard home
     if (path === '/dashboard' && location === '/dashboard') {
       return true;
+    }
+    
+    // Special case for marketing parent menu
+    if (path === '/dashboard/marketing') {
+      return location === path || 
+             location.startsWith('/dashboard/marketing/seo') || 
+             location.startsWith('/dashboard/marketing/email') || 
+             location.startsWith('/dashboard/marketing/automated');
     }
     
     // For all other paths, check both exact match and if the current location starts with path

@@ -19,7 +19,24 @@ export default function DashboardSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   
-  const isActive = (path: string) => location === path;
+  // Improved isActive function to handle nested routes
+  const isActive = (path: string) => {
+    // Exact match for dashboard home
+    if (path === '/dashboard' && location === '/dashboard') {
+      return true;
+    }
+    
+    // Special case for marketing section
+    if (path === '/dashboard/marketing') {
+      return location === path || 
+             location.startsWith('/dashboard/marketing/seo') || 
+             location.startsWith('/dashboard/marketing/email') || 
+             location.startsWith('/dashboard/marketing/automated');
+    }
+    
+    // For all other paths, check both exact match and if the current location starts with path
+    return location === path || (path !== '/dashboard' && location.startsWith(`${path}/`));
+  };
   const isAdmin = user?.role === 'admin';
   
   // Base navigation items for all users

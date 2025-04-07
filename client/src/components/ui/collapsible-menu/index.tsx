@@ -31,10 +31,18 @@ export function CollapsibleMenuItem({
   const hasActiveChild = subItems?.some(item => isActive(item.href));
   const active = isActive(href);
   
-  // Auto-expand menu if current path matches this item or any subitems
+  // Enhanced auto-expand menu logic that handles all edge cases
   const [isOpen, setIsOpen] = useState(() => {
     // Auto-open parent node if it's active or has an active child
     if (active || hasActiveChild) {
+      return true;
+    }
+    
+    // Special case for marketing parent menu
+    if (href === '/dashboard/marketing' && 
+        (location.startsWith('/dashboard/marketing/seo') || 
+         location.startsWith('/dashboard/marketing/email') || 
+         location.startsWith('/dashboard/marketing/automated'))) {
       return true;
     }
     

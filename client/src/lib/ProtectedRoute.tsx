@@ -36,12 +36,15 @@ export function ProtectedRoute({
     
     // If not authenticated, redirect to auth page
     if (!user) {
+      // Use direct window location change to force a complete page refresh
+      // This is more reliable than wouter's navigate which can sometimes fail
       window.location.href = '/auth';
       return null;
     }
     
     // If admin-only and user is not admin, redirect to dashboard
     if (adminOnly && user.role !== 'admin') {
+      // Use direct window location change for admin-restricted pages
       window.location.href = '/dashboard';
       return null;
     }

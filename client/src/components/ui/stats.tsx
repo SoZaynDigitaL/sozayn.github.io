@@ -11,6 +11,7 @@ interface StatsCardProps {
   progress?: number;
   progressColor?: string;
   className?: string;
+  isNegative?: boolean;
 }
 
 export function StatsCard({
@@ -20,9 +21,10 @@ export function StatsCard({
   change,
   progress,
   progressColor = 'bg-accent-blue',
-  className
+  className,
+  isNegative
 }: StatsCardProps) {
-  const isPositive = change && change > 0;
+  const isPositive = isNegative ? false : (change && change > 0);
   const progressWidth = progress ? `${progress}%` : '0%';
   
   return (

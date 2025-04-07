@@ -147,10 +147,6 @@ export default function Pricing() {
           <p className="text-text-secondary max-w-2xl mx-auto mb-8">
             Start saving on every order & make more profits and give customers the experience they deserve.
           </p>
-          
-          <p className="mt-8 text-text-secondary italic">
-            Want to migrate from another platform? We'll help you switch — for free.
-          </p>
         </div>
       </div>
     </section>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +15,16 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const isActive = (path: string) => location === path;
+
+  const scrollToSection = useCallback((id: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      // Update URL without page reload
+      window.history.pushState(null, '', `/#${id}`);
+    }
+  }, []);
   
   return (
     <header className="relative py-6 z-10">
@@ -28,9 +38,9 @@ export default function Header() {
           </div>
           
           <nav className="hidden md:flex space-x-8">
-            <Link href="/#features" className={`text-${isActive('/#features') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Features</Link>
-            <Link href="/#pricing" className={`text-${isActive('/#pricing') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Pricing</Link>
-            <Link href="/#integrations" className={`text-${isActive('/#integrations') ? 'text-primary' : 'text-secondary'} hover:text-text-primary text-sm font-medium transition`}>Integrations</Link>
+            <a href="/#features" onClick={scrollToSection('features')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition">Features</a>
+            <a href="/#pricing" onClick={scrollToSection('pricing')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition">Pricing</a>
+            <a href="/#integrations" onClick={scrollToSection('integrations')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition">Integrations</a>
             {user && <Link href="/dashboard" className="text-text-secondary hover:text-text-primary text-sm font-medium transition">My Dashboard</Link>}
           </nav>
           
@@ -70,15 +80,15 @@ export default function Header() {
               </SheetTrigger>
               <SheetContent side="right" className="bg-bg-card border-border-color">
                 <div className="flex flex-col space-y-4 mt-8">
-                  <Link href="/#features" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
+                  <a href="/#features" onClick={scrollToSection('features')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
                     Features
-                  </Link>
-                  <Link href="/#pricing" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
+                  </a>
+                  <a href="/#pricing" onClick={scrollToSection('pricing')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
                     Pricing
-                  </Link>
-                  <Link href="/#integrations" className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
+                  </a>
+                  <a href="/#integrations" onClick={scrollToSection('integrations')} className="text-text-secondary hover:text-text-primary text-sm font-medium transition px-2 py-2">
                     Integrations
-                  </Link>
+                  </a>
                   
                   {!user ? (
                     <>

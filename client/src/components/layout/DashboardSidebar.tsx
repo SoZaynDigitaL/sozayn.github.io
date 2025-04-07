@@ -59,8 +59,7 @@ export default function DashboardSidebar() {
       <div className="px-4 py-6">
         <Link href="/" className="text-xl font-bold tracking-tighter">
           SoZayn
-          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Digital Era</span>
-This will ensure the updated message is displayed in the sidebar component.
+          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Restaurants Grocery Retailer</span>
         </Link>
       </div>
       

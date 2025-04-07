@@ -10,8 +10,7 @@ import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import AuthPage from "@/pages/auth-page";
-import AdminDashboard from "@/pages/dashboard/admin";
-import ClientDashboard from "@/pages/dashboard/client";
+import Dashboard from "@/pages/dashboard";
 import Orders from "@/pages/dashboard/orders";
 import Clients from "@/pages/dashboard/clients";
 import Integrations from "@/pages/dashboard/integrations";
@@ -37,28 +36,18 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
-      {/* Role-based dashboard routes */}
-      <ProtectedRoute path="/dashboard" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
-      
-      {/* Client routes */}
-      <ProtectedRoute path="/dashboard/support" component={({ user }: { user: any }) => 
-        user?.role === 'admin' ? <AdminDashboard /> : <ClientDashboard />
-      } />
+      {/* Protected Dashboard routes - available to all authenticated users */}
+      <ProtectedRoute path="/dashboard" component={Dashboard} />
       <ProtectedRoute path="/dashboard/orders" component={Orders} />
-      <ProtectedRoute path="/dashboard/delivery-partners" component={({ user }: { user: any }) => 
-        <div className="p-8">
-          <h1 className="text-2xl font-bold mb-4">Delivery Partners</h1>
-          <p>Manage your delivery partners and integrations here.</p>
-        </div>
-      } />
-      <ProtectedRoute path="/dashboard/ecommerce" component={ECommerce} />
-      <ProtectedRoute path="/dashboard/pos" component={POS} />
-      <ProtectedRoute path="/dashboard/management" component={ManagementPage} />
-      <ProtectedRoute path="/dashboard/marketing" component={Marketing} />
-      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} />
-      <ProtectedRoute path="/dashboard/clients" component={Clients} />
+      
+      {/* Admin-only routes */}
+      <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
+      <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
+      <ProtectedRoute path="/dashboard/ecommerce" component={ECommerce} adminOnly />
+      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} adminOnly />
+      <ProtectedRoute path="/dashboard/marketing" component={Marketing} adminOnly />
+      <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
+      <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
       <ProtectedRoute path="/dashboard/settings" component={Settings} />
       
       {/* Payment routes - protected but available to all users */}

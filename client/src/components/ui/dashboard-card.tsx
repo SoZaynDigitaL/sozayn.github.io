@@ -1,37 +1,31 @@
-import React, { ReactNode } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ReactNode } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DashboardCardProps {
   title: string;
   description?: string;
-  headerAction?: ReactNode;
   children: ReactNode;
+  headerAction?: ReactNode;
   className?: string;
 }
 
-export function DashboardCard({ 
-  title, 
-  description, 
-  headerAction, 
-  children, 
-  className = "" 
+export function DashboardCard({
+  title,
+  description,
+  children,
+  headerAction,
+  className,
 }: DashboardCardProps) {
   return (
-    <Card className={`bg-bg-card border-border-color overflow-hidden ${className}`}>
-      <CardHeader className="px-6 py-5 flex flex-row items-center justify-between bg-bg-chart/50 border-b border-border-color">
+    <Card className={className}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div>
-          <CardTitle className="text-base font-semibold">{title}</CardTitle>
-          {description && (
-            <p className="text-xs text-text-secondary mt-1">
-              {description}
-            </p>
-          )}
+          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
         </div>
-        {headerAction && (
-          <div className="flex items-center">{headerAction}</div>
-        )}
+        {headerAction && <div>{headerAction}</div>}
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="pt-0 pb-4">
         {children}
       </CardContent>
     </Card>

@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
-import ClientDashboardLayout from '@/components/layout/ClientDashboardLayout';
-import AdminDashboardLayout from '@/components/layout/AdminDashboardLayout';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { DashboardCard } from '@/components/ui/dashboard-card';
 import { IntegrationCard } from '@/components/ui/integration-card';
 import { Button } from '@/components/ui/button';
@@ -157,12 +155,8 @@ export default function ECommerce() {
     return data[provider] || { color: 'text-accent-blue', icon: provider.substring(0, 2).toUpperCase() };
   };
   
-  const { user } = useAuth();
-  
-  const Layout = user?.role === 'admin' ? AdminDashboardLayout : ClientDashboardLayout;
-
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
           <h1 className="text-2xl font-bold">E-Commerce Integration</h1>
@@ -419,6 +413,6 @@ export default function ECommerce() {
           </div>
         </DashboardCard>
       </div>
-    </Layout>
+    </DashboardLayout>
   );
 }

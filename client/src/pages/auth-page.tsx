@@ -5,9 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-// Firebase auth temporarily disabled to fix the infinite loop issue
-// import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
-// import AuthGuidanceDialog from '@/components/auth/AuthGuidanceDialog';
+import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
+import AuthGuidanceDialog from '@/components/auth/AuthGuidanceDialog';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -47,8 +46,6 @@ export default function AuthPage() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { user, login, isLoading } = useAuth();
-  // Temporarily comment out Firebase auth to isolate the issue
-  /*
   const { 
     firebaseUser, 
     signInWithGooglePopup, 
@@ -57,9 +54,9 @@ export default function AuthPage() {
     setShowAuthGuidance,
     currentDomain
   } = useFirebaseAuth();
-  */
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [redirectChecked, setRedirectChecked] = useState(false);
 
   // Parse tab from URL
   useEffect(() => {
@@ -70,12 +67,17 @@ export default function AuthPage() {
     }
   }, []);
 
-  // Redirect if already logged in - simplified to avoid infinite loops
+  // Redirect if already logged in - separated from other useEffects to avoid an infinite loop
   useEffect(() => {
-    if (!isLoading && user) {
-      navigate('/dashboard');
+    if (redirectChecked) return;
+
+    if (!isLoading && !firebaseLoading) {
+      setRedirectChecked(true);
+      if (user || firebaseUser) {
+        navigate('/dashboard');
+      }
     }
-  }, [user, navigate, isLoading]);
+  }, [user, firebaseUser, navigate, isLoading, firebaseLoading, redirectChecked]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -159,20 +161,18 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     try {
       console.log("Attempting Google sign-in from auth-page");
-      // Temporarily disabled Firebase auth
-      toast({
-        title: "Google Sign-In Disabled",
-        description: "Google authentication is temporarily unavailable.",
-        variant: "default",
-      });
-      // await signInWithGooglePopup();
+      await signInWithGooglePopup();
+      // Note: Success toast will be handled in the useFirebaseAuth hook
+      // The hook will also handle navigation to dashboard if successful
     } catch (error) {
       console.error("Google sign-in handling error in auth-page:", error);
+      // Error toasts will be handled in the useFirebaseAuth hook
+      // No need to display additional toast here
     }
   };
 
   // If user is already logged in or loading auth state, show loading
-  if (isLoading) {
+  if (isLoading || firebaseLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-bg-dark">
         <Loader2 className="h-8 w-8 animate-spin text-accent-blue" />
@@ -482,13 +482,12 @@ export default function AuthPage() {
       
       <Footer />
       
-      {/* Firebase Auth Guidance Dialog - temporarily disabled
+      {/* Firebase Auth Guidance Dialog */}
       <AuthGuidanceDialog 
         open={showAuthGuidance} 
         onOpenChange={setShowAuthGuidance}
         domain={currentDomain}
       />
-      */}
     </div>
   );
 }

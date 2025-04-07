@@ -1,5 +1,4 @@
-# SoZayn - Digital Command Center
-
+# SoZayn - Welcome to the Digital Era
 Welcome to SoZayn, a comprehensive digital platform for restaurants and groceries. 
 
 ## Features
@@ -11,5 +10,4 @@ Welcome to SoZayn, a comprehensive digital platform for restaurants and grocerie
 - Third-party delivery integration
 
 ## Deployment
-See HEROKU_SETUP.md for Heroku deployment instructions.
-See ENV_VARIABLES.md for required environment variables.
+SoZayn Technologies

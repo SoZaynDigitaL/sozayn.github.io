@@ -202,18 +202,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add user to MailerLite - set default FREE plan if planId is not provided
       const userPlanId = newUser.planId || PlanType.FREE;
+      
+      // Handle the MailerLite integration - but don't block user registration if it fails
       try {
-        // Add the user to MailerLite with their plan
-        await addUserToMailerLite(
-          newUser.email,
-          newUser.username,
-          userPlanId as PlanType,
-          newUser.businessName
-        );
-        console.log(`User ${newUser.username} added to MailerLite with plan ${userPlanId}`);
-      } catch (mailerliteError) {
+        // Check if MailerLite API key exists
+        if (!process.env.MAILERLITE_API_KEY) {
+          console.warn("MAILERLITE_API_KEY not set. Skipping MailerLite integration.");
+        } else {
+          // Add the user to MailerLite with their plan
+          await addUserToMailerLite(
+            newUser.email,
+            newUser.username,
+            userPlanId as PlanType,
+            newUser.businessName
+          );
+          console.log(`User ${newUser.username} added to MailerLite with plan ${userPlanId}`);
+        }
+      } catch (mailerliteError: any) {
         // Log error but don't fail registration if MailerLite integration fails
-        console.error("Failed to add user to MailerLite:", mailerliteError);
+        console.error("Failed to add user to MailerLite:", 
+          mailerliteError?.response?.data || mailerliteError?.message || mailerliteError);
+        
+        // Try to tag the user instead if group assignment failed
+        try {
+          const tagSubscriberPromise = import('./services/mailerLite')
+            .then(({ tagSubscriber }) => {
+              return tagSubscriber(newUser.email, `plan-${userPlanId}`);
+            });
+          
+          // Don't await this - let it run in the background
+          tagSubscriberPromise.catch(tagError => {
+            console.error("Failed to tag user in MailerLite:", tagError);
+          });
+        } catch (secondaryError) {
+          console.error("Failed secondary MailerLite tagging attempt:", secondaryError);
+        }
       }
       
       // Don't return password
@@ -1304,15 +1327,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update user plan in MailerLite
       try {
-        await updateUserPlanInMailerLite(
-          user.email,
-          user.username,
-          planId as PlanType
-        );
-        console.log(`User ${user.username} plan updated in MailerLite to ${planId}`);
-      } catch (mailerliteError) {
+        // Check if MailerLite API key exists
+        if (!process.env.MAILERLITE_API_KEY) {
+          console.warn("MAILERLITE_API_KEY not set. Skipping MailerLite integration for plan upgrade.");
+        } else {
+          await updateUserPlanInMailerLite(
+            user.email,
+            user.username,
+            planId as PlanType
+          );
+          console.log(`User ${user.username} plan updated in MailerLite to ${planId}`);
+        }
+      } catch (mailerliteError: any) {
         // Log error but don't fail plan upgrade if MailerLite integration fails
-        console.error("Failed to update user plan in MailerLite:", mailerliteError);
+        console.error("Failed to update user plan in MailerLite:", 
+          mailerliteError?.response?.data || mailerliteError?.message || mailerliteError);
+        
+        // Try to tag the user instead if group assignment failed
+        try {
+          const tagSubscriberPromise = import('./services/mailerLite')
+            .then(({ tagSubscriber }) => {
+              return tagSubscriber(user.email, `plan-${planId}`);
+            });
+          
+          // Don't await this - let it run in the background
+          tagSubscriberPromise.catch(tagError => {
+            console.error("Failed to tag user in MailerLite during plan upgrade:", tagError);
+          });
+        } catch (secondaryError) {
+          console.error("Failed secondary MailerLite tagging attempt during plan upgrade:", secondaryError);
+        }
       }
       
       // In a real application, we would update the user's plan in the database here
@@ -1367,15 +1411,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update the user's plan in MailerLite to FREE after cancellation
       try {
-        await updateUserPlanInMailerLite(
-          user.email,
-          user.username,
-          PlanType.FREE // Downgrade to FREE plan after cancellation
-        );
-        console.log(`User ${user.username} plan downgraded in MailerLite to ${PlanType.FREE} after subscription cancellation`);
-      } catch (mailerliteError) {
+        // Check if MailerLite API key exists
+        if (!process.env.MAILERLITE_API_KEY) {
+          console.warn("MAILERLITE_API_KEY not set. Skipping MailerLite integration for plan downgrade.");
+        } else {
+          await updateUserPlanInMailerLite(
+            user.email,
+            user.username,
+            PlanType.FREE // Downgrade to FREE plan after cancellation
+          );
+          console.log(`User ${user.username} plan downgraded in MailerLite to ${PlanType.FREE} after subscription cancellation`);
+        }
+      } catch (mailerliteError: any) {
         // Log error but don't fail cancellation if MailerLite integration fails
-        console.error("Failed to update user plan in MailerLite:", mailerliteError);
+        console.error("Failed to update user plan in MailerLite for cancellation:", 
+          mailerliteError?.response?.data || mailerliteError?.message || mailerliteError);
+        
+        // Try to tag the user instead if group assignment failed
+        try {
+          const tagSubscriberPromise = import('./services/mailerLite')
+            .then(({ tagSubscriber }) => {
+              return tagSubscriber(user.email, `plan-${PlanType.FREE}`);
+            });
+          
+          // Don't await this - let it run in the background
+          tagSubscriberPromise.catch(tagError => {
+            console.error("Failed to tag user in MailerLite during plan downgrade:", tagError);
+          });
+        } catch (secondaryError) {
+          console.error("Failed secondary MailerLite tagging attempt during plan downgrade:", secondaryError);
+        }
       }
       
       // This would be where you would cancel a subscription with the payment provider

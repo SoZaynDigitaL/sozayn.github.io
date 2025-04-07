@@ -83,14 +83,23 @@ export async function addOrUpdateSubscriber(
     // Add or update subscriber
     await mailerliteClient.post('/subscribers', subscriberData);
 
-    // Get group ID for the plan
-    const groupId = await getGroupIdByName(plan);
-    
-    // If group exists, add subscriber to group
-    if (groupId) {
-      await mailerliteClient.post(`/subscribers/${encodeURIComponent(email)}/groups/${groupId}`);
-    } else {
-      console.warn(`MailerLite group "${plan}" not found.`);
+    try {
+      // Get group ID for the plan
+      const groupId = await getGroupIdByName(plan);
+      
+      // If group exists, add subscriber to group
+      if (groupId) {
+        await mailerliteClient.post(`/subscribers/${encodeURIComponent(email)}/groups/${groupId}`);
+      } else {
+        // For error management - first check if we need to create the group
+        console.warn(`MailerLite group "${plan}" not found. Will continue without assigning to group.`);
+        
+        // Create a tag with the plan name instead since we can't add to the group
+        await tagSubscriber(email, `plan-${plan}`);
+      }
+    } catch (groupError) {
+      console.error(`Error assigning subscriber to MailerLite group "${plan}":`, groupError);
+      // Continue with the subscription process even if group assignment fails
     }
 
     return true;

@@ -41,11 +41,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Check for token in localStorage
         const authToken = localStorage.getItem('authToken');
-        const headers: HeadersInit = {};
         
         if (authToken) {
           console.log("Found auth token in localStorage:", authToken);
-          headers['Authorization'] = `Bearer ${authToken}`;
           
           // Always try the token verification endpoint first for more reliable token-based auth
           console.log("Trying token verification endpoint directly");
@@ -68,6 +66,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               return;
             } else {
               console.log("Token verification failed, status:", verifyResponse.status);
+              
+              // If token verification fails, try to regenerate a token if the error was 401 (unauthorized)
+              if (verifyResponse.status === 401) {
+                localStorage.removeItem('authToken');
+              }
             }
           } catch (verifyError) {
             console.error("Token verification endpoint error:", verifyError);
@@ -80,7 +83,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log("Falling back to session-based auth check");
         const response = await fetch('/api/auth/me', {
           credentials: 'include',
-          headers
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
         
         console.log("Auth status response:", response.status);
@@ -88,6 +93,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.ok) {
           const userData = await response.json();
           console.log("User authenticated via session:", userData);
+          
+          // If we got user data via session but don't have a token, create one
+          if (!authToken && userData) {
+            const token = `${userData.id}:${userData.username}`;
+            console.log('Creating and storing token from session data:', token);
+            localStorage.setItem('authToken', token);
+          }
+          
           setUser(userData);
         } else {
           // If we have a token but both verification methods failed, clear it
@@ -104,6 +117,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Other errors
         console.error("Auth check error:", error);
         setUser(null);
+        
+        // Clear token on critical errors
+        localStorage.removeItem('authToken');
       } finally {
         setIsLoading(false);
       }

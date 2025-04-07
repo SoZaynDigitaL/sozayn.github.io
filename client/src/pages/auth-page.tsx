@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,7 +44,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
+  const navigate = useCallback((path: string) => setLocation(path), [setLocation]);
   const { user, login, isLoading } = useAuth();
   const { 
     firebaseUser, 
@@ -56,6 +57,7 @@ export default function AuthPage() {
   } = useFirebaseAuth();
   const [activeTab, setActiveTab] = useState('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Parse tab from URL
   useEffect(() => {
@@ -68,10 +70,11 @@ export default function AuthPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user || firebaseUser) {
+    if ((user || firebaseUser) && !isRedirecting) {
+      setIsRedirecting(true);
       navigate('/dashboard');
     }
-  }, [user, firebaseUser, navigate]);
+  }, [user, firebaseUser, navigate, isRedirecting]);
 
   // Login form
   const loginForm = useForm<LoginFormValues>({
@@ -108,7 +111,9 @@ export default function AuthPage() {
   ];
 
   // Handle login form submission
-  const onLoginSubmit = async (data: LoginFormValues) => {
+  const onLoginSubmit = useCallback(async (data: LoginFormValues) => {
+    if (isSubmitting) return;
+    
     try {
       setIsSubmitting(true);
       await login(data.username, data.password);
@@ -116,6 +121,7 @@ export default function AuthPage() {
         title: "Login successful",
         description: "Welcome back to SoZayn!",
       });
+      setIsRedirecting(true);
       navigate('/dashboard');
     } catch (error) {
       toast({
@@ -126,34 +132,55 @@ export default function AuthPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [isSubmitting, login, toast, navigate]);
 
   // Handle registration form submission
-  const onRegisterSubmit = async (data: RegisterFormValues) => {
+  const onRegisterSubmit = useCallback(async (data: RegisterFormValues) => {
+    if (isSubmitting) return;
+    
     try {
       setIsSubmitting(true);
       // Call register mutation here when available
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Registration failed');
+      }
+      
       toast({
         title: "Registration successful",
         description: "Welcome to SoZayn!",
       });
-      // Temporarily log in the user with the credentials
+      
+      // Login the user with the credentials
       await login(data.username, data.password);
+      setIsRedirecting(true);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration failed",
-        description: "There was a problem creating your account. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem creating your account. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [isSubmitting, login, toast, navigate]);
 
   // Handle Google sign-in
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = useCallback(async () => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
       console.log("Attempting Google sign-in from auth-page");
       await signInWithGooglePopup();
       // Note: Success toast will be handled in the useFirebaseAuth hook
@@ -161,9 +188,10 @@ export default function AuthPage() {
     } catch (error) {
       console.error("Google sign-in handling error in auth-page:", error);
       // Error toasts will be handled in the useFirebaseAuth hook
-      // No need to display additional toast here
+    } finally {
+      setIsSubmitting(false);
     }
-  };
+  }, [isSubmitting, signInWithGooglePopup]);
 
   // If user is already logged in or loading auth state, show loading
   if (isLoading || firebaseLoading) {

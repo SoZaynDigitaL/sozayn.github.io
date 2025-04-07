@@ -50,6 +50,7 @@ const initializeStorage = async () => {
       email: 'demo@example.com',
       businessName: 'Demo Restaurant',
       businessType: 'restaurant',
+      planId: 'free' as any,
     });
   }
   
@@ -64,6 +65,7 @@ const initializeStorage = async () => {
         email: 'admin@sozayn.com',
         businessName: 'SoZayn Admin',
         businessType: 'restaurant',
+        planId: 'free' as any,
       };
       await storage.createUser(adminUser);
       

@@ -7,7 +7,6 @@ import Dashboard from '@/components/home/Dashboard';
 import Pricing from '@/components/home/Pricing';
 import Integrations from '@/components/home/Integrations';
 import CTASection from '@/components/home/CTASection';
-import DemoSection from '@/components/home/DemoSection';
 
 export default function Home() {
   return (
@@ -16,7 +15,6 @@ export default function Home() {
       <Hero />
       <Features />
       <Dashboard />
-      <DemoSection />
       <Pricing />
       <Integrations />
       <CTASection />

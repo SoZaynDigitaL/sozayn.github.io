@@ -37,7 +37,7 @@ export default function Hero() {
                     Schedule a Demo
                   </Button>
                 </Link>
-                <Link href="#demo">
+                <Link href="#dashboard">
                   <Button variant="outline" className="px-6 py-6 text-base border-border-color text-text-primary hover:border-text-secondary transition flex items-center gap-2 glow-border-blue">
                     How It Works
                     <Play className="h-4 w-4" />

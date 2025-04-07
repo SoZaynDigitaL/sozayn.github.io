@@ -160,19 +160,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock API endpoints for the dashboard
+  // API endpoints for the dashboard
+  app.get("/api/orders", isAuthenticated, (req, res) => {
+    // Return empty array - frontend will generate demo data
+    res.json([]);
+  });
+  
   app.get("/api/orders/recent", isAuthenticated, (req, res) => {
-    // Return empty array for now - frontend will handle demo data
+    // Return empty array - frontend will generate demo data
     res.json([]);
   });
 
   app.get("/api/integrations", isAuthenticated, (req, res) => {
-    // Return empty array for now - frontend will handle demo data
+    // Return empty array - frontend will generate demo data
     res.json([]);
   });
 
   app.get("/api/customers", isAuthenticated, (req, res) => {
-    // Return empty array for now - frontend will handle demo data
+    // Return empty array - frontend will generate demo data
+    res.json([]);
+  });
+  
+  app.get("/api/menu", isAuthenticated, (req, res) => {
+    // Return empty array - frontend will generate demo data
     res.json([]);
   });
 

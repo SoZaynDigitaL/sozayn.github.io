@@ -126,8 +126,9 @@ export default function ClientSidebar() {
                       ? "bg-[#4361ee]/10 text-[#4361ee]"
                       : "text-gray-300 hover:text-white hover:bg-[#1e2a45]"
                   )}
-                  onClick={(e) => {
-                    e.preventDefault(); // Prevent default navigation
+                  onClick={() => {
+                    // Only navigate to the main dashboard to prevent layout changes
+                    navigate('/dashboard');
                     closeSidebar();
                   }}
                 >
@@ -149,7 +150,7 @@ export default function ClientSidebar() {
             variant="outline" 
             size="sm" 
             className="w-full bg-[#4361ee] hover:bg-[#3a56dd] text-white border-0"
-            onClick={(e) => e.preventDefault()}
+            onClick={() => navigate('/dashboard')}
           >
             Contact Support
           </Button>

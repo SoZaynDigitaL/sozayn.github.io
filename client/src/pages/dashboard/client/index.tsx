@@ -50,7 +50,7 @@ export default function ClientDashboard() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Welcome, SoZayn Admin</h1>
+            <h1 className="text-2xl font-bold">Welcome, {user?.businessName || 'SoZayn Admin'}</h1>
             <p className="text-gray-400 text-sm">
               Here's what's happening with your restaurant today
             </p>

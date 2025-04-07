@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="text-2xl font-bold tracking-tighter mb-4 inline-block">
               SoZayn
-              <span className="block text-xs text-text-secondary mt-[-4px]">Custom API Gateway</span>
+              <span className="block text-xs text-text-secondary mt-[-4px]">Welcome To Digital Era</span>
             </Link>
             <p className="text-text-secondary text-sm mt-4 mb-6">
               Streamlining restaurant operations with innovative technology solutions.

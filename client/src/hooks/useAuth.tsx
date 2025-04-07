@@ -28,7 +28,7 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -36,11 +36,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
-        const response = await apiRequest('GET', '/api/auth/me');
-        const userData = await response.json();
-        setUser(userData);
+        // Handle 401 errors gracefully by returning null instead of throwing
+        const response = await apiRequest('GET', '/api/auth/me', undefined, { on401: "returnNull" });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          // Not authenticated
+          setUser(null);
+        }
       } catch (error) {
-        // Not authenticated
+        // Other errors
+        console.error("Auth check error:", error);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -53,9 +61,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (username: string, password: string) => {
     try {
       const response = await apiRequest('POST', '/api/auth/login', { username, password });
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
       const userData = await response.json();
       setUser(userData);
     } catch (error) {
+      console.error("Login error:", error);
       throw new Error('Login failed');
     }
   };

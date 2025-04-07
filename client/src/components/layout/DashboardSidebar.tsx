@@ -56,7 +56,7 @@ export default function DashboardSidebar() {
       <div className="px-4 py-6">
         <Link href="/" className="text-xl font-bold tracking-tighter">
           SoZayn
-          <span className="block text-xs text-text-secondary mt-[-2px]">Custom API Gateway</span>
+          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Digital Era</span>
         </Link>
       </div>
       

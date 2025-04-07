@@ -1,0 +1,52 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { CheckCircle } from "lucide-react";
+import { useLocation } from "wouter";
+
+export default function SubscriptionSuccess() {
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+
+  return (
+    <div className="container max-w-md mx-auto py-12">
+      <Card className="border-green-200">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-2">
+            <CheckCircle className="h-12 w-12 text-green-500" />
+          </div>
+          <CardTitle className="text-2xl">Subscription Activated!</CardTitle>
+          <CardDescription>
+            Thank you for subscribing to SoZayn Pro. Your subscription has been successfully activated.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p>
+            You now have access to all SoZayn Pro features including the Digital Command Center, POS integration, loyalty system, and more.
+          </p>
+          <p className="font-medium">
+            Your subscription will be renewed automatically every month.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            We have sent a confirmation email with all the details to your registered email address.
+          </p>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <Button
+            onClick={() => setLocation("/dashboard")}
+            className="w-full"
+          >
+            Go to Digital Command Center
+          </Button>
+          <Button
+            onClick={() => setLocation("/")}
+            variant="outline"
+            className="w-full"
+          >
+            Return to Home
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}

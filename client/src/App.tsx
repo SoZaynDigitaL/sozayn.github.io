@@ -13,6 +13,10 @@ import Integrations from "@/pages/dashboard/integrations";
 import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
+import Checkout from "@/pages/checkout";
+import Subscribe from "@/pages/subscribe";
+import PaymentSuccess from "@/pages/payment-success";
+import SubscriptionSuccess from "@/pages/subscription-success";
 
 function Router() {
   return (
@@ -29,6 +33,12 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
+      
+      {/* Payment routes */}
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/subscribe" component={Subscribe} />
+      <Route path="/payment-success" component={PaymentSuccess} />
+      <Route path="/subscription-success" component={SubscriptionSuccess} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

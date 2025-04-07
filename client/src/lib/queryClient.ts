@@ -7,10 +7,15 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+type ApiRequestOptions = {
+  on401: "returnNull" | "throw";
+};
+
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: Partial<ApiRequestOptions>
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
@@ -19,7 +24,15 @@ export async function apiRequest(
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
+  // Skip error throwing for 401 errors if specified in options
+  if (options?.on401 === "returnNull" && res.status === 401) {
+    return res;
+  }
+
+  if (!options || options.on401 === "throw") {
+    await throwIfResNotOk(res);
+  }
+  
   return res;
 }
 

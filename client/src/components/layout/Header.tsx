@@ -23,7 +23,7 @@ export default function Header() {
           <div>
             <Link href="/" className="text-2xl font-bold tracking-tighter">
               SoZayn
-              <span className="block text-xs text-text-secondary mt-[-4px]">Custom API Gateway</span>
+              <span className="block text-xs text-text-secondary mt-[-4px]">Welcome To Digital Era</span>
             </Link>
           </div>
           

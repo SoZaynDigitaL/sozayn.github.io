@@ -2,25 +2,29 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import session from "express-session";
-import MemoryStore from "memorystore";
+import pgSession from "connect-pg-simple";
+import { pool } from "./db";
+import { storagePromise } from "./storage";
 
-const MemoryStoreSession = MemoryStore(session);
+const PostgresStore = pgSession(session);
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Set up session middleware
+// Set up session middleware with Postgres session store
 app.use(
   session({
+    store: new PostgresStore({
+      pool,
+      tableName: 'session', // Default table name
+      createTableIfMissing: true,
+    }),
     secret: "sozayn-secret-key",
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    }),
     cookie: { 
-      secure: false,
+      secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   })

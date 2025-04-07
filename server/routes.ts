@@ -295,10 +295,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a simple token (userId:username)
       const authToken = `${user.id}:${user.username}`;
       
-      console.log(`Login successful for user: ${username}, token: ${authToken}`);
-      res.json({
-        ...userWithoutPassword,
-        authToken // Include the token in the response
+      // Save user ID in session and make sure it persists
+      req.session.userId = user.id;
+      
+      // Explicitly save the session before returning to ensure it's stored
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session during login:", err);
+        } else {
+          console.log(`Session saved successfully during login for userId: ${user.id}`);
+        }
+        
+        console.log(`Login successful for user: ${username}, token: ${authToken}`);
+        
+        // Return user data with the auth token
+        res.json({
+          ...userWithoutPassword,
+          authToken // Include the token in the response
+        });
       });
     } catch (error) {
       console.error("Login error:", error);

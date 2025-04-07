@@ -24,6 +24,7 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   // Get auth context
   const { user, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
   
   // The actual route component
   const ProtectedComponent = (props: any) => {
@@ -39,9 +40,11 @@ export function ProtectedRoute({
     // If not authenticated, redirect to auth page
     if (!user) {
       console.log("ProtectedRoute - Not authenticated, redirecting to /auth");
-      // Custom useEffect will run only once to change location
+      
+      // Use one-time effect for redirection
       useEffect(() => {
-        window.location.href = '/auth';
+        // Use wouter's setLocation for more reliable navigation within React context
+        setLocation('/auth');
       }, []);
       
       return (
@@ -55,9 +58,10 @@ export function ProtectedRoute({
     // If admin-only and user is not admin, redirect to dashboard
     if (adminOnly && user.role !== 'admin') {
       console.log("ProtectedRoute - Not admin, redirecting to /dashboard");
-      // Custom useEffect will run only once to change location
+      
+      // Use one-time effect for redirection
       useEffect(() => {
-        window.location.href = '/dashboard';
+        setLocation('/dashboard');
       }, []);
       
       return (
@@ -69,7 +73,7 @@ export function ProtectedRoute({
     }
     
     // All checks passed, render the actual component
-    console.log("ProtectedRoute - Authentication passed, rendering component");
+    console.log("ProtectedRoute - Authentication passed, rendering component for", path);
     return <Component {...props} />;
   };
   

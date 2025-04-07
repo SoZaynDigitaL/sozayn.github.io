@@ -115,6 +115,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (username: string, password: string) => {
     try {
       console.log('Login attempt with username:', username);
+      
+      // Clear any existing token
+      localStorage.removeItem('authToken');
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -135,11 +139,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store auth token if present
       if (userData.authToken) {
-        console.log('Storing auth token in localStorage');
+        console.log('Storing auth token in localStorage:', userData.authToken);
         localStorage.setItem('authToken', userData.authToken);
+      } else {
+        // If token is not in response, create our own simplified token
+        // Format: userId:username
+        const token = `${userData.id}:${userData.username}`;
+        console.log('Creating and storing simplified token:', token);
+        localStorage.setItem('authToken', token);
       }
       
+      // Set user in state
       setUser(userData);
+      
+      // Verify token immediately after login to ensure it works
+      try {
+        console.log('Verifying token after login');
+        const storedToken = localStorage.getItem('authToken');
+        if (storedToken) {
+          const verifyResponse = await fetch('/api/auth/verify-token', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${storedToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ token: storedToken }),
+            credentials: 'include'
+          });
+          
+          if (verifyResponse.ok) {
+            console.log('Token verification after login successful');
+          } else {
+            console.error('Token verification after login failed');
+          }
+        }
+      } catch (verifyError) {
+        console.error('Error verifying token after login:', verifyError);
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw error;

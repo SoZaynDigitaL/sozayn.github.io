@@ -372,10 +372,30 @@ export default function AuthPage() {
                       variant="outline" 
                       className="w-full mt-4"
                       onClick={() => {
-                        toast({
-                          title: "Google Sign-In",
-                          description: "Google Sign-In is temporarily disabled",
-                        });
+                        try {
+                          // Import dynamically to prevent circular import issues
+                          import('@/hooks/useFirebaseAuth').then(module => {
+                            const useFirebaseAuth = module.useFirebaseAuth;
+                            const { signInWithGooglePopup } = useFirebaseAuth();
+                            
+                            // Attempt Google sign-in
+                            signInWithGooglePopup();
+                          }).catch(error => {
+                            console.error("Error importing Firebase Auth hook:", error);
+                            toast({
+                              title: "Google Sign-In Error",
+                              description: "Could not initialize Google Sign-In. Please try again later.",
+                              variant: "destructive"
+                            });
+                          });
+                        } catch (error) {
+                          console.error("Google Sign-In error:", error);
+                          toast({
+                            title: "Google Sign-In Error",
+                            description: error instanceof Error ? error.message : "An unexpected error occurred",
+                            variant: "destructive"
+                          });
+                        }
                       }}
                       disabled={isSubmitting}
                     >

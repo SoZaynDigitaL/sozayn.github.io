@@ -279,6 +279,12 @@ export default function AuthPage() {
                                 const data = await response.json();
                                 console.log('Emergency login successful:', data);
                                 
+                                // Store the auth token in localStorage
+                                if (data.authToken) {
+                                  localStorage.setItem('authToken', data.authToken);
+                                  console.log('Auth token stored in localStorage');
+                                }
+                                
                                 // Force page reload to dashboard
                                 window.location.href = '/dashboard';
                               } else {

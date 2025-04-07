@@ -258,9 +258,9 @@ export default function DeliveryPartners() {
               provider={integration.provider}
               icon={getProviderIcon(integration.provider)}
               color={getProviderColor(integration.provider)}
-              isActive={integration.isActive}
+              isActive={Boolean(integration.isActive)}
               onToggle={(value) => toggleIntegrationStatus(integration.id, value)}
-              description={integration.isActive ? 'Connected and active' : 'Integration inactive'}
+              description={Boolean(integration.isActive) ? 'Connected and active' : 'Integration inactive'}
             />
           ))
         ) : (

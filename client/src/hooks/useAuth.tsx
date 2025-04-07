@@ -38,9 +38,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuthStatus = async () => {
       try {
         console.log("Checking auth status...");
-        // Call /api/auth/me but don't throw on 401
+        
+        // Check for token in localStorage
+        const authToken = localStorage.getItem('authToken');
+        const headers: HeadersInit = {};
+        
+        if (authToken) {
+          console.log("Found auth token in localStorage, adding to request");
+          headers['Authorization'] = `Bearer ${authToken}`;
+        }
+        
+        // Call /api/auth/me with potential token
         const response = await fetch('/api/auth/me', {
-          credentials: 'include'
+          credentials: 'include',
+          headers
         });
         
         console.log("Auth status response:", response.status);
@@ -53,6 +64,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Not authenticated
           console.log("User not authenticated");
           setUser(null);
+          // Clear invalid token if present
+          if (authToken) {
+            console.log("Clearing invalid auth token");
+            localStorage.removeItem('authToken');
+          }
         }
       } catch (error) {
         // Other errors
@@ -86,6 +102,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       const userData = await response.json();
       console.log('Login successful, user data:', userData);
+      
+      // Store auth token if present
+      if (userData.authToken) {
+        console.log('Storing auth token in localStorage');
+        localStorage.setItem('authToken', userData.authToken);
+      }
+      
       setUser(userData);
     } catch (error) {
       console.error("Login error:", error);
@@ -95,6 +118,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Remove token from localStorage
+      localStorage.removeItem('authToken');
+      
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
         credentials: 'include'
@@ -105,9 +131,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
       } else {
         console.error('Logout failed with status:', response.status);
+        // Still clear user state even if server logout fails
+        setUser(null);
       }
     } catch (error) {
       console.error('Logout failed', error);
+      // Still clear user state even if server logout fails
+      setUser(null);
     }
   };
 

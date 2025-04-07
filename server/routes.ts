@@ -24,20 +24,70 @@ declare module 'express-session' {
 }
 
 // Helper function to authenticate requests
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+  // First check session-based auth
   if (req.session && req.session.userId) {
     next();
-  } else {
-    res.status(401).json({ error: "Not authenticated" });
+    return;
   }
+  
+  // Fallback to token-based auth for clients having issues with cookies
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    // Simple token validation (userId:username)
+    if (token && token.includes(':')) {
+      const [userId, username] = token.split(':');
+      try {
+        const user = await storage.getUser(parseInt(userId));
+        if (user && user.username === username) {
+          // Valid token
+          req.session.userId = user.id; // Still try to set the session
+          next();
+          return;
+        }
+      } catch (err) {
+        console.error('Token validation error:', err);
+      }
+    }
+  }
+  
+  res.status(401).json({ error: "Not authenticated" });
 };
 
 // Helper function to check admin role
 const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  // First make sure the user is authenticated
   if (!req.session || !req.session.userId) {
+    // Use the token auth fallback
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      // Simple token validation (userId:username)
+      if (token && token.includes(':')) {
+        const [userId, username] = token.split(':');
+        try {
+          const user = await storage.getUser(parseInt(userId));
+          if (user && user.username === username) {
+            // Token is valid - now check if the user is an admin
+            if (user.role !== 'admin') {
+              return res.status(403).json({ error: "Access denied: Admin role required" });
+            }
+            // Admin user with valid token
+            req.session.userId = user.id; // Still try to set the session
+            next();
+            return;
+          }
+        } catch (err) {
+          console.error('Token validation error:', err);
+        }
+      }
+    }
+    
     return res.status(401).json({ error: "Not authenticated" });
   }
 
+  // Session-based auth check for admin role
   try {
     const user = await storage.getUser(req.session.userId);
     if (!user) {
@@ -166,8 +216,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Don't return password
       const { password: _, ...userWithoutPassword } = user;
       
+      // Generate a simple token (userId:username)
+      const authToken = `${user.id}:${user.username}`;
+      
       console.log(`Login successful for user: ${username}`);
-      res.json(userWithoutPassword);
+      res.json({
+        ...userWithoutPassword,
+        authToken // Include the token in the response
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });

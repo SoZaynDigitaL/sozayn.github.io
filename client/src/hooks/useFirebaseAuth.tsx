@@ -41,14 +41,20 @@ export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Set up Firebase Auth state listener
+    // Set up Firebase Auth state listener only once
+    let mounted = true;
     const unsubscribe = onUserAuthStateChanged((user) => {
-      setFirebaseUser(user);
-      setFirebaseLoading(false);
+      if (mounted) {
+        setFirebaseUser(user);
+        setFirebaseLoading(false);
+      }
     });
 
     // Clean up subscription
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signInWithGooglePopup = async () => {

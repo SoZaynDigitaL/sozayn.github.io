@@ -35,10 +35,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
+    let mounted = true;
     const checkAuthStatus = async () => {
       try {
         // Handle 401 errors gracefully by returning null instead of throwing
         const response = await apiRequest('GET', '/api/auth/me', undefined, { on401: "returnNull" });
+        
+        if (!mounted) return;
         
         if (response.ok) {
           const userData = await response.json();
@@ -50,13 +53,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         // Other errors
         console.error("Auth check error:", error);
-        setUser(null);
+        if (mounted) {
+          setUser(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuthStatus();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const login = async (username: string, password: string) => {

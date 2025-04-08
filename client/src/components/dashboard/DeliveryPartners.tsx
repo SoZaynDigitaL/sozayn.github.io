@@ -254,282 +254,242 @@ export default function DeliveryPartners() {
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Delivery Partners</h1>
         
-        {/* Add Partner Dialog - Simple Version */}
+        {/* Add Partner Dialog - Matching HyperZod Style */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="bg-[#17181E] border-[#2E323A] max-w-md">
-            <DialogTitle className="hidden">Add Delivery Partner</DialogTitle>
-            <DialogDescription className="hidden">Connect with a new delivery partner to expand your reach.</DialogDescription>
-            
-            <button className="absolute right-4 top-4 text-gray-400 hover:text-white p-2" onClick={() => setIsAddDialogOpen(false)}>
+          <DialogContent className="max-w-md bg-[#18191F] border-none rounded-lg p-0 overflow-hidden">
+            <button className="absolute right-3 top-3 text-gray-400 hover:text-white p-1 bg-[#292B35] rounded"
+              onClick={() => setIsAddDialogOpen(false)}
+            >
               <X className="h-4 w-4" />
             </button>
             
-            <div className="py-4">
+            <div className="p-6">
               <h2 className="text-xl font-bold text-white">Add Delivery Partner</h2>
-              <p className="text-gray-400 mt-1">Connect with a new delivery partner to expand your reach.</p>
-            </div>
-            
-            <Form {...addForm}>
-              <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-6">
-                <FormField
-                  control={addForm.control}
-                  name="provider"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Provider Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., DoorDash, UberEats" 
-                          {...field}
-                          className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
-                        />
-                      </FormControl>
-                      <FormDescription className="text-xs text-gray-500">
-                        Enter the name of the delivery provider.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={addForm.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">API Key</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter API key" 
-                          type="password"
-                          {...field} 
-                          className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
-                        />
-                      </FormControl>
-                      <FormDescription className="text-xs text-gray-500">
-                        The API key provided by the delivery service.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="flex justify-between gap-2 mt-8">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="border-[#2E323A] text-gray-200 hover:text-white hover:bg-transparent"
-                    onClick={() => setIsAddDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={addIntegrationMutation.isPending}
-                  >
-                    {addIntegrationMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Adding...
-                      </>
-                    ) : (
-                      'Add Partner'
+              <p className="text-gray-400 mt-1 text-sm">Connect with a new delivery partner to expand your reach.</p>
+              
+              <Form {...addForm}>
+                <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-5 mt-6">
+                  <FormField
+                    control={addForm.control}
+                    name="provider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white font-medium">Provider Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., DoorDash, UberEats" 
+                            {...field}
+                            className="mt-1 w-full bg-[#1F2128] border-[#2E323A] text-gray-200 rounded h-10" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs text-gray-500 mt-1">
+                          Enter the name of the delivery provider.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                  />
+                  
+                  <FormField
+                    control={addForm.control}
+                    name="apiKey"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white font-medium">API Key</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter API key" 
+                            type="password"
+                            {...field} 
+                            className="mt-1 w-full bg-[#1F2128] border-[#2E323A] text-gray-200 rounded h-10" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs text-gray-500 mt-1">
+                          The API key provided by the delivery service.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="flex justify-between gap-2 mt-8 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="border-[#2E323A] text-gray-200 hover:text-white hover:bg-transparent"
+                      onClick={() => setIsAddDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-5"
+                      disabled={addIntegrationMutation.isPending}
+                    >
+                      {addIntegrationMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        'Add Partner'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
           </DialogContent>
         </Dialog>
         
-        {/* Configuration Dialog - Detailed Settings */}
+        {/* Configuration Dialog - Styled to match HyperZod */}
         <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-          <DialogContent className="bg-[#17181E] border-[#2E323A] max-w-2xl">
-            <DialogHeader>
-              <DialogTitle className="text-white">Configuration For {selectedIntegration?.provider}</DialogTitle>
-              <DialogDescription className="text-gray-400">
-                Update your delivery partner configuration and credentials.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...configForm}>
-              <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-6 pt-4">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Select Environments</h3>
+          <DialogContent className="max-w-2xl bg-white rounded-xl p-0 overflow-hidden">
+            <div className="p-6">
+              <h2 className="text-2xl font-bold">Configuration <span className="text-gray-500">For {selectedIntegration?.provider}</span></h2>
+              
+              <Form {...configForm}>
+                <form onSubmit={configForm.handleSubmit(onConfigSubmit)}>
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold">Select Environments</h3>
+                    
+                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <FormField
+                        control={configForm.control}
+                        name="environment"
+                        render={({ field }) => (
+                          <FormItem className="space-y-0">
+                            <FormControl>
+                              <div className="flex gap-6">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    id="config-sandbox"
+                                    value="sandbox"
+                                    checked={field.value === "sandbox"}
+                                    onChange={() => field.onChange("sandbox")}
+                                    className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <label htmlFor="config-sandbox" className="text-base cursor-pointer">Sandbox</label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="radio"
+                                    id="config-live"
+                                    value="live"
+                                    checked={field.value === "live"}
+                                    onChange={() => field.onChange("live")}
+                                    className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <label htmlFor="config-live" className="text-base cursor-pointer">Live</label>
+                                </div>
+                              </div>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
                   
-                  <FormField
-                    control={configForm.control}
-                    name="environment"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormControl>
-                          <div className="flex flex-wrap gap-4 p-4 bg-[#1F2128] rounded-lg border border-[#2E323A]">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                id="config-sandbox"
-                                value="sandbox"
-                                checked={field.value === "sandbox"}
-                                onChange={() => field.onChange("sandbox")}
-                                className="rounded-full h-4 w-4 text-blue-600"
-                              />
-                              <label htmlFor="config-sandbox" className="text-sm cursor-pointer text-gray-200">Sandbox</label>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                id="config-live"
-                                value="live"
-                                checked={field.value === "live"}
-                                onChange={() => field.onChange("live")}
-                                className="rounded-full h-4 w-4 text-blue-600"
-                              />
-                              <label htmlFor="config-live" className="text-sm cursor-pointer text-gray-200">Live</label>
-                            </div>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="developerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-1">
-                          <FormLabel className="text-white">Developer ID*</FormLabel>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs text-xs">
-                                  The unique developer identifier provided by the delivery service.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Developer ID" 
-                            {...field} 
-                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs text-gray-500">
-                          Please fill out this field
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="keyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-1">
-                          <FormLabel className="text-white">Key ID*</FormLabel>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs text-xs">
-                                  Your API key identifier used to authenticate with the delivery service.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Key ID" 
-                            {...field} 
-                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs text-gray-500">
-                          Please fill out this field
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={configForm.control}
-                    name="signingSecret"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center gap-1">
-                          <FormLabel className="text-white">Signing Secret*</FormLabel>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs text-xs">
-                                  The secret key used to sign and verify API requests.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Signing Secret" 
-                            type="password"
-                            {...field} 
-                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-xs text-gray-500">
-                          Please fill out this field
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Webhook Endpoints</h3>
-                  
-                  <div>
-                    <p className="mb-2 font-medium text-white">{selectedIntegration?.provider}</p>
+                  <div className="mt-6 space-y-5">
                     <FormField
                       control={configForm.control}
-                      name="webhookUrl"
+                      name="developerId"
                       render={({ field }) => (
                         <FormItem>
+                          <FormLabel className="text-base font-semibold">Developer ID*</FormLabel>
                           <FormControl>
+                            <Input 
+                              placeholder="Enter Developer ID" 
+                              {...field} 
+                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={configForm.control}
+                      name="keyId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-semibold">Key ID*</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter Key ID" 
+                              {...field} 
+                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={configForm.control}
+                      name="signingSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base font-semibold">Signing Secret*</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter Signing Secret" 
+                              type="password"
+                              {...field} 
+                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs text-gray-600 mt-1">
+                            Please fill out this field.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={configForm.control}
+                      name="sendOrderStatus"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormLabel className="text-base font-semibold">Send on order status*</FormLabel>
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              className="h-5 w-5 border-gray-300 rounded text-blue-600 focus:ring-blue-500 mt-1"
+                              checked={field.value}
+                              onChange={(e) => field.onChange(e.target.checked)}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <div className="mt-8">
+                    <h3 className="text-xl font-semibold">Webhook Endpoints</h3>
+                    
+                    <div className="mt-4">
+                      <p className="text-base font-semibold mb-2">{selectedIntegration?.provider}</p>
+                      <FormField
+                        control={configForm.control}
+                        name="webhookUrl"
+                        render={({ field }) => (
+                          <FormItem>
                             <div className="flex">
                               <Input 
-                                placeholder="https://delivery.apps.hyperzod.com/api/12345/webhook/partner/doordash" 
-                                value={field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
+                                value={field.value || `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
                                 readOnly
-                                className="bg-[#1F2128] border-[#2E323A] text-gray-200 flex-1 rounded-r-none text-xs" 
+                                className="w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10" 
                               />
                               <button 
                                 type="button"
-                                className="bg-[#1F2128] border border-l-0 border-[#2E323A] px-2 rounded-r-md"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2"
                                 onClick={() => {
-                                  const url = field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`;
+                                  const url = field.value || `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`;
                                   navigator.clipboard.writeText(url);
                                   toast({
                                     title: "Copied to clipboard",
@@ -537,83 +497,42 @@ export default function DeliveryPartners() {
                                   });
                                 }}
                               >
-                                <Copy className="h-4 w-4 text-gray-400" />
+                                <Copy className="h-5 w-5 text-gray-400" />
                               </button>
                             </div>
-                          </FormControl>
-                          <FormDescription className="text-xs text-gray-500 flex items-center gap-1">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span>
-                                    <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
-                                  </span>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs text-xs">
-                                    You'll need to provide this webhook URL in your delivery partner's dashboard.
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            Configure this webhook URL in your {selectedIntegration?.provider} dashboard
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                   
-                  <FormField
-                    control={configForm.control}
-                    name="sendOrderStatus"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-[#1F2128] border border-[#2E323A]">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-[#2E323A] mt-1 text-blue-600"
-                            checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel className="text-white">Send on order status*</FormLabel>
-                          <FormDescription className="text-gray-500">
-                            Receive real-time notifications when order statuses change.
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <DialogFooter>
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    className="border-[#2E323A] text-gray-200 hover:text-white hover:bg-transparent"
-                    onClick={() => setIsConfigDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={updateIntegrationMutation.isPending}
-                  >
-                    {updateIntegrationMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      'Update'
-                    )}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+                  <div className="mt-10 flex justify-end gap-3">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="h-12 px-6 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsConfigDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit"
+                      className="h-12 px-8 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
+                      disabled={updateIntegrationMutation.isPending}
+                    >
+                      {updateIntegrationMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        'Update'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

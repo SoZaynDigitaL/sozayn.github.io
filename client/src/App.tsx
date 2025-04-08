@@ -15,6 +15,7 @@ import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
+import Contact from "@/pages/contact";
 import PaymentSuccess from "@/pages/payment-success";
 import SubscriptionSuccess from "@/pages/subscription-success";
 
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/subscription-success" component={SubscriptionSuccess} />
+      <Route path="/contact" component={Contact} />
       
       {/* Fallback to 404 */}
       <Route component={NotFound} />

@@ -5,6 +5,7 @@ import Hero from '@/components/home/Hero';
 import Features from '@/components/home/Features';
 import Dashboard from '@/components/home/Dashboard';
 import Integrations from '@/components/home/Integrations';
+import Pricing from '@/components/home/Pricing';
 import CTASection from '@/components/home/CTASection';
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <Features />
       <Dashboard />
       <Integrations />
+      <Pricing />
       <CTASection />
       <Footer />
     </div>

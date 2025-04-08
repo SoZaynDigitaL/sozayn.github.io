@@ -14,6 +14,12 @@ import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
+import ShopifyIntegration from "@/pages/dashboard/ecommerce/shopify";
+import WooCommerceIntegration from "@/pages/dashboard/ecommerce/woocommerce";
+import MagentoIntegration from "@/pages/dashboard/ecommerce/magento";
+import BigCommerceIntegration from "@/pages/dashboard/ecommerce/bigcommerce";
+import SquarespaceIntegration from "@/pages/dashboard/ecommerce/squarespace";
+import WixIntegration from "@/pages/dashboard/ecommerce/wix";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import Contact from "@/pages/contact";
@@ -36,6 +42,14 @@ function Router() {
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
+      
+      {/* E-commerce platform routes */}
+      <Route path="/dashboard/ecommerce/shopify" component={ShopifyIntegration} />
+      <Route path="/dashboard/ecommerce/woocommerce" component={WooCommerceIntegration} />
+      <Route path="/dashboard/ecommerce/magento" component={MagentoIntegration} />
+      <Route path="/dashboard/ecommerce/bigcommerce" component={BigCommerceIntegration} />
+      <Route path="/dashboard/ecommerce/squarespace" component={SquarespaceIntegration} />
+      <Route path="/dashboard/ecommerce/wix" component={WixIntegration} />
       
       {/* Payment routes */}
       <Route path="/checkout" component={Checkout} />

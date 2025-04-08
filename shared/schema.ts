@@ -162,3 +162,31 @@ export type InsertWebhook = z.infer<typeof insertWebhookSchema>;
 
 export type WebhookLog = typeof webhookLogs.$inferSelect;
 export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;
+
+// Social Media Accounts
+export const socialMediaAccounts = pgTable("social_media_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  platform: text("platform").notNull(), // instagram, facebook, twitter, youtube, linkedin, tiktok
+  accountName: text("account_name").notNull(),
+  accessToken: text("access_token"), 
+  refreshToken: text("refresh_token"),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  isActive: boolean("is_active").default(true),
+  profileUrl: text("profile_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSocialMediaAccountSchema = createInsertSchema(socialMediaAccounts).pick({
+  userId: true,
+  platform: true,
+  accountName: true,
+  accessToken: true,
+  refreshToken: true,
+  tokenExpiresAt: true,
+  profileUrl: true,
+});
+
+export type SocialMediaAccount = typeof socialMediaAccounts.$inferSelect;
+export type InsertSocialMediaAccount = z.infer<typeof insertSocialMediaAccountSchema>;

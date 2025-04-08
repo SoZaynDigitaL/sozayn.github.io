@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertWebhookSchema } from "../shared/schema";
+import { insertUserSchema, insertWebhookSchema, insertSocialMediaAccountSchema } from "../shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
@@ -182,6 +182,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/customers", isAuthenticated, (req, res) => {
     // Return empty array for now - frontend will handle demo data
     res.json([]);
+  });
+
+  // Social Media Account routes
+  app.get("/api/social-media-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const accounts = await storage.getSocialMediaAccounts(userId);
+      res.json(accounts);
+    } catch (error: any) {
+      console.error("Error fetching social media accounts:", error);
+      res.status(500).json({ 
+        error: "Error fetching social media accounts", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.get("/api/social-media-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const account = await storage.getSocialMediaAccount(id);
+      
+      if (!account) {
+        return res.status(404).json({ error: "Social media account not found" });
+      }
+      
+      // Check if the account belongs to this user
+      const userId = req.session.userId as number;
+      if (account.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(account);
+    } catch (error: any) {
+      console.error("Error fetching social media account:", error);
+      res.status(500).json({ 
+        error: "Error fetching social media account", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.post("/api/social-media-accounts", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Validate and create the social media account
+      const accountData = insertSocialMediaAccountSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      // Check if account for this platform already exists
+      const existingAccount = await storage.getSocialMediaAccountByPlatform(userId, accountData.platform);
+      if (existingAccount) {
+        return res.status(400).json({ error: "An account for this platform already exists" });
+      }
+      
+      const newAccount = await storage.createSocialMediaAccount(accountData);
+      res.status(201).json(newAccount);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating social media account:", error);
+      res.status(500).json({ 
+        error: "Error creating social media account", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.patch("/api/social-media-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the account exists and belongs to this user
+      const account = await storage.getSocialMediaAccount(id);
+      if (!account) {
+        return res.status(404).json({ error: "Social media account not found" });
+      }
+      
+      if (account.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Update the account
+      const updatedAccount = await storage.updateSocialMediaAccount(id, req.body);
+      res.json(updatedAccount);
+    } catch (error: any) {
+      console.error("Error updating social media account:", error);
+      res.status(500).json({ 
+        error: "Error updating social media account", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/social-media-accounts/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the account exists and belongs to this user
+      const account = await storage.getSocialMediaAccount(id);
+      if (!account) {
+        return res.status(404).json({ error: "Social media account not found" });
+      }
+      
+      if (account.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Delete the account
+      await storage.deleteSocialMediaAccount(id);
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Error deleting social media account:", error);
+      res.status(500).json({ 
+        error: "Error deleting social media account", 
+        message: error.message 
+      });
+    }
   });
 
   // Stripe payment routes

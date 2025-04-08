@@ -1,7 +1,8 @@
 import { 
   users, type User, type InsertUser,
   webhooks, type Webhook, type InsertWebhook,
-  webhookLogs, type WebhookLog, type InsertWebhookLog
+  webhookLogs, type WebhookLog, type InsertWebhookLog,
+  socialMediaAccounts, type SocialMediaAccount, type InsertSocialMediaAccount
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -23,6 +24,14 @@ export interface IStorage {
   // Webhook Log methods
   getWebhookLogs(webhookId: number, limit?: number): Promise<WebhookLog[]>;
   createWebhookLog(log: InsertWebhookLog): Promise<WebhookLog>;
+  
+  // Social Media Account methods
+  getSocialMediaAccounts(userId: number): Promise<SocialMediaAccount[]>;
+  getSocialMediaAccount(id: number): Promise<SocialMediaAccount | undefined>;
+  getSocialMediaAccountByPlatform(userId: number, platform: string): Promise<SocialMediaAccount | undefined>;
+  createSocialMediaAccount(account: InsertSocialMediaAccount): Promise<SocialMediaAccount>;
+  updateSocialMediaAccount(id: number, account: Partial<InsertSocialMediaAccount>): Promise<SocialMediaAccount | undefined>;
+  deleteSocialMediaAccount(id: number): Promise<boolean>;
 }
 
 // Database-backed storage implementation
@@ -101,6 +110,53 @@ export class DatabaseStorage implements IStorage {
       .values(insertLog)
       .returning();
     return log;
+  }
+
+  // Social Media Account methods
+  async getSocialMediaAccounts(userId: number): Promise<SocialMediaAccount[]> {
+    return db.select().from(socialMediaAccounts).where(eq(socialMediaAccounts.userId, userId));
+  }
+  
+  async getSocialMediaAccount(id: number): Promise<SocialMediaAccount | undefined> {
+    const [account] = await db.select().from(socialMediaAccounts).where(eq(socialMediaAccounts.id, id));
+    return account || undefined;
+  }
+  
+  async getSocialMediaAccountByPlatform(userId: number, platform: string): Promise<SocialMediaAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(socialMediaAccounts)
+      .where(
+        and(
+          eq(socialMediaAccounts.userId, userId),
+          eq(socialMediaAccounts.platform, platform)
+        )
+      );
+    return account || undefined;
+  }
+  
+  async createSocialMediaAccount(insertAccount: InsertSocialMediaAccount): Promise<SocialMediaAccount> {
+    const [account] = await db
+      .insert(socialMediaAccounts)
+      .values(insertAccount)
+      .returning();
+    return account;
+  }
+  
+  async updateSocialMediaAccount(id: number, partialAccount: Partial<InsertSocialMediaAccount>): Promise<SocialMediaAccount | undefined> {
+    const [account] = await db
+      .update(socialMediaAccounts)
+      .set({ ...partialAccount, updatedAt: new Date() })
+      .where(eq(socialMediaAccounts.id, id))
+      .returning();
+    return account || undefined;
+  }
+  
+  async deleteSocialMediaAccount(id: number): Promise<boolean> {
+    const result = await db
+      .delete(socialMediaAccounts)
+      .where(eq(socialMediaAccounts.id, id));
+    return !!result;
   }
 }
 

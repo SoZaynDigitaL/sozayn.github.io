@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardCard } from '@/components/ui/dashboard-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { StatsCard } from '@/components/ui/stats';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { 
   Search,
   Globe,
@@ -20,7 +29,11 @@ import {
   PlusCircle,
   Users,
   Megaphone,
-  BarChart
+  BarChart,
+  Link as LinkIcon,
+  Settings,
+  Check,
+  X
 } from 'lucide-react';
 import { FaYoutube, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import {
@@ -57,6 +70,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 const socialPostSchema = z.object({
   platform: z.enum(['instagram', 'facebook', 'twitter', 'youtube', 'linkedin', 'tiktok']),
@@ -67,11 +82,90 @@ const socialPostSchema = z.object({
   scheduledAt: z.string().optional(),
 });
 
+const socialAccountSchema = z.object({
+  platform: z.enum(['instagram', 'facebook', 'twitter', 'youtube', 'linkedin', 'tiktok']),
+  accountName: z.string().min(3, {
+    message: "Account name must be at least 3 characters.",
+  }),
+  accessToken: z.string().optional(),
+  refreshToken: z.string().optional(),
+  profileUrl: z.string().url({
+    message: "Profile URL must be a valid URL.",
+  }).optional(),
+});
+
 type SocialPostFormValues = z.infer<typeof socialPostSchema>;
+type SocialAccountFormValues = z.infer<typeof socialAccountSchema>;
 
 export default function Marketing() {
   const [activeTab, setActiveTab] = useState('seo');
+  const [isAddingAccount, setIsAddingAccount] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Social media account form
+  const socialAccountForm = useForm<SocialAccountFormValues>({
+    resolver: zodResolver(socialAccountSchema),
+    defaultValues: {
+      platform: 'instagram',
+      accountName: '',
+      profileUrl: '',
+    }
+  });
+  
+  // Fetch social media accounts
+  const { data: socialAccounts = [], isLoading: isLoadingSocialAccounts } = useQuery({
+    queryKey: ['/api/social-media-accounts'],
+    queryFn: () => 
+      apiRequest('GET', '/api/social-media-accounts').then((res) => res.json()),
+  });
+  
+  // Add social media account mutation
+  const addSocialAccountMutation = useMutation({
+    mutationFn: (data: SocialAccountFormValues) => 
+      apiRequest('POST', '/api/social-media-accounts', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-media-accounts'] });
+      setIsAddingAccount(false);
+      socialAccountForm.reset();
+      toast({
+        title: "Account Connected",
+        description: `Your social media account has been connected successfully.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to connect account: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete social media account mutation
+  const deleteSocialAccountMutation = useMutation({
+    mutationFn: (id: number) => 
+      apiRequest('DELETE', `/api/social-media-accounts/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/social-media-accounts'] });
+      toast({
+        title: "Account Removed",
+        description: "The social media account has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to remove account: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  const onSocialAccountSubmit = (data: SocialAccountFormValues) => {
+    addSocialAccountMutation.mutate(data);
+  };
   
   // SEO stats
   const seoStats = {
@@ -671,6 +765,215 @@ export default function Marketing() {
                 </Badge>
               ))}
             </div>
+          </DashboardCard>
+          
+          {/* Social Media Account Configuration */}
+          <DashboardCard 
+            title="Connected Social Media Accounts" 
+            className="mt-6"
+            action={
+              <Button 
+                size="sm" 
+                className="bg-accent-blue hover:bg-accent-blue/90"
+                onClick={() => {
+                  setIsAddingAccount(true);
+                  socialAccountForm.reset();
+                }}
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Connect Account
+              </Button>
+            }
+          >
+            {isLoadingSocialAccounts ? (
+              <div className="py-8 flex justify-center">
+                <div className="animate-spin w-8 h-8 border-4 border-accent-blue border-t-transparent rounded-full" />
+              </div>
+            ) : socialAccounts.length === 0 ? (
+              <div className="py-8 text-center">
+                <div className="mb-3 w-12 h-12 rounded-full bg-bg-chart flex items-center justify-center mx-auto">
+                  <Share2 className="h-6 w-6 text-text-secondary" />
+                </div>
+                <h3 className="text-lg font-medium mb-1">No Connected Accounts</h3>
+                <p className="text-text-secondary mb-4">
+                  Connect your social media accounts to post content directly from SoZayn.
+                </p>
+                <Button 
+                  className="bg-accent-blue hover:bg-accent-blue/90"
+                  onClick={() => {
+                    setIsAddingAccount(true);
+                    socialAccountForm.reset();
+                  }}
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Connect an Account
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border-color">
+                {socialAccounts.map((account: any) => (
+                  <div key={account.id} className="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
+                    <div className="flex items-center">
+                      {account.platform === 'instagram' && <Instagram className="h-5 w-5 mr-3 text-accent-purple" />}
+                      {account.platform === 'facebook' && <Facebook className="h-5 w-5 mr-3 text-accent-blue" />}
+                      {account.platform === 'twitter' && <Twitter className="h-5 w-5 mr-3 text-accent-blue" />}
+                      {account.platform === 'youtube' && <FaYoutube className="h-5 w-5 mr-3 text-red-500" />}
+                      {account.platform === 'linkedin' && <FaLinkedin className="h-5 w-5 mr-3 text-blue-600" />}
+                      {account.platform === 'tiktok' && <FaTiktok className="h-5 w-5 mr-3 text-black" />}
+                      <div>
+                        <p className="font-medium">{account.accountName}</p>
+                        <p className="text-sm text-text-secondary capitalize">{account.platform}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {account.profileUrl && (
+                        <a 
+                          href={account.profileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-full hover:bg-bg-chart transition-colors"
+                          title="View Profile"
+                        >
+                          <LinkIcon className="h-4 w-4 text-text-secondary" />
+                        </a>
+                      )}
+                      <button 
+                        className="p-2 rounded-full hover:bg-bg-chart transition-colors"
+                        title="Remove Account"
+                        onClick={() => deleteSocialAccountMutation.mutate(account.id)}
+                      >
+                        <X className="h-4 w-4 text-text-secondary" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Add Social Media Account Dialog */}
+            <Dialog open={isAddingAccount} onOpenChange={setIsAddingAccount}>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Connect Social Media Account</DialogTitle>
+                  <DialogDescription>
+                    Connect your social media account to post content directly from SoZayn.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...socialAccountForm}>
+                  <form onSubmit={socialAccountForm.handleSubmit(onSocialAccountSubmit)} className="space-y-6">
+                    <FormField
+                      control={socialAccountForm.control}
+                      name="platform"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Platform</FormLabel>
+                          <div className="flex flex-wrap gap-4">
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'instagram' ? 'border-accent-purple bg-accent-purple/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('instagram')}
+                            >
+                              <Instagram className={`h-5 w-5 ${field.value === 'instagram' ? 'text-accent-purple' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'facebook' ? 'border-accent-blue bg-accent-blue/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('facebook')}
+                            >
+                              <Facebook className={`h-5 w-5 ${field.value === 'facebook' ? 'text-accent-blue' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'twitter' ? 'border-accent-blue bg-accent-blue/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('twitter')}
+                            >
+                              <Twitter className={`h-5 w-5 ${field.value === 'twitter' ? 'text-accent-blue' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'youtube' ? 'border-red-500 bg-red-500/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('youtube')}
+                            >
+                              <FaYoutube className={`h-5 w-5 ${field.value === 'youtube' ? 'text-red-500' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'linkedin' ? 'border-blue-600 bg-blue-600/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('linkedin')}
+                            >
+                              <FaLinkedin className={`h-5 w-5 ${field.value === 'linkedin' ? 'text-blue-600' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'tiktok' ? 'border-black bg-black/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('tiktok')}
+                            >
+                              <FaTiktok className={`h-5 w-5 ${field.value === 'tiktok' ? 'text-black' : 'text-text-secondary'}`} />
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={socialAccountForm.control}
+                      name="accountName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Account Name</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter account name" 
+                              className="bg-bg-chart border-border-color" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Enter your username or handle for this platform
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={socialAccountForm.control}
+                      name="profileUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Profile URL (Optional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="https://..." 
+                              className="bg-bg-chart border-border-color" 
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <DialogFooter>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setIsAddingAccount(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit"
+                        className="bg-accent-blue hover:bg-accent-blue/90"
+                        disabled={addSocialAccountMutation.isPending}
+                      >
+                        {addSocialAccountMutation.isPending ? (
+                          <>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                            Connecting...
+                          </>
+                        ) : 'Connect Account'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </DashboardCard>
         </TabsContent>
         

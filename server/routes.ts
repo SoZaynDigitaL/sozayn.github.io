@@ -121,8 +121,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/integrations", isAuthenticated, (req, res) => {
-    // Return empty array for now - frontend will handle demo data
-    res.json([]);
+    // Return demo data for delivery integrations
+    res.json([
+      {
+        id: 1,
+        provider: "DoorDash",
+        type: "delivery",
+        apiKey: "demo_api_key",
+        isActive: true,
+        environment: "sandbox",
+        developerId: "demo_developer_id",
+        keyId: "demo_key_id",
+        signingSecret: "demo_signing_secret",
+        webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/doordash",
+        sendOrderStatus: true,
+        settings: {}
+      },
+      {
+        id: 2,
+        provider: "UberEats",
+        type: "delivery",
+        apiKey: "demo_api_key",
+        isActive: false,
+        environment: "sandbox",
+        developerId: "demo_developer_id",
+        keyId: "demo_key_id",
+        signingSecret: "demo_signing_secret",
+        webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/ubereats",
+        sendOrderStatus: true,
+        settings: {}
+      }
+    ]);
+  });
+  
+  // Mock endpoint to add new integration
+  app.post("/api/integrations", isAuthenticated, (req, res) => {
+    // For demo purposes, just return the data that was sent
+    const newIntegration = {
+      id: Math.floor(Math.random() * 1000) + 10, // Random ID
+      ...req.body,
+      createdAt: new Date().toISOString()
+    };
+    
+    res.status(201).json(newIntegration);
+  });
+  
+  // Mock endpoint to update integration
+  app.patch("/api/integrations/:id", isAuthenticated, (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    // Return the updated integration object
+    res.json({
+      id,
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    });
   });
 
   app.get("/api/customers", isAuthenticated, (req, res) => {
@@ -141,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2023-10-16",
+        apiVersion: "2025-03-31.basil" as any,
       });
 
       const { amount } = req.body;
@@ -174,7 +227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2023-10-16",
+        apiVersion: "2025-03-31.basil" as any,
       });
 
       const userId = req.session.userId;

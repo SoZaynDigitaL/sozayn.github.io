@@ -75,6 +75,10 @@ export default function DeliveryPartners() {
   // Fetch existing integrations
   const { data: integrations = [], isLoading } = useQuery<any[]>({ 
     queryKey: ['/api/integrations'],
+    enabled: true, // Always enabled
+    retry: 1,      // Retry once on failure
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
   
   // Filter to only show delivery type integrations
@@ -257,6 +261,8 @@ export default function DeliveryPartners() {
         {/* Add Partner Dialog - Matching HyperZod Style */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogContent className="max-w-md bg-[#18191F] border-none rounded-lg p-0 overflow-hidden">
+            <DialogTitle className="sr-only">Add Delivery Partner</DialogTitle>
+            <DialogDescription className="sr-only">Connect with a new delivery partner to expand your reach.</DialogDescription>
             <button className="absolute right-3 top-3 text-gray-400 hover:text-white p-1 bg-[#292B35] rounded"
               onClick={() => setIsAddDialogOpen(false)}
             >
@@ -345,6 +351,8 @@ export default function DeliveryPartners() {
         {/* Configuration Dialog - Styled to match HyperZod */}
         <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
           <DialogContent className="max-w-2xl bg-white rounded-xl p-0 overflow-hidden">
+            <DialogTitle className="sr-only">Configuration For {selectedIntegration?.provider}</DialogTitle>
+            <DialogDescription className="sr-only">Update your delivery partner configuration and credentials.</DialogDescription>
             <div className="p-6">
               <h2 className="text-2xl font-bold">Configuration <span className="text-gray-500">For {selectedIntegration?.provider}</span></h2>
               

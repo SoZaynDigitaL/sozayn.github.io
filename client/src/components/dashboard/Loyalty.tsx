@@ -85,6 +85,7 @@ type CustomerFormValues = z.infer<typeof customerSchema>;
 export default function Loyalty() {
   const [isRewardDialogOpen, setIsRewardDialogOpen] = useState(false);
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   
   // Fetch customers
@@ -92,14 +93,14 @@ export default function Loyalty() {
     queryKey: ['/api/customers'],
   });
   
-  // Define reward program configurations
-  const loyaltyConfig = {
+  // Define reward program configurations with state
+  const [loyaltyConfig, setLoyaltyConfig] = useState({
     pointsPerDollar: 10,
     referralPoints: 50,
     signupBonus: 100,
     minPointsRedemption: 500,
     isActive: true
-  };
+  });
   
   // Define reward tiers
   const loyaltyTiers = [
@@ -464,6 +465,8 @@ export default function Loyalty() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-text-secondary pointer-events-none" />
                 <Input 
                   placeholder="Search members..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 bg-bg-chart border-border-color" 
                 />
               </div>
@@ -529,7 +532,13 @@ export default function Loyalty() {
                   <p className="font-medium">Loyalty Program</p>
                   <p className="text-sm text-text-secondary">Enable/disable the entire program</p>
                 </div>
-                <Switch checked={loyaltyConfig.isActive} />
+                <Switch 
+                  checked={loyaltyConfig.isActive} 
+                  onCheckedChange={(checked) => setLoyaltyConfig({
+                    ...loyaltyConfig,
+                    isActive: checked
+                  })}
+                />
               </div>
               
               <div className="space-y-2">
@@ -537,6 +546,10 @@ export default function Loyalty() {
                 <Input 
                   type="number" 
                   value={loyaltyConfig.pointsPerDollar}
+                  onChange={(e) => setLoyaltyConfig({
+                    ...loyaltyConfig,
+                    pointsPerDollar: parseInt(e.target.value) || 0
+                  })}
                   className="bg-bg-chart border-border-color" 
                 />
               </div>
@@ -546,6 +559,10 @@ export default function Loyalty() {
                 <Input 
                   type="number" 
                   value={loyaltyConfig.referralPoints}
+                  onChange={(e) => setLoyaltyConfig({
+                    ...loyaltyConfig,
+                    referralPoints: parseInt(e.target.value) || 0
+                  })}
                   className="bg-bg-chart border-border-color" 
                 />
               </div>
@@ -555,6 +572,10 @@ export default function Loyalty() {
                 <Input 
                   type="number" 
                   value={loyaltyConfig.signupBonus}
+                  onChange={(e) => setLoyaltyConfig({
+                    ...loyaltyConfig,
+                    signupBonus: parseInt(e.target.value) || 0
+                  })}
                   className="bg-bg-chart border-border-color" 
                 />
               </div>
@@ -564,6 +585,10 @@ export default function Loyalty() {
                 <Input 
                   type="number" 
                   value={loyaltyConfig.minPointsRedemption}
+                  onChange={(e) => setLoyaltyConfig({
+                    ...loyaltyConfig,
+                    minPointsRedemption: parseInt(e.target.value) || 0
+                  })}
                   className="bg-bg-chart border-border-color" 
                 />
               </div>
@@ -583,13 +608,12 @@ export default function Loyalty() {
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <div 
-                      className={
+                      className={`p-1.5 rounded-full ${
                         tier.name === 'Platinum' ? 'text-accent-purple bg-accent-purple/20' :
                         tier.name === 'Gold' ? 'text-accent-yellow bg-accent-yellow/20' :
                         tier.name === 'Silver' ? 'text-gray-400 bg-gray-400/20' :
                         'text-amber-700 bg-amber-700/20'
-                      }
-                      className="p-1.5 rounded-full"
+                      }`}
                     >
                       <Crown className="h-4 w-4" />
                     </div>

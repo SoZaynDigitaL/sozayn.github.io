@@ -1,0 +1,59 @@
+[vite] hot updated: /src/components/layout/Footer.tsx
+[vite] hot updated: /src/index.css?v=Imy88dwfZq4RFqCxAejFu
+[vite] hot updated: /src/components/layout/Footer.tsx
+[vite] hot updated: /src/index.css?v=Imy88dwfZq4RFqCxAejFu
+[vite] hot updated: /src/components/layout/Header.tsx
+[vite] hot updated: /src/index.css?v=Imy88dwfZq4RFqCxAejFu
+Warning: You provided a &#x60;value&#x60; prop to a form field without an &#x60;onChange&#x60; handler. This will render a read-only field. If the field should be mutable use &#x60;defaultValue&#x60;. Otherwise, set either &#x60;onChange&#x60; or &#x60;readOnly&#x60;.
+    at input
+    at _c (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/input.tsx:20:11)
+    at div
+    at div
+    at div
+    at _c9 (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/card.tsx:20:11)
+    at DashboardCard (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/dashboard-card.tsx:20:3)
+    at div
+    at div
+    at div
+    at Loyalty (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/dashboard/Loyalty.tsx:96:55)
+    at main
+    at div
+    at div
+    at DashboardLayout (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/layout/DashboardLayout.tsx?t=1744150457423:25:43)
+    at LoyaltyPage
+    at Route (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d22dba94:323:16)
+    at Switch (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d22dba94:379:17)
+    at Router
+    at AuthProvider (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/hooks/useAuth.tsx:28:32)
+    at QueryClientProvider (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d22dba94:2805:3)
+    at App
+at input
+at _c (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/input.tsx:20:11)
+at div
+at div
+at div
+at _c9 (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/card.tsx:114:12)
+at div
+at _c (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/card.tsx:20:11)
+at DashboardCard (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/ui/dashboard-card.tsx:20:3)
+at div
+at div
+at div
+at Loyalty (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/dashboard/Loyalty.tsx:96:55)
+at main
+at div
+at div
+at DashboardLayout (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/components/layout/DashboardLayout.tsx?t=1744150457423:25:43)
+at LoyaltyPage
+at Route (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d22dba94:323:16)
+at Switch (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d22dba94:379:17)
+at Router
+at AuthProvider (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/src/hooks/useAuth.tsx:28:32)
+at QueryClientProvider (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d22dba94:2805:3)
+at App
+at t.value (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://b3c61a95-625b-46c1-9fc1-af13a09470db-00-2fjd595bqd00c.picard.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400

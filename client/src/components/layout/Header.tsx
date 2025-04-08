@@ -23,7 +23,7 @@ export default function Header() {
           <div>
             <Link href="/" className="text-2xl font-bold tracking-tighter">
               SoZayn
-              <span className="block text-xs text-text-secondary mt-[-4px]">Welcome To Digital Era</span>
+              <span className="block text-xs text-text-secondary mt-[-4px]">All in one, One in all</span>
             </Link>
           </div>
           

@@ -256,16 +256,17 @@ export default function DeliveryPartners() {
         
         {/* Add Partner Dialog - Simple Version */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogContent className="bg-bg-card border-border-color max-w-md">
-            <div className="absolute right-4 top-4">
-              <Button variant="ghost" size="icon" onClick={() => setIsAddDialogOpen(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+          <DialogContent className="bg-[#17181E] border-[#2E323A] max-w-md">
+            <DialogTitle className="hidden">Add Delivery Partner</DialogTitle>
+            <DialogDescription className="hidden">Connect with a new delivery partner to expand your reach.</DialogDescription>
+            
+            <button className="absolute right-4 top-4 text-gray-400 hover:text-white p-2" onClick={() => setIsAddDialogOpen(false)}>
+              <X className="h-4 w-4" />
+            </button>
             
             <div className="py-4">
-              <h2 className="text-xl font-bold">Add Delivery Partner</h2>
-              <p className="text-text-secondary mt-1">Connect with a new delivery partner to expand your reach.</p>
+              <h2 className="text-xl font-bold text-white">Add Delivery Partner</h2>
+              <p className="text-gray-400 mt-1">Connect with a new delivery partner to expand your reach.</p>
             </div>
             
             <Form {...addForm}>
@@ -275,15 +276,15 @@ export default function DeliveryPartners() {
                   name="provider"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Provider Name</FormLabel>
+                      <FormLabel className="text-white">Provider Name</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., DoorDash, UberEats" 
                           {...field}
-                          className="bg-bg-chart border-border-color" 
+                          className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
                         />
                       </FormControl>
-                      <FormDescription className="text-text-secondary">
+                      <FormDescription className="text-xs text-gray-500">
                         Enter the name of the delivery provider.
                       </FormDescription>
                       <FormMessage />
@@ -296,16 +297,16 @@ export default function DeliveryPartners() {
                   name="apiKey"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>API Key</FormLabel>
+                      <FormLabel className="text-white">API Key</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="Enter API key" 
                           type="password"
                           {...field} 
-                          className="bg-bg-chart border-border-color" 
+                          className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
                         />
                       </FormControl>
-                      <FormDescription className="text-text-secondary">
+                      <FormDescription className="text-xs text-gray-500">
                         The API key provided by the delivery service.
                       </FormDescription>
                       <FormMessage />
@@ -313,18 +314,18 @@ export default function DeliveryPartners() {
                   )}
                 />
                 
-                <div className="flex justify-end gap-2 mt-8">
+                <div className="flex justify-between gap-2 mt-8">
                   <Button 
                     type="button" 
                     variant="outline" 
-                    className="border-border-color"
+                    className="border-[#2E323A] text-gray-200 hover:text-white hover:bg-transparent"
                     onClick={() => setIsAddDialogOpen(false)}
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={addIntegrationMutation.isPending}
                   >
                     {addIntegrationMutation.isPending ? (
@@ -344,10 +345,10 @@ export default function DeliveryPartners() {
         
         {/* Configuration Dialog - Detailed Settings */}
         <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-          <DialogContent className="bg-bg-card border-border-color max-w-2xl">
+          <DialogContent className="bg-[#17181E] border-[#2E323A] max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Configuration For {selectedIntegration?.provider}</DialogTitle>
-              <DialogDescription className="text-text-secondary">
+              <DialogTitle className="text-white">Configuration For {selectedIntegration?.provider}</DialogTitle>
+              <DialogDescription className="text-gray-400">
                 Update your delivery partner configuration and credentials.
               </DialogDescription>
             </DialogHeader>
@@ -355,7 +356,7 @@ export default function DeliveryPartners() {
             <Form {...configForm}>
               <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-6 pt-4">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Select Environments</h3>
+                  <h3 className="text-lg font-semibold text-white">Select Environments</h3>
                   
                   <FormField
                     control={configForm.control}
@@ -363,7 +364,7 @@ export default function DeliveryPartners() {
                     render={({ field }) => (
                       <FormItem className="space-y-3">
                         <FormControl>
-                          <div className="flex flex-wrap gap-4 p-4 bg-bg-chart/50 rounded-lg border border-border-color">
+                          <div className="flex flex-wrap gap-4 p-4 bg-[#1F2128] rounded-lg border border-[#2E323A]">
                             <div className="flex items-center gap-2">
                               <input
                                 type="radio"
@@ -371,9 +372,9 @@ export default function DeliveryPartners() {
                                 value="sandbox"
                                 checked={field.value === "sandbox"}
                                 onChange={() => field.onChange("sandbox")}
-                                className="rounded-full h-4 w-4 text-accent-blue"
+                                className="rounded-full h-4 w-4 text-blue-600"
                               />
-                              <label htmlFor="config-sandbox" className="text-sm cursor-pointer">Sandbox</label>
+                              <label htmlFor="config-sandbox" className="text-sm cursor-pointer text-gray-200">Sandbox</label>
                             </div>
                             <div className="flex items-center gap-2">
                               <input
@@ -382,9 +383,9 @@ export default function DeliveryPartners() {
                                 value="live"
                                 checked={field.value === "live"}
                                 onChange={() => field.onChange("live")}
-                                className="rounded-full h-4 w-4 text-accent-blue"
+                                className="rounded-full h-4 w-4 text-blue-600"
                               />
-                              <label htmlFor="config-live" className="text-sm cursor-pointer">Live</label>
+                              <label htmlFor="config-live" className="text-sm cursor-pointer text-gray-200">Live</label>
                             </div>
                           </div>
                         </FormControl>
@@ -399,12 +400,12 @@ export default function DeliveryPartners() {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center gap-1">
-                          <FormLabel>Developer ID*</FormLabel>
+                          <FormLabel className="text-white">Developer ID*</FormLabel>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -419,10 +420,10 @@ export default function DeliveryPartners() {
                           <Input 
                             placeholder="Enter Developer ID" 
                             {...field} 
-                            className="bg-bg-chart border-border-color" 
+                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
                           />
                         </FormControl>
-                        <FormDescription className="text-xs text-text-secondary">
+                        <FormDescription className="text-xs text-gray-500">
                           Please fill out this field
                         </FormDescription>
                         <FormMessage />
@@ -436,12 +437,12 @@ export default function DeliveryPartners() {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center gap-1">
-                          <FormLabel>Key ID*</FormLabel>
+                          <FormLabel className="text-white">Key ID*</FormLabel>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -456,10 +457,10 @@ export default function DeliveryPartners() {
                           <Input 
                             placeholder="Enter Key ID" 
                             {...field} 
-                            className="bg-bg-chart border-border-color" 
+                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
                           />
                         </FormControl>
-                        <FormDescription className="text-xs text-text-secondary">
+                        <FormDescription className="text-xs text-gray-500">
                           Please fill out this field
                         </FormDescription>
                         <FormMessage />
@@ -473,12 +474,12 @@ export default function DeliveryPartners() {
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex items-center gap-1">
-                          <FormLabel>Signing Secret*</FormLabel>
+                          <FormLabel className="text-white">Signing Secret*</FormLabel>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                  <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -494,10 +495,10 @@ export default function DeliveryPartners() {
                             placeholder="Enter Signing Secret" 
                             type="password"
                             {...field} 
-                            className="bg-bg-chart border-border-color" 
+                            className="bg-[#1F2128] border-[#2E323A] text-gray-200" 
                           />
                         </FormControl>
-                        <FormDescription className="text-xs text-text-secondary">
+                        <FormDescription className="text-xs text-gray-500">
                           Please fill out this field
                         </FormDescription>
                         <FormMessage />
@@ -507,10 +508,10 @@ export default function DeliveryPartners() {
                 </div>
                 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Webhook Endpoints</h3>
+                  <h3 className="text-lg font-semibold text-white">Webhook Endpoints</h3>
                   
                   <div>
-                    <p className="mb-2 font-medium">{selectedIntegration?.provider}</p>
+                    <p className="mb-2 font-medium text-white">{selectedIntegration?.provider}</p>
                     <FormField
                       control={configForm.control}
                       name="webhookUrl"
@@ -522,11 +523,11 @@ export default function DeliveryPartners() {
                                 placeholder="https://delivery.apps.hyperzod.com/api/12345/webhook/partner/doordash" 
                                 value={field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
                                 readOnly
-                                className="bg-bg-chart border-border-color flex-1 rounded-r-none text-xs" 
+                                className="bg-[#1F2128] border-[#2E323A] text-gray-200 flex-1 rounded-r-none text-xs" 
                               />
                               <button 
                                 type="button"
-                                className="bg-bg-chart border border-l-0 border-border-color px-2 rounded-r-md"
+                                className="bg-[#1F2128] border border-l-0 border-[#2E323A] px-2 rounded-r-md"
                                 onClick={() => {
                                   const url = field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`;
                                   navigator.clipboard.writeText(url);
@@ -536,16 +537,16 @@ export default function DeliveryPartners() {
                                   });
                                 }}
                               >
-                                <Copy className="h-4 w-4 text-text-secondary" />
+                                <Copy className="h-4 w-4 text-gray-400" />
                               </button>
                             </div>
                           </FormControl>
-                          <FormDescription className="text-xs text-text-secondary flex items-center gap-1">
+                          <FormDescription className="text-xs text-gray-500 flex items-center gap-1">
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <span>
-                                    <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                    <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
                                   </span>
                                 </TooltipTrigger>
                                 <TooltipContent>
@@ -567,18 +568,18 @@ export default function DeliveryPartners() {
                     control={configForm.control}
                     name="sendOrderStatus"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-bg-chart/50 border border-border-color">
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-[#1F2128] border border-[#2E323A]">
                         <FormControl>
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded border-border-color mt-1"
+                            className="h-4 w-4 rounded border-[#2E323A] mt-1 text-blue-600"
                             checked={field.value}
                             onChange={(e) => field.onChange(e.target.checked)}
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>Send on order status*</FormLabel>
-                          <FormDescription className="text-text-secondary">
+                          <FormLabel className="text-white">Send on order status*</FormLabel>
+                          <FormDescription className="text-gray-500">
                             Receive real-time notifications when order statuses change.
                           </FormDescription>
                         </div>
@@ -591,14 +592,14 @@ export default function DeliveryPartners() {
                   <Button 
                     type="button" 
                     variant="outline"
-                    className="border-border-color"
+                    className="border-[#2E323A] text-gray-200 hover:text-white hover:bg-transparent"
                     onClick={() => setIsConfigDialogOpen(false)}
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={updateIntegrationMutation.isPending}
                   >
                     {updateIntegrationMutation.isPending ? (

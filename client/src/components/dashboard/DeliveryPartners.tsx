@@ -442,18 +442,18 @@ export default function DeliveryPartners() {
         
         {/* Configuration Dialog - Styled to match HyperZod */}
         <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
-          <DialogContent className="max-w-2xl bg-white rounded-xl p-0 overflow-hidden">
-            <DialogTitle className="sr-only">Configuration For {selectedIntegration?.provider}</DialogTitle>
+          <DialogContent className="max-w-md bg-white rounded-xl p-0 overflow-hidden">
+            <DialogTitle className="sr-only">Configuration</DialogTitle>
             <DialogDescription className="sr-only">Update your delivery partner configuration and credentials.</DialogDescription>
             <div className="p-6">
-              <h2 className="text-2xl font-bold">Configuration</h2>
+              <h2 className="text-2xl font-bold text-gray-100">Configuration</h2>
               
               <Form {...configForm}>
                 <form onSubmit={configForm.handleSubmit(onConfigSubmit)}>
-                  <div className="mt-6">
-                    <h3 className="text-lg font-semibold">Select Environments</h3>
+                  <div className="mt-4">
+                    <h3 className="text-base font-medium text-gray-500">Select Environments</h3>
                     
-                    <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                       <FormField
                         control={configForm.control}
                         name="environment"
@@ -470,7 +470,7 @@ export default function DeliveryPartners() {
                                     onChange={() => field.onChange("sandbox")}
                                     className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
                                   />
-                                  <label htmlFor="config-sandbox" className="text-base cursor-pointer">Sandbox</label>
+                                  <label htmlFor="config-sandbox" className="text-sm cursor-pointer">Sandbox</label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <input
@@ -481,7 +481,7 @@ export default function DeliveryPartners() {
                                     onChange={() => field.onChange("live")}
                                     className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
                                   />
-                                  <label htmlFor="config-live" className="text-base cursor-pointer">Live</label>
+                                  <label htmlFor="config-live" className="text-sm cursor-pointer">live</label>
                                 </div>
                               </div>
                             </FormControl>
@@ -491,18 +491,18 @@ export default function DeliveryPartners() {
                     </div>
                   </div>
                   
-                  <div className="mt-6 space-y-5">
+                  <div className="mt-5 space-y-4">
                     <FormField
                       control={configForm.control}
                       name="developerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Customer ID*</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700">Customer ID*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Customer ID" 
                               {...field} 
-                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                              className="mt-1 w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
                             />
                           </FormControl>
                           <FormMessage />
@@ -515,12 +515,12 @@ export default function DeliveryPartners() {
                       name="keyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Client ID*</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700">Client ID*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Client ID" 
                               {...field} 
-                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                              className="mt-1 w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
                             />
                           </FormControl>
                           <FormMessage />
@@ -533,16 +533,16 @@ export default function DeliveryPartners() {
                       name="signingSecret"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Client secret*</FormLabel>
+                          <FormLabel className="text-sm font-medium text-gray-700">Client secret*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Client secret" 
                               type="password"
                               {...field} 
-                              className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                              className="mt-1 w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
                             />
                           </FormControl>
-                          <FormDescription className="text-xs text-gray-600 mt-1">
+                          <FormDescription className="text-xs text-gray-500 mt-1">
                             Please fill out this field.
                           </FormDescription>
                           <FormMessage />
@@ -554,36 +554,36 @@ export default function DeliveryPartners() {
                       control={configForm.control}
                       name="sendOrderStatus"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormLabel className="text-base font-semibold">Send on order status*</FormLabel>
+                        <FormItem className="flex flex-row items-center space-x-2 space-y-0">
                           <FormControl>
                             <input
                               type="checkbox"
-                              className="h-5 w-5 border-gray-300 rounded text-blue-600 focus:ring-blue-500 mt-1"
+                              className="h-4 w-4 border-gray-300 rounded text-blue-600 focus:ring-blue-500"
                               checked={field.value}
                               onChange={(e) => field.onChange(e.target.checked)}
                             />
                           </FormControl>
+                          <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer m-0">Send on order status</FormLabel>
                         </FormItem>
                       )}
                     />
                   </div>
                   
-                  <div className="mt-8">
-                    <h3 className="text-xl font-semibold">Webhook Endpoints</h3>
+                  <div className="mt-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Webhook Endpoints</h3>
                     
-                    <div className="mt-4">
-                      <p className="text-base font-semibold mb-2">{selectedIntegration?.provider}</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">{selectedIntegration?.provider}</p>
                       <FormField
                         control={configForm.control}
                         name="webhookUrl"
                         render={({ field }) => (
                           <FormItem>
-                            <div className="flex">
+                            <div className="relative">
                               <Input 
                                 value={field.value || `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
                                 readOnly
-                                className="w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10" 
+                                className="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 pr-10" 
                               />
                               <button 
                                 type="button"
@@ -597,9 +597,9 @@ export default function DeliveryPartners() {
                                   });
                                 }}
                               >
-                                <Copy className="h-5 w-5 text-gray-400" />
+                                <Copy className="h-4 w-4 text-gray-400" />
                               </button>
-                              <div className="absolute -bottom-6 right-0 text-sm italic text-gray-500">
+                              <div className="text-xs italic text-gray-500 text-right mt-1">
                                 We need webhook creation system.
                               </div>
                             </div>
@@ -609,23 +609,23 @@ export default function DeliveryPartners() {
                     </div>
                   </div>
                   
-                  <div className="mt-10 flex justify-end gap-3">
+                  <div className="mt-8 flex justify-end gap-2">
                     <Button 
                       type="button" 
                       variant="outline"
-                      className="h-12 px-6 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
+                      className="h-10 px-5 py-0 bg-white border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsConfigDialogOpen(false)}
                     >
                       Cancel
                     </Button>
                     <Button 
                       type="submit"
-                      className="h-12 px-8 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700"
+                      className="h-10 px-5 py-0 bg-blue-600 rounded-md text-white hover:bg-blue-700"
                       disabled={updateIntegrationMutation.isPending}
                     >
                       {updateIntegrationMutation.isPending ? (
                         <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Updating...
                         </>
                       ) : (

@@ -248,12 +248,6 @@ export default function DeliveryPartners() {
         
         {/* Add Partner Dialog - Simple Version */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 bg-blue-600 hover:bg-blue-700 rounded-full">
-              <PlusCircle className="h-4 w-4" />
-              Add New Partner
-            </Button>
-          </DialogTrigger>
           <DialogContent className="bg-bg-card border-border-color max-w-md">
             <div className="absolute right-4 top-4">
               <Button variant="ghost" size="icon" onClick={() => setIsAddDialogOpen(false)}>

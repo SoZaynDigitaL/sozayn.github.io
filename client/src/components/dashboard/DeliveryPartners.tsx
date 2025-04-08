@@ -14,6 +14,8 @@ import {
   Copy,
   HelpCircle,
 } from 'lucide-react';
+import { TopSellingItems } from '@/components/dashboard/TopSellingItems';
+import { OrderSources } from '@/components/dashboard/OrderSources';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +40,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Tooltip,
+  Tooltip as UITooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
@@ -674,6 +676,11 @@ export default function DeliveryPartners() {
         </div>
       </div>
       
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TopSellingItems />
+        <OrderSources />
+      </div>
+
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-5">Integration Benefits</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

@@ -5,10 +5,12 @@ import { Link, useLocation } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from "react";
 
 export default function NotFound() {
   const { user } = useAuth();
   const [location] = useLocation();
+  const [shouldRender, setShouldRender] = useState(false);
   
   // List of valid routes to ignore 404
   const validRoutes = [
@@ -27,8 +29,22 @@ export default function NotFound() {
     "/test-firebase-updated"
   ];
 
-  // Check if we're on a valid route - if so, don't show 404
-  if (validRoutes.includes(location)) {
+  // Using useEffect to prevent rendering in valid routes
+  useEffect(() => {
+    // Check if current location is a valid route or if it's a subpath of a valid route
+    const isValid = validRoutes.some(route => {
+      if (location === route) return true;
+      // Dashboard subpaths
+      if (route === "/dashboard" && location.startsWith("/dashboard/")) return true;
+      return false;
+    });
+    
+    // Only render the NotFound page if we're on an invalid route
+    setShouldRender(!isValid);
+  }, [location]);
+
+  // If we're on a valid route, don't render anything
+  if (!shouldRender) {
     return null;
   }
   

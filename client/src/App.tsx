@@ -1,4 +1,4 @@
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -48,58 +48,65 @@ import CookiePolicy from "@/pages/cookies";
 
 function Router() {
   return (
-    <Switch>
-      {/* Public routes */}
-      <Route path="/" component={Home} />
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      <Route path="/plans" component={Plans} />
-      <Route path="/test-firebase" component={TestFirebaseAuth} />
-      <Route path="/test-firebase-updated" component={TestFirebaseUpdated} />
-      
-      {/* Footer pages */}
-      <Route path="/about" component={AboutPage} />
-      <Route path="/support" component={Support} />
-      <Route path="/privacy" component={PrivacyPolicy} />
-      <Route path="/terms" component={TermsOfService} />
-      <Route path="/cookies" component={CookiePolicy} />
-      
-      {/* Protected Dashboard routes - available to all authenticated users */}
-      <ProtectedRoute path="/dashboard" component={Dashboard} />
-      <ProtectedRoute path="/dashboard/orders" component={Orders} />
-      
-      {/* Admin-only routes */}
-      <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
-      <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
-      <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} />
-      <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} />
-      
-      {/* Marketing routes */}
-      <ProtectedRoute path="/dashboard/marketing" component={Marketing} />
-      <ProtectedRoute path="/dashboard/marketing/seo" component={MarketingSEO} />
-      <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} />
-      <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} />
-      
-      <ProtectedRoute path="/dashboard/social-media" component={SocialMediaPage} />
-      <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
-      <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
-      <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
-      <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
-      <ProtectedRoute path="/dashboard/feature-access" component={FeatureAccessPage} />
-      <ProtectedRoute path="/dashboard/settings" component={Settings} />
-      
-      {/* Payment routes - protected but available to all users */}
-      <ProtectedRoute path="/checkout" component={Checkout} />
-      <ProtectedRoute path="/paypal-checkout" component={PayPalCheckout} />
-      <ProtectedRoute path="/subscribe" component={Subscribe} />
-      <ProtectedRoute path="/payment-success" component={PaymentSuccess} />
-      <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
-      <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
-      
-      {/* Fallback to 404 - this only renders if no other route matches */}
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <Switch>
+        {/* Public routes */}
+        <Route path="/" component={Home} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+        <Route path="/plans" component={Plans} />
+        <Route path="/test-firebase" component={TestFirebaseAuth} />
+        <Route path="/test-firebase-updated" component={TestFirebaseUpdated} />
+        
+        {/* Footer pages */}
+        <Route path="/about" component={AboutPage} />
+        <Route path="/support" component={Support} />
+        <Route path="/privacy" component={PrivacyPolicy} />
+        <Route path="/terms" component={TermsOfService} />
+        <Route path="/cookies" component={CookiePolicy} />
+        
+        {/* Protected Dashboard routes - available to all authenticated users */}
+        <ProtectedRoute path="/dashboard" component={Dashboard} />
+        <ProtectedRoute path="/dashboard/orders" component={Orders} />
+        
+        {/* Admin-only routes */}
+        <ProtectedRoute path="/dashboard/clients" component={Clients} adminOnly />
+        <ProtectedRoute path="/dashboard/integrations" component={Integrations} adminOnly />
+        <ProtectedRoute path="/dashboard/e-commerce" component={ECommerce} />
+        <ProtectedRoute path="/dashboard/loyalty" component={Loyalty} />
+        
+        {/* Marketing routes */}
+        <ProtectedRoute path="/dashboard/marketing" component={Marketing} />
+        <ProtectedRoute path="/dashboard/marketing/seo" component={MarketingSEO} />
+        <ProtectedRoute path="/dashboard/marketing/email" component={MarketingEmail} />
+        <ProtectedRoute path="/dashboard/marketing/automated" component={MarketingAutomated} />
+        
+        <ProtectedRoute path="/dashboard/social-media" component={SocialMediaPage} />
+        <ProtectedRoute path="/dashboard/management" component={ManagementPage} adminOnly />
+        <ProtectedRoute path="/dashboard/pos" component={POS} adminOnly />
+        <ProtectedRoute path="/dashboard/pos-integration" component={POSIntegration} />
+        <ProtectedRoute path="/dashboard/delivery-partners" component={DeliveryPartners} />
+        <ProtectedRoute path="/dashboard/feature-access" component={FeatureAccessPage} />
+        <ProtectedRoute path="/dashboard/settings" component={Settings} />
+        
+        {/* Payment routes - protected but available to all users */}
+        <ProtectedRoute path="/checkout" component={Checkout} />
+        <ProtectedRoute path="/paypal-checkout" component={PayPalCheckout} />
+        <ProtectedRoute path="/subscribe" component={Subscribe} />
+        <ProtectedRoute path="/payment-success" component={PaymentSuccess} />
+        <ProtectedRoute path="/paypal-success" component={PayPalSuccess} />
+        <ProtectedRoute path="/subscription-success" component={SubscriptionSuccess} />
+        
+        {/* Custom NotFound route that only renders for true 404s */}
+        <Route path="/:404*">
+          {(params) => {
+            // This is only called when no other route matches
+            return <NotFound />;
+          }}
+        </Route>
+      </Switch>
+    </>
   );
 }
 

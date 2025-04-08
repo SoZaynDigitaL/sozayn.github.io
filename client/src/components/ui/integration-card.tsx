@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { X } from 'lucide-react';
 
 interface IntegrationCardProps {
   provider: string;
@@ -25,9 +26,16 @@ export function IntegrationCard({
 }: IntegrationCardProps) {
   return (
     <Card 
-      className={cn("bg-bg-card border-border-color", className)}
+      className={cn("bg-bg-card border-border-color relative", className)}
       onClick={onClick}
     >
+      <div className="absolute top-3 right-3 p-1.5 rounded-full border border-border-color flex items-center justify-center cursor-pointer hover:bg-bg-chart"
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent card click
+        }}
+      >
+        <X className="h-4 w-4 text-text-secondary" />
+      </div>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">

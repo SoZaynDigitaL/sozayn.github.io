@@ -72,19 +72,41 @@ export default function DeliveryPartners() {
   const [selectedIntegration, setSelectedIntegration] = useState<any | null>(null);
   const { toast } = useToast();
   
-  // Fetch existing integrations
-  const { data: integrations = [], isLoading } = useQuery<any[]>({ 
-    queryKey: ['/api/integrations'],
-    enabled: true, // Always enabled
-    retry: 1,      // Retry once on failure
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
+  // For demo purposes, we'll use hardcoded integrations 
+  const [integrations, setIntegrations] = useState<any[]>([
+    {
+      id: 1,
+      provider: "DoorDash",
+      type: "delivery",
+      apiKey: "demo_api_key",
+      isActive: true,
+      environment: "sandbox",
+      developerId: "demo_developer_id",
+      keyId: "demo_key_id",
+      signingSecret: "demo_signing_secret",
+      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/doordash",
+      sendOrderStatus: true,
+      settings: {}
+    },
+    {
+      id: 2,
+      provider: "UberEats",
+      type: "delivery",
+      apiKey: "demo_api_key",
+      isActive: false,
+      environment: "sandbox",
+      developerId: "demo_developer_id",
+      keyId: "demo_key_id",
+      signingSecret: "demo_signing_secret",
+      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/ubereats",
+      sendOrderStatus: true,
+      settings: {}
+    }
+  ]);
+  const isLoading = false;
   
-  // Filter to only show delivery type integrations
-  const deliveryIntegrations = integrations.filter((integration: any) => 
-    integration.type === 'delivery'
-  );
+  // Filter to only show delivery type integrations (not needed with hardcoded data)
+  const deliveryIntegrations = integrations;
   
   // Define the add partner form
   const addForm = useForm<AddPartnerFormValues>({
@@ -129,20 +151,34 @@ export default function DeliveryPartners() {
     setIsConfigDialogOpen(true);
   };
   
-  // Create mutation to add a new integration
+  // Create mutation to add a new integration (using local state)
   const addIntegrationMutation = useMutation({
     mutationFn: (data: AddPartnerFormValues) => {
-      return apiRequest('POST', '/api/integrations', {
-        provider: data.provider,
-        apiKey: data.apiKey,
-        type: 'delivery',
-        isActive: true,
-        environment: "sandbox", // Default values for simplified add flow
-        sendOrderStatus: true,
-        settings: {}
+      // Create a dummy promise to simulate API call
+      return new Promise<any>((resolve) => {
+        setTimeout(() => {
+          const newIntegration = {
+            id: integrations.length + 1,
+            provider: data.provider,
+            apiKey: data.apiKey,
+            type: 'delivery',
+            isActive: true,
+            environment: "sandbox",
+            developerId: "",
+            keyId: "",
+            signingSecret: "",
+            webhookUrl: `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${data.provider.toLowerCase()}`,
+            sendOrderStatus: true,
+            settings: {}
+          };
+          resolve(newIntegration);
+        }, 500);
       });
     },
-    onSuccess: (response: any) => {
+    onSuccess: (newIntegration: any) => {
+      // Update local state
+      setIntegrations(prev => [...prev, newIntegration]);
+      
       toast({
         title: "Integration added",
         description: "The delivery partner has been integrated successfully.",
@@ -150,14 +186,11 @@ export default function DeliveryPartners() {
       
       addForm.reset();
       setIsAddDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
       
-      // Optionally open the detailed configuration dialog for the newly added integration
-      if (response && response.id) {
-        setTimeout(() => {
-          openConfigDialog(response);
-        }, 500);
-      }
+      // Open the detailed configuration dialog for the newly added integration
+      setTimeout(() => {
+        openConfigDialog(newIntegration);
+      }, 500);
     },
     onError: (error) => {
       toast({
@@ -168,19 +201,39 @@ export default function DeliveryPartners() {
     }
   });
   
-  // Update mutation for detailed configuration
+  // Update mutation for detailed configuration (using local state)
   const updateIntegrationMutation = useMutation({
     mutationFn: (data: ConfigurationFormValues) => {
-      const { id, ...updateData } = data;
-      return apiRequest('PATCH', `/api/integrations/${id}`, updateData);
+      // Create a dummy promise to simulate API call
+      return new Promise<any>((resolve) => {
+        setTimeout(() => {
+          resolve(data);
+        }, 500);
+      });
     },
-    onSuccess: () => {
+    onSuccess: (data: ConfigurationFormValues) => {
+      // Update local state
+      setIntegrations(prev => 
+        prev.map(integration => 
+          integration.id === data.id 
+            ? { 
+                ...integration, 
+                environment: data.environment,
+                developerId: data.developerId,
+                keyId: data.keyId,
+                signingSecret: data.signingSecret,
+                webhookUrl: data.webhookUrl,
+                sendOrderStatus: data.sendOrderStatus
+              }
+            : integration
+        )
+      );
+      
       toast({
         title: "Integration updated",
         description: "The delivery partner configuration has been updated successfully.",
       });
       setIsConfigDialogOpen(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
     },
     onError: (error) => {
       toast({
@@ -191,11 +244,18 @@ export default function DeliveryPartners() {
     }
   });
   
-  // Function to toggle integration status
+  // Function to toggle integration status with local state update
   const toggleIntegrationStatus = async (id: number, isActive: boolean) => {
     try {
-      await apiRequest('PATCH', `/api/integrations/${id}`, { isActive });
-      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
+      // Update local state instead of making API call
+      setIntegrations(prev => 
+        prev.map(integration => 
+          integration.id === id 
+            ? { ...integration, isActive }
+            : integration
+        )
+      );
+      
       toast({
         title: isActive ? "Integration activated" : "Integration deactivated",
         description: `The integration has been ${isActive ? "activated" : "deactivated"} successfully.`,
@@ -552,7 +612,6 @@ export default function DeliveryPartners() {
               key={integration.id}
               provider={integration.provider}
               icon={getProviderIcon(integration.provider)}
-              color={getProviderColor(integration.provider)}
               isActive={integration.isActive}
               onToggle={(value) => toggleIntegrationStatus(integration.id, value)}
               description={integration.isActive ? 'Connected and active' : 'Integration inactive'}
@@ -561,97 +620,104 @@ export default function DeliveryPartners() {
             />
           ))
         ) : (
-          <div className="col-span-2 p-6 bg-bg-card border border-border-color rounded-xl text-center">
-            <p className="text-text-secondary mb-4">No delivery partners connected yet.</p>
-            <Button onClick={() => setIsAddDialogOpen(true)}>Add Your First Partner</Button>
+          <div className="col-span-2 p-6 bg-white border border-gray-100 rounded-lg text-center">
+            <p className="text-gray-500 mb-4">No delivery partners connected yet.</p>
+            <Button 
+              onClick={() => setIsAddDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Add Your First Partner
+            </Button>
           </div>
         )}
       </div>
       
-      <DashboardCard title="Available Integrations">
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-5">Available Integrations</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[
-            { name: 'DoorDash', color: 'text-accent-orange', icon: 'DD' },
-            { name: 'UberEats', color: 'text-accent-blue', icon: 'UE' },
-            { name: 'Grubhub', color: 'text-accent-green', icon: 'GH' },
-            { name: 'Postmates', color: 'text-text-primary', icon: 'PM' },
-            { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' },
-            { name: 'Seamless', color: 'text-accent-purple', icon: 'SM' }
+            { name: 'DoorDash', color: 'text-red-500', bgColor: 'bg-red-500/10', icon: 'DD' },
+            { name: 'UberEats', color: 'text-green-500', bgColor: 'bg-green-500/10', icon: 'UE' },
+            { name: 'Grubhub', color: 'text-orange-500', bgColor: 'bg-orange-500/10', icon: 'GH' },
+            { name: 'Postmates', color: 'text-blue-500', bgColor: 'bg-blue-500/10', icon: 'PM' },
+            { name: 'SkipDishes', color: 'text-purple-500', bgColor: 'bg-purple-500/10', icon: 'SD' },
+            { name: 'Seamless', color: 'text-gray-500', bgColor: 'bg-gray-500/10', icon: 'SM' }
           ].map((partner) => (
             <div 
               key={partner.name}
-              className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
+              className="bg-white border border-gray-100 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                <div className={`w-10 h-10 ${partner.bgColor} rounded-full flex items-center justify-center`}>
                   <span className={`${partner.color} font-bold text-sm`}>{partner.icon}</span>
                 </div>
-                <span className="font-medium">{partner.name}</span>
+                <span className="font-medium text-gray-800">{partner.name}</span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon"
+              <button 
+                type="button"
+                className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100"
                 onClick={() => {
                   addForm.setValue('provider', partner.name);
                   setIsAddDialogOpen(true);
                 }}
               >
-                <PlusCircle className="h-4 w-4" />
-              </Button>
+                <PlusCircle className="h-3.5 w-3.5 text-gray-500" />
+              </button>
             </div>
           ))}
         </div>
         <div className="mt-6">
-          <Button variant="link" className="text-accent-blue flex items-center gap-1 p-0">
+          <button className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 font-medium">
             View all available delivery partners
             <ExternalLink className="h-3 w-3" />
-          </Button>
+          </button>
         </div>
-      </DashboardCard>
+      </div>
       
-      <DashboardCard title="Integration Benefits">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="p-4 bg-bg-chart rounded-lg border border-border-color">
-            <div className="w-10 h-10 bg-accent-blue/20 rounded-lg flex items-center justify-center mb-3">
-              <ArrowUpRight className="h-5 w-5 text-accent-blue" />
+      <div className="mt-10">
+        <h2 className="text-xl font-semibold mb-5">Integration Benefits</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+              <ArrowUpRight className="h-5 w-5 text-blue-600" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Expanded Reach</h3>
-            <p className="text-text-secondary text-sm">
+            <h3 className="text-lg font-medium mb-2 text-gray-900">Expanded Reach</h3>
+            <p className="text-gray-600 text-sm">
               Access a wider customer base by integrating with popular delivery platforms.
             </p>
           </div>
           
-          <div className="p-4 bg-bg-chart rounded-lg border border-border-color">
-            <div className="w-10 h-10 bg-accent-green/20 rounded-lg flex items-center justify-center mb-3">
-              <Loader2 className="h-5 w-5 text-accent-green" />
+          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-3">
+              <Loader2 className="h-5 w-5 text-green-600" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Automated Orders</h3>
-            <p className="text-text-secondary text-sm">
+            <h3 className="text-lg font-medium mb-2 text-gray-900">Automated Orders</h3>
+            <p className="text-gray-600 text-sm">
               All orders from delivery partners automatically sync with your system.
             </p>
           </div>
           
-          <div className="p-4 bg-bg-chart rounded-lg border border-border-color">
-            <div className="w-10 h-10 bg-accent-purple/20 rounded-lg flex items-center justify-center mb-3">
-              <ChevronRight className="h-5 w-5 text-accent-purple" />
+          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+              <ChevronRight className="h-5 w-5 text-purple-600" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Simplified Management</h3>
-            <p className="text-text-secondary text-sm">
+            <h3 className="text-lg font-medium mb-2 text-gray-900">Simplified Management</h3>
+            <p className="text-gray-600 text-sm">
               Manage all your delivery partners from a single dashboard.
             </p>
           </div>
           
-          <div className="p-4 bg-bg-chart rounded-lg border border-border-color">
-            <div className="w-10 h-10 bg-accent-orange/20 rounded-lg flex items-center justify-center mb-3">
-              <PlusCircle className="h-5 w-5 text-accent-orange" />
+          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
+              <PlusCircle className="h-5 w-5 text-orange-600" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Increased Revenue</h3>
-            <p className="text-text-secondary text-sm">
+            <h3 className="text-lg font-medium mb-2 text-gray-900">Increased Revenue</h3>
+            <p className="text-gray-600 text-sm">
               Drive more sales by making your menu available on multiple platforms.
             </p>
           </div>
         </div>
-      </DashboardCard>
+      </div>
     </div>
   );
 }

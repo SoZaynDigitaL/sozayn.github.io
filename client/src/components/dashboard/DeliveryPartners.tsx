@@ -249,7 +249,7 @@ export default function DeliveryPartners() {
         {/* Add Partner Dialog - Simple Version */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-accent-blue hover:bg-accent-blue/90">
+            <Button className="gap-2 bg-blue-600 hover:bg-blue-700 rounded-full">
               <PlusCircle className="h-4 w-4" />
               Add New Partner
             </Button>
@@ -322,7 +322,7 @@ export default function DeliveryPartners() {
                   </Button>
                   <Button 
                     type="submit"
-                    className="bg-accent-blue hover:bg-accent-blue/90"
+                    className="bg-blue-600 hover:bg-blue-700"
                     disabled={addIntegrationMutation.isPending}
                   >
                     {addIntegrationMutation.isPending ? (
@@ -524,7 +524,7 @@ export default function DeliveryPartners() {
                   </Button>
                   <Button 
                     type="submit"
-                    className="bg-accent-blue hover:bg-accent-blue/90"
+                    className="bg-blue-600 hover:bg-blue-700"
                     disabled={updateIntegrationMutation.isPending}
                   >
                     {updateIntegrationMutation.isPending ? (

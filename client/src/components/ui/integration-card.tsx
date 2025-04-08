@@ -58,18 +58,7 @@ export function IntegrationCard({
       )}
       onClick={onClick}
     >
-      {/* X mark in the corner - HyperZod style */}
-      <div 
-        className="absolute top-2 right-2 p-1.5 rounded-full bg-white border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50 z-10"
-        onClick={(e) => {
-          e.stopPropagation(); // Prevent card click
-          if (onToggle) {
-            onToggle(false);
-          }
-        }}
-      >
-        <X className="h-3.5 w-3.5 text-gray-400" />
-      </div>
+      {/* Removed X mark as per client request */}
       
       <div className="p-4">
         <div className="flex items-center justify-between">

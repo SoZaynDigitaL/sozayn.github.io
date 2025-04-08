@@ -17,10 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
-import FirebaseAuthButton from '@/components/ui/firebase-auth-button';
-import AuthLayout from '@/components/layout/AuthLayout';
 
 // Login form schema
 const loginSchema = z.object({
@@ -191,272 +189,303 @@ export default function AuthPage() {
   };
 
   return (
-    <AuthLayout title="Welcome to SoZayn">
-      <Card className="w-full bg-bg-card border-border-color shadow-card">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Welcome to SoZayn</CardTitle>
-          <CardDescription>Your Digital Command Center for Restaurant & Grocery Operations</CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="login">Log In</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-            </TabsList>
+    <div className="min-h-screen flex flex-col bg-bg-dark text-text-primary">
+      {/* Simple header with logo only */}
+      <header className="py-4 px-4 sm:px-6">
+        <div className="container mx-auto">
+          <Link href="/" className="inline-flex items-center">
+            <span className="text-xl font-bold">SoZayn</span>
+            <span className="text-xs ml-2 text-text-secondary">Digital Era</span>
+          </Link>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-grow flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="w-full bg-bg-card border-border-color shadow-card">
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold">Welcome to SoZayn</CardTitle>
+              <CardDescription>Your Digital Command Center for Restaurant & Grocery Operations</CardDescription>
+            </CardHeader>
             
-            {/* Login Form */}
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username or Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter your username or email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Log In</TabsTrigger>
+                  <TabsTrigger value="register">Register</TabsTrigger>
+                </TabsList>
+                
+                {/* Login Form */}
+                <TabsContent value="login">
+                  <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                      <FormField
+                        control={loginForm.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Username or Email</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your username or email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                placeholder="Enter your password" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-accent-blue hover:bg-accent-blue/90"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        Log In
+                      </Button>
+                    </form>
+                  </Form>
                   
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Enter your password" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="mt-6 relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-bg-card px-2 text-text-secondary">Or sign in with</span>
+                    </div>
+                  </div>
                   
                   <Button 
-                    type="submit" 
-                    className="w-full bg-accent-blue hover:bg-accent-blue/90"
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={() => {
+                      try {
+                        // Import dynamically to prevent circular import issues
+                        import('@/hooks/useFirebaseAuth').then(module => {
+                          const useFirebaseAuth = module.useFirebaseAuth;
+                          const { signInWithGooglePopup } = useFirebaseAuth();
+                          
+                          // Attempt Google sign-in
+                          signInWithGooglePopup();
+                        }).catch(error => {
+                          console.error("Error importing Firebase Auth hook:", error);
+                          toast({
+                            title: "Google Sign-In Error",
+                            description: "Could not initialize Google Sign-In. Please try again later.",
+                            variant: "destructive"
+                          });
+                        });
+                      } catch (error) {
+                        console.error("Google Sign-In error:", error);
+                        toast({
+                          title: "Google Sign-In Error",
+                          description: error instanceof Error ? error.message : "An unexpected error occurred",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Log In
+                    <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                    </svg>
+                    Continue with Google
                   </Button>
-                </form>
-              </Form>
-              
-              <div className="mt-6 relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-bg-card px-2 text-text-secondary">Or sign in with</span>
-                </div>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                className="w-full mt-4"
-                onClick={() => {
-                  try {
-                    // Import dynamically to prevent circular import issues
-                    import('@/hooks/useFirebaseAuth').then(module => {
-                      const useFirebaseAuth = module.useFirebaseAuth;
-                      const { signInWithGooglePopup } = useFirebaseAuth();
+                </TabsContent>
+                
+                {/* Register Form */}
+                <TabsContent value="register">
+                  <Form {...registerForm}>
+                    <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                      <FormField
+                        control={registerForm.control}
+                        name="username"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Username</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Choose a username" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                       
-                      // Attempt Google sign-in
-                      signInWithGooglePopup();
-                    }).catch(error => {
-                      console.error("Error importing Firebase Auth hook:", error);
-                      toast({
-                        title: "Google Sign-In Error",
-                        description: "Could not initialize Google Sign-In. Please try again later.",
-                        variant: "destructive"
-                      });
-                    });
-                  } catch (error) {
-                    console.error("Google Sign-In error:", error);
-                    toast({
-                      title: "Google Sign-In Error",
-                      description: error instanceof Error ? error.message : "An unexpected error occurred",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                disabled={isSubmitting}
-              >
-                <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                  <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-                  <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-                  <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                </svg>
-                Continue with Google
-              </Button>
-            </TabsContent>
-            
-            {/* Register Form */}
-            <TabsContent value="register">
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-                  <FormField
-                    control={registerForm.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Choose a username" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={registerForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="Enter your email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="password" 
+                                placeholder="Create a password" 
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your restaurant or store name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={registerForm.control}
+                        name="businessType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Type</FormLabel>
+                            <FormControl>
+                              <select 
+                                className="flex h-10 w-full rounded-md border border-border-color bg-bg-dark px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                {...field}
+                              >
+                                <option value="">Select business type</option>
+                                {businessTypes.map((type) => (
+                                  <option key={type} value={type}>
+                                    {type}
+                                  </option>
+                                ))}
+                              </select>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-accent-blue hover:bg-accent-blue/90"
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        Create Account
+                      </Button>
+                    </form>
+                  </Form>
                   
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="Enter your email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="Create a password" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="businessName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your restaurant or store name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="businessType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Business Type</FormLabel>
-                        <FormControl>
-                          <select 
-                            className="flex h-10 w-full rounded-md border border-border-color bg-bg-dark px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-blue focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            {...field}
-                          >
-                            <option value="">Select business type</option>
-                            {businessTypes.map((type) => (
-                              <option key={type} value={type}>
-                                {type}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="mt-6 relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <Separator />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-bg-card px-2 text-text-secondary">Or sign up with</span>
+                    </div>
+                  </div>
                   
                   <Button 
-                    type="submit" 
-                    className="w-full bg-accent-blue hover:bg-accent-blue/90"
+                    variant="outline" 
+                    className="w-full mt-4"
+                    onClick={() => {
+                      try {
+                        // Import dynamically to prevent circular import issues
+                        import('@/hooks/useFirebaseAuth').then(module => {
+                          const useFirebaseAuth = module.useFirebaseAuth;
+                          const { signInWithGooglePopup } = useFirebaseAuth();
+                          
+                          // Attempt Google sign-in
+                          signInWithGooglePopup();
+                        }).catch(error => {
+                          console.error("Error importing Firebase Auth hook:", error);
+                          toast({
+                            title: "Google Sign-In Error",
+                            description: "Could not initialize Google Sign-In. Please try again later.",
+                            variant: "destructive"
+                          });
+                        });
+                      } catch (error) {
+                        console.error("Google Sign-In error:", error);
+                        toast({
+                          title: "Google Sign-In Error",
+                          description: error instanceof Error ? error.message : "An unexpected error occurred",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Create Account
+                    <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+                      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
+                      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                    </svg>
+                    Continue with Google
                   </Button>
-                </form>
-              </Form>
-              
-              <div className="mt-6 relative">
-                <div className="absolute inset-0 flex items-center">
-                  <Separator />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-bg-card px-2 text-text-secondary">Or sign up with</span>
-                </div>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                className="w-full mt-4"
-                onClick={() => {
-                  try {
-                    // Import dynamically to prevent circular import issues
-                    import('@/hooks/useFirebaseAuth').then(module => {
-                      const useFirebaseAuth = module.useFirebaseAuth;
-                      const { signInWithGooglePopup } = useFirebaseAuth();
-                      
-                      // Attempt Google sign-in
-                      signInWithGooglePopup();
-                    }).catch(error => {
-                      console.error("Error importing Firebase Auth hook:", error);
-                      toast({
-                        title: "Google Sign-In Error",
-                        description: "Could not initialize Google Sign-In. Please try again later.",
-                        variant: "destructive"
-                      });
-                    });
-                  } catch (error) {
-                    console.error("Google Sign-In error:", error);
-                    toast({
-                      title: "Google Sign-In Error",
-                      description: error instanceof Error ? error.message : "An unexpected error occurred",
-                      variant: "destructive"
-                    });
-                  }
-                }}
-                disabled={isSubmitting}
-              >
-                <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                  <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                  <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-                  <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-                  <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-                </svg>
-                Continue with Google
-              </Button>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </AuthLayout>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      
+      {/* Simple footer with minimal links */}
+      <footer className="py-6 px-4 sm:px-6">
+        <div className="container mx-auto">
+          <div className="flex flex-col md:flex-row justify-center items-center space-y-2 md:space-y-0 md:space-x-6">
+            <p className="text-sm text-text-secondary">
+              © {new Date().getFullYear()} SoZayn Technologies, Inc.
+            </p>
+            <div className="flex space-x-4">
+              <Link href="/privacy" className="text-sm text-text-secondary hover:text-text-primary">Privacy</Link>
+              <Link href="/terms" className="text-sm text-text-secondary hover:text-text-primary">Terms</Link>
+              <Link href="/support" className="text-sm text-text-secondary hover:text-text-primary">Support</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

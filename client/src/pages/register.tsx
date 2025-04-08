@@ -128,14 +128,14 @@ export default function Register() {
   }
   
   return (
-    <div className="min-h-screen bg-bg-dark text-text-primary font-inter antialiased relative">
+    <div className="flex flex-col min-h-screen bg-bg-dark text-text-primary font-inter antialiased relative">
       <div className="bg-grid"></div>
       <div className="glow-blue"></div>
       <div className="glow-purple"></div>
       
       <Header />
       
-      <main className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[calc(100vh-200px)]">
+      <main className="flex-grow container mx-auto px-4 py-12 flex justify-center items-center">
         <Card className="w-full max-w-md bg-bg-card border-border-color shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>

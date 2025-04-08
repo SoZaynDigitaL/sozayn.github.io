@@ -20,15 +20,12 @@ app.use(
       tableName: 'session', // Default table name
       createTableIfMissing: true,
     }),
-    secret: process.env.SESSION_SECRET || "sozayn-secret-key",
+    secret: "sozayn-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: { 
-      secure: false, // Set to false in development for HTTP
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: 'lax', // More permissive in development
-      httpOnly: true, // Only accessed by server, not JS
-      path: '/'
+      secure: false, // Set to true in production with HTTPS
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   })
 );
@@ -83,9 +80,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use the PORT environment variable for Heroku or default to 5000
+  // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  // It is the only port that is not firewalled.
+  const port = 5000;
   
   server.listen({
     port,

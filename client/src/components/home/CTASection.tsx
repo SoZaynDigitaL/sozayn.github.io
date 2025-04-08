@@ -6,7 +6,7 @@ export default function CTASection() {
     <section className="py-20 relative">
       <div className="absolute inset-0 bg-accent-blue/5 z-0"></div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-1">
-        <div className="bg-bg-card border border-border-color rounded-3xl p-8 md:p-12 shadow-card relative overflow-hidden glow-effect">
+        <div className="bg-bg-card border border-border-color rounded-3xl p-8 md:p-12 shadow-card relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent-blue opacity-5 blur-[100px] rounded-full z-0"></div>
           
           <div className="relative z-1 max-w-3xl">
@@ -17,12 +17,12 @@ export default function CTASection() {
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="#demo">
-                <Button size="lg" className="text-base bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition glow-button-blue">
+                <Button size="lg" className="text-base bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition">
                   Schedule a Demo
                 </Button>
               </Link>
               <Link href="#contact">
-                <Button size="lg" variant="outline" className="text-base border-border-color text-text-primary hover:border-text-secondary transition glow-border-blue">
+                <Button size="lg" variant="outline" className="text-base border-border-color text-text-primary hover:border-text-secondary transition">
                   Contact Sales
                 </Button>
               </Link>

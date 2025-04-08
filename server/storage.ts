@@ -1,16 +1,12 @@
 import { users, type User, type InsertUser } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
-import { sql } from "drizzle-orm/sql";
-import { PlanType } from "../shared/plans";
 
 // Maintain the same interface for compatibility
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  getAllUsers(): Promise<User[]>;
 }
 
 // Database-backed storage implementation
@@ -25,11 +21,6 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
-  }
-
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -37,65 +28,23 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
-  
-  async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users);
-  }
 }
 
-// Initialize storage with demo users
+// Initialize storage with demo user
 const initializeStorage = async () => {
-  // Check if users exist and create them if needed
+  // Check if demo user exists
   const storage = new DatabaseStorage();
+  const existingUser = await storage.getUserByUsername('demo');
   
-  // Check for demo user
-  const existingDemoUser = await storage.getUserByUsername('demo');
-  if (!existingDemoUser) {
+  // Create demo user if it doesn't exist
+  if (!existingUser) {
     await storage.createUser({
       username: 'demo',
       password: 'password123',
       email: 'demo@example.com',
       businessName: 'Demo Restaurant',
       businessType: 'restaurant',
-      planId: PlanType.FREE,
     });
-  }
-  
-  try {
-    // Check for admin user
-    const existingAdminUser = await storage.getUserByUsername('admin');
-    if (!existingAdminUser) {
-      // Create admin user
-      const adminUser: InsertUser = {
-        username: 'admin',
-        password: 'admin123',
-        email: 'admin@sozayn.com',
-        businessName: 'SoZayn Admin',
-        businessType: 'restaurant',
-        planId: PlanType.FREE,
-      };
-      await storage.createUser(adminUser);
-      
-      // Try to update the role after creation if the column exists
-      try {
-        await db.execute(
-          `UPDATE users SET role = 'admin' WHERE username = 'admin'`
-        );
-      } catch (err) {
-        console.log("Note: Could not set admin role, role column may not exist yet");
-      }
-    } else {
-      // Try to update existing admin to have admin role if needed
-      try {
-        await db.execute(
-          `UPDATE users SET role = 'admin' WHERE username = 'admin'`
-        );
-      } catch (err) {
-        console.log("Note: Could not update admin role, role column may not exist yet");
-      }
-    }
-  } catch (error) {
-    console.error("Error in initializing admin user:", error);
   }
   
   return storage;

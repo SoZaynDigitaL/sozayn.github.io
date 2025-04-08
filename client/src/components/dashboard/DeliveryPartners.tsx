@@ -11,11 +11,6 @@ import {
   ChevronRight,
   ArrowUpRight
 } from 'lucide-react';
-import justEatLogo from '@/assets/just-eat-logo.png';
-import doordashLogo from '@/assets/doordash-logo.jpeg';
-import uberDirectLogo from '@/assets/uberdirect-logo.webp';
-import grubhubLogo from '@/assets/grubhub-logo.png';
-import postmatesLogo from '@/assets/postmates-logo.png';
 import {
   Dialog,
   DialogContent,
@@ -39,7 +34,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from '@/hooks/use-toast';
-import { Integration } from '@shared/schema';
 
 // Form schema for adding a new delivery partner integration
 const integrationSchema = z.object({
@@ -54,12 +48,12 @@ export default function DeliveryPartners() {
   const { toast } = useToast();
   
   // Fetch existing integrations
-  const { data: integrations = [], isLoading } = useQuery<Integration[]>({ 
+  const { data: integrations = [], isLoading } = useQuery({ 
     queryKey: ['/api/integrations'],
   });
   
   // Filter to only show delivery type integrations
-  const deliveryIntegrations = integrations.filter((integration) => 
+  const deliveryIntegrations = integrations.filter((integration: any) => 
     integration.type === 'delivery'
   );
   
@@ -252,15 +246,15 @@ export default function DeliveryPartners() {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {deliveryIntegrations.length > 0 ? (
-          deliveryIntegrations.map((integration) => (
+          deliveryIntegrations.map((integration: any) => (
             <IntegrationCard
               key={integration.id}
               provider={integration.provider}
               icon={getProviderIcon(integration.provider)}
               color={getProviderColor(integration.provider)}
-              isActive={Boolean(integration.isActive)}
+              isActive={integration.isActive}
               onToggle={(value) => toggleIntegrationStatus(integration.id, value)}
-              description={Boolean(integration.isActive) ? 'Connected and active' : 'Integration inactive'}
+              description={integration.isActive ? 'Connected and active' : 'Integration inactive'}
             />
           ))
         ) : (
@@ -273,109 +267,13 @@ export default function DeliveryPartners() {
       
       <DashboardCard title="Available Integrations">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {/* DoorDash with actual logo */}
-          <div 
-            key="DoorDash"
-            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={doordashLogo} alt="DoorDash" className="w-8 h-8 object-contain" />
-              </div>
-              <span className="font-medium">DoorDash Drive</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Uber Direct with actual logo */}
-          <div 
-            key="UberDirect"
-            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={uberDirectLogo} alt="Uber Direct" className="w-8 h-8 object-contain" />
-              </div>
-              <span className="font-medium">UberDirect</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Grubhub with actual logo */}
-          <div 
-            key="Grubhub"
-            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={grubhubLogo} alt="Grubhub" className="w-8 h-8 object-contain" />
-              </div>
-              <span className="font-medium">Grubhub</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Just Eat (Jet Go) with actual logo */}
-          <div 
-            key="JustEat"
-            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={justEatLogo} alt="Just Eat" className="w-8 h-8 object-contain" />
-              </div>
-              <span className="font-medium">Just Eat (Jet Go)</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Postmates with actual logo */}
-          <div 
-            key="Postmates"
-            className="bg-bg-chart/50 border border-border-color rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center overflow-hidden">
-                <img src={postmatesLogo} alt="Postmates" className="w-8 h-8 object-contain" />
-              </div>
-              <span className="font-medium">Postmates</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {/* Additional partners with text icons */}
           {[
-            { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' }
+            { name: 'DoorDash', color: 'text-accent-orange', icon: 'DD' },
+            { name: 'UberEats', color: 'text-accent-blue', icon: 'UE' },
+            { name: 'Grubhub', color: 'text-accent-green', icon: 'GH' },
+            { name: 'Postmates', color: 'text-text-primary', icon: 'PM' },
+            { name: 'SkipDishes', color: 'text-accent-yellow', icon: 'SD' },
+            { name: 'Seamless', color: 'text-accent-purple', icon: 'SM' }
           ].map((partner) => (
             <div 
               key={partner.name}

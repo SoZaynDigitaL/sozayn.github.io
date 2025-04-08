@@ -10,7 +10,6 @@ interface IntegrationCardProps {
   onToggle?: (value: boolean) => void;
   className?: string;
   description?: string;
-  secondaryInfo?: string;
 }
 
 export function IntegrationCard({
@@ -20,8 +19,7 @@ export function IntegrationCard({
   isActive = false,
   onToggle,
   className,
-  description,
-  secondaryInfo
+  description
 }: IntegrationCardProps) {
   return (
     <Card className={cn("bg-bg-card border-border-color", className)}>
@@ -35,9 +33,6 @@ export function IntegrationCard({
               <h3 className="font-medium">{provider}</h3>
               {description && (
                 <p className="text-xs text-text-secondary">{description}</p>
-              )}
-              {secondaryInfo && (
-                <p className="text-xs text-text-secondary mt-1">{secondaryInfo}</p>
               )}
             </div>
           </div>

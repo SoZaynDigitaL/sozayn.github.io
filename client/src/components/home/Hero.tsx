@@ -7,7 +7,8 @@ export default function Hero() {
     <section className="relative min-h-[calc(100vh-80px)] py-16 md:py-24 flex items-center z-1">
       {/* Background elements */}
       <div className="bg-grid"></div>
-      <div className="hero-glow"></div>
+      <div className="glow-blue"></div>
+      <div className="glow-purple"></div>
       
       {/* Delivery animation paths */}
       <div className="absolute inset-0 overflow-hidden z-0">
@@ -26,26 +27,32 @@ export default function Hero() {
             <div className="relative">
               <div className="absolute top-[-50px] left-[-15px] w-[5px] h-[120px] bg-gradient-to-b from-accent-blue to-transparent rounded-md"></div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight mb-6">
-                e-commerce Restuarant Grocery Retailer
+                Welcome to Digital Era
               </h1>
               <p className="text-text-secondary text-lg md:text-xl mb-8 max-w-[500px]">
                 Connect all your delivery services, POS systems, and online ordering platforms through one powerful API gateway.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/auth?tab=register">
-                  <Button className="px-6 py-6 text-base bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition glow-button-blue">
-                    Schedule a Demo
+                <Link href="#demo">
+                  <Button className="px-6 py-6 text-base bg-accent-blue text-white shadow-lg shadow-accent-blue/20 hover:bg-accent-blue/90 hover:translate-y-[-2px] transition">
+                    Book a Demo
+                  </Button>
+                </Link>
+                <Link href="#how-it-works">
+                  <Button variant="outline" className="px-6 py-6 text-base border-border-color text-text-primary hover:border-text-secondary transition flex items-center gap-2">
+                    How It Works
+                    <Play className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
               
               <div className="mt-12">
-                <p className="text-sm text-text-secondary mb-7">Trusted by</p>
+                <p className="text-sm text-text-secondary mb-4">Trusted by leading restaurants</p>
                 <div className="flex flex-wrap items-center gap-8 opacity-70">
-                  <span className="font-semibold text-text-primary">Turkish Kebab</span>
-                  <span className="font-semibold text-text-primary">Halal Bite</span>
-                  <span className="font-semibold text-text-primary">Pizza Co</span>
-                  <span className="font-semibold text-text-primary">Burger Hub</span>
+                  <span className="font-semibold text-text-primary">BurgerHub</span>
+                  <span className="font-semibold text-text-primary">FreshEats</span>
+                  <span className="font-semibold text-text-primary">PizzaCo</span>
+                  <span className="font-semibold text-text-primary">GreenGrocery</span>
                 </div>
               </div>
             </div>

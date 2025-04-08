@@ -3,63 +3,33 @@ import { cn } from '@/lib/utils';
 import { 
   Home, 
   Package, 
-  Users, 
+  Layers, 
+  ExternalLink, 
   BarChart3, 
   Gift, 
   Settings, 
-  Menu,
-  Lock
+  Menu, 
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardSidebar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
   
-  // Improved isActive function to handle nested routes
-  const isActive = (path: string) => {
-    // Exact match for dashboard home
-    if (path === '/dashboard' && location === '/dashboard') {
-      return true;
-    }
-    
-    // Special case for marketing section
-    if (path === '/dashboard/marketing') {
-      return location === path || 
-             location.startsWith('/dashboard/marketing/seo') || 
-             location.startsWith('/dashboard/marketing/email') || 
-             location.startsWith('/dashboard/marketing/automated');
-    }
-    
-    // For all other paths, check both exact match and if the current location starts with path
-    return location === path || (path !== '/dashboard' && location.startsWith(`${path}/`));
-  };
-  const isAdmin = user?.role === 'admin';
+  const isActive = (path: string) => location === path;
   
-  // Base navigation items for all users
-  const baseNavigationItems = [
+  const navigationItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
-    { href: '/dashboard/management', icon: Menu, label: 'Management' },
+    { href: '/dashboard/integrations', icon: ExternalLink, label: 'Delivery Partners' },
+    { href: '/dashboard/pos', icon: Layers, label: 'POS Integration' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
+    { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
-  
-  // Admin-only items
-  const adminNavigationItems = [
-    { href: '/dashboard/clients', icon: Users, label: 'Clients' },
-    { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
-    { href: '/dashboard/feature-access', icon: Lock, label: 'Feature Access' },
-  ];
-  
-  // Combine navigation items based on user role
-  const navigationItems = isAdmin 
-    ? [...baseNavigationItems, ...adminNavigationItems] 
-    : baseNavigationItems;
   
   const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
     const active = isActive(href);
@@ -86,7 +56,7 @@ export default function DashboardSidebar() {
       <div className="px-4 py-6">
         <Link href="/" className="text-xl font-bold tracking-tighter">
           SoZayn
-          <span className="block text-xs text-text-secondary mt-[-4px]">Welcome To Digital Era</span>
+          <span className="block text-xs text-text-secondary mt-[-2px]">Welcome To Digital Era</span>
         </Link>
       </div>
       
@@ -136,7 +106,7 @@ export default function DashboardSidebar() {
       </Button>
       
       {/* Desktop sidebar */}
-      <div className="hidden md:flex md:flex-col w-64 bg-bg-chart border-r border-border-color sticky top-0 h-screen">
+      <div className="hidden md:flex md:flex-col w-64 bg-bg-chart border-r border-border-color">
         <SidebarContent />
       </div>
     </>

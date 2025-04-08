@@ -193,8 +193,8 @@ export default function AuthPage() {
     <div className="min-h-screen flex flex-col bg-bg-dark">
       <Header />
       
-      <main className="flex-grow">
-        <div className="container mx-auto px-4 py-12 grid md:grid-cols-2 gap-8 items-center">
+      <main className="flex-grow flex-1">
+        <div className="container mx-auto px-4 py-12 max-w-7xl grid md:grid-cols-2 gap-8 items-start">
           {/* Form Column */}
           <div className="order-2 md:order-1">
             <Card className="bg-bg-card border-border-color shadow-card">

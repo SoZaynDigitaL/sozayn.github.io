@@ -43,8 +43,10 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function AuthPage() {
   const { toast } = useToast();
   const { user, login } = useAuth();
-  const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState('login');
+  const [location, setLocation] = useLocation();
+  // Set default active tab based on URL hash if present
+  const defaultTab = location.includes('#register') ? 'register' : 'login';
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // If user is already logged in, redirect to dashboard

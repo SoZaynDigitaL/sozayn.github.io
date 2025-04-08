@@ -11,34 +11,8 @@ export default function NotFound() {
   const { user } = useAuth();
   const [location] = useLocation();
   
-  // Skip rendering 404 for auth and dashboard pages - direct approach
-  if (location.startsWith('/login') || 
-      location.startsWith('/register') || 
-      location.startsWith('/dashboard') || 
-      location.startsWith('/auth')) {
-    return null;
-  }
-
-  // Also using the existing logic for other routes
-  const validRoutes = [
-    "/",
-    "/plans",
-    "/about",
-    "/support",
-    "/privacy",
-    "/terms",
-    "/cookies",
-    "/test-firebase",
-    "/test-firebase-updated",
-  ];
-
-  // Check if current location is a valid route
-  const isValid = validRoutes.some(route => location === route);
-  
-  // If we're on a valid route, don't render anything
-  if (isValid) {
-    return null;
-  }
+  // This component should now only be rendered for true 404 paths
+  // The routes are handled by the router in App.tsx
 
   // Determine where "Back" should take the user
   const backTo = user ? "/dashboard" : "/";

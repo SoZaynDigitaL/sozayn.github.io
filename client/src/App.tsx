@@ -53,8 +53,19 @@ function Router() {
         {/* Public routes */}
         <Route path="/" component={Home} />
         <Route path="/auth" component={AuthPage} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
+        {/* Consolidate to use just /auth instead of separate login/register routes */}
+        <Route path="/login">
+          {() => {
+            window.location.href = '/auth';
+            return null;
+          }}
+        </Route>
+        <Route path="/register">
+          {() => {
+            window.location.href = '/auth';
+            return null;
+          }}
+        </Route>
         <Route path="/plans" component={Plans} />
         <Route path="/test-firebase" component={TestFirebaseAuth} />
         <Route path="/test-firebase-updated" component={TestFirebaseUpdated} />

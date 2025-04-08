@@ -38,7 +38,12 @@ import { useToast } from '@/hooks/use-toast';
 // Form schema for adding a new delivery partner integration
 const integrationSchema = z.object({
   provider: z.string().min(1, "Provider name is required"),
-  apiKey: z.string().min(1, "API key is required"),
+  environment: z.enum(["sandbox", "live"]).default("sandbox"),
+  developerId: z.string().min(1, "Developer ID is required"),
+  keyId: z.string().min(1, "Key ID is required"),
+  signingSecret: z.string().min(1, "Signing Secret is required"),
+  webhookUrl: z.string().url("Please enter a valid URL").optional(),
+  sendOrderStatus: z.boolean().default(true),
 });
 
 type IntegrationFormValues = z.infer<typeof integrationSchema>;
@@ -48,7 +53,7 @@ export default function DeliveryPartners() {
   const { toast } = useToast();
   
   // Fetch existing integrations
-  const { data: integrations = [], isLoading } = useQuery({ 
+  const { data: integrations = [], isLoading } = useQuery<any[]>({ 
     queryKey: ['/api/integrations'],
   });
   
@@ -62,7 +67,12 @@ export default function DeliveryPartners() {
     resolver: zodResolver(integrationSchema),
     defaultValues: {
       provider: "",
-      apiKey: "",
+      environment: "sandbox",
+      developerId: "",
+      keyId: "",
+      signingSecret: "",
+      webhookUrl: "",
+      sendOrderStatus: true,
     },
   });
   
@@ -173,47 +183,204 @@ export default function DeliveryPartners() {
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                <FormField
-                  control={form.control}
-                  name="provider"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Provider Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., DoorDash, UberEats" 
-                          {...field}
-                          className="bg-bg-chart border-border-color" 
-                        />
-                      </FormControl>
-                      <FormDescription className="text-text-secondary">
-                        Enter the name of the delivery provider.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-4 mb-6">
+                  <h3 className="text-lg font-semibold">Configuration</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="provider"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Provider Name</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., DoorDash, UberEats" 
+                            {...field}
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-text-secondary">
+                          Enter the name of the delivery provider.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="bg-bg-chart/50 rounded-lg p-4 border border-border-color">
+                    <h4 className="text-sm font-medium mb-3">Select Environment</h4>
+                    <FormField
+                      control={form.control}
+                      name="environment"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormControl>
+                            <div className="flex flex-wrap gap-4">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="sandbox"
+                                  value="sandbox"
+                                  checked={field.value === "sandbox"}
+                                  onChange={() => field.onChange("sandbox")}
+                                  className="rounded-full h-4 w-4 text-accent-blue"
+                                />
+                                <label htmlFor="sandbox" className="text-sm cursor-pointer">Sandbox</label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="live"
+                                  value="live"
+                                  checked={field.value === "live"}
+                                  onChange={() => field.onChange("live")}
+                                  className="rounded-full h-4 w-4 text-accent-blue"
+                                />
+                                <label htmlFor="live" className="text-sm cursor-pointer">Live</label>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
                 
-                <FormField
-                  control={form.control}
-                  name="apiKey"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>API Key</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter API key" 
-                          {...field} 
-                          className="bg-bg-chart border-border-color" 
-                        />
-                      </FormControl>
-                      <FormDescription className="text-text-secondary">
-                        The API key provided by the delivery service.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">API Credentials</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="developerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Developer ID*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Developer ID" 
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-text-secondary">
+                          Your Developer ID from the delivery service dashboard.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="keyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Key ID*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Key ID" 
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-text-secondary">
+                          Your API Key ID from the delivery service.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="signingSecret"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Signing Secret*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Signing Secret" 
+                            type="password"
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormDescription className="text-text-secondary">
+                          Your API Signing Secret from the delivery service.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Webhook Endpoints</h3>
+                  
+                  <FormField
+                    control={form.control}
+                    name="webhookUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Webhook URL (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="flex">
+                            <Input 
+                              placeholder="Enter webhook URL" 
+                              {...field} 
+                              className="bg-bg-chart border-border-color flex-1 rounded-r-none" 
+                            />
+                            <button 
+                              type="button"
+                              className="bg-bg-chart border border-l-0 border-border-color px-2 rounded-r-md"
+                              onClick={() => {
+                                const url = field.value || '';
+                                navigator.clipboard.writeText(url);
+                                toast({
+                                  title: "Copied to clipboard",
+                                  description: "The webhook URL has been copied to your clipboard.",
+                                });
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                              </svg>
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormDescription className="text-text-secondary">
+                          URL where order notifications will be sent.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="sendOrderStatus"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-bg-chart/50 border border-border-color">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-border-color mt-1"
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Send on order status updates</FormLabel>
+                          <FormDescription className="text-text-secondary">
+                            Receive real-time notifications when order statuses change.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 
                 <DialogFooter>
                   <Button 

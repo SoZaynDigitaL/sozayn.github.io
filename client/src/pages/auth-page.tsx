@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
+import FirebaseAuthButton from '@/components/ui/firebase-auth-button';
 
 // Login form schema
 const loginSchema = z.object({

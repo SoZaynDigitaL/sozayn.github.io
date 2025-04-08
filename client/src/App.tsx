@@ -6,6 +6,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { FirebaseAuthProvider } from "./hooks/useFirebaseAuth";
 import { ProtectedRoute } from "./lib/ProtectedRoute";
 import TestFirebaseAuth from "./test-firebase-auth";
+import TestFirebaseUpdated from "./test-firebase-updated";
 
 // Import all pages
 import NotFound from "@/pages/not-found";
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/plans" component={Plans} />
       <Route path="/test-firebase" component={TestFirebaseAuth} />
+      <Route path="/test-firebase-updated" component={TestFirebaseUpdated} />
       
       {/* Footer pages */}
       <Route path="/about" component={AboutPage} />

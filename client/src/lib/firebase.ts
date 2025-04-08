@@ -28,6 +28,10 @@ if (typeof window !== 'undefined') {
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
+// Add additional Google OAuth scopes (optional)
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.email');
+googleProvider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+
 // Initialize Firestore
 const db = getFirestore(app);
 
@@ -37,6 +41,10 @@ const storage = getStorage(app);
 // Firebase authentication functions
 export const signInWithGoogle = async () => {
   try {
+    // Log the current domain to help with debugging
+    const domain = window.location.hostname;
+    console.log("Attempting Google sign-in from domain:", domain);
+    
     // Use popup for better user experience
     const result = await signInWithPopup(auth, googleProvider);
     console.log("Google sign-in successful:", result.user.displayName);
@@ -48,6 +56,7 @@ export const signInWithGoogle = async () => {
     if (error.code === 'auth/unauthorized-domain') {
       console.error("Domain not authorized in Firebase. Add this domain to your Firebase project's authorized domains list.");
       const domain = window.location.hostname;
+      console.error(`Please add ${domain} to Firebase Console > Authentication > Settings > Authorized domains`);
       throw new Error(`Domain ${domain} not authorized. Please add it to Firebase Console > Authentication > Settings > Authorized domains.`);
     }
     
@@ -62,6 +71,16 @@ export const signInWithGoogle = async () => {
     
     if (error.code === 'auth/popup-blocked') {
       throw new Error("Sign-in popup was blocked by the browser. Please allow popups for this site.");
+    }
+    
+    // Additional error types
+    if (error.code === 'auth/internal-error') {
+      console.error("Firebase internal error:", error);
+      throw new Error("An internal error occurred during sign-in. Please try again later.");
+    }
+    
+    if (error.code === 'auth/network-request-failed') {
+      throw new Error("Network error occurred. Please check your internet connection and try again.");
     }
     
     // For other errors, throw the original error

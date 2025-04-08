@@ -54,11 +54,17 @@ export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
   const signInWithGooglePopup = async () => {
     try {
       setFirebaseLoading(true);
+      
+      // Log domain for debugging purposes
+      const domain = window.location.hostname;
+      console.log("Current domain for Google Sign-In:", domain);
+      
       const user = await signInWithGoogle();
       setFirebaseUser(user);
       
-      // Get Firebase token for verification (if needed in the future)
-      // const token = await user.getIdToken();
+      // Get Firebase ID token for additional security
+      const idToken = await user.getIdToken();
+      console.log("Firebase ID token obtained");
       
       // Now send the Firebase user data to our backend API
       console.log("Sending Firebase user data to backend API...");
@@ -72,6 +78,7 @@ export const FirebaseAuthProvider = ({ children }: { children: ReactNode }) => {
           displayName: user.displayName,
           uid: user.uid,
           photoURL: user.photoURL,
+          idToken: idToken // Send the ID token for server-side verification
         }),
         credentials: 'include'
       });

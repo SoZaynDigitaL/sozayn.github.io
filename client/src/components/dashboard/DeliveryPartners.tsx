@@ -446,7 +446,7 @@ export default function DeliveryPartners() {
             <DialogTitle className="sr-only">Configuration For {selectedIntegration?.provider}</DialogTitle>
             <DialogDescription className="sr-only">Update your delivery partner configuration and credentials.</DialogDescription>
             <div className="p-6">
-              <h2 className="text-2xl font-bold">Configuration <span className="text-gray-500">For {selectedIntegration?.provider}</span></h2>
+              <h2 className="text-2xl font-bold">Configuration</h2>
               
               <Form {...configForm}>
                 <form onSubmit={configForm.handleSubmit(onConfigSubmit)}>
@@ -497,10 +497,10 @@ export default function DeliveryPartners() {
                       name="developerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Developer ID*</FormLabel>
+                          <FormLabel className="text-base font-semibold">Customer ID*</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter Developer ID" 
+                              placeholder="Enter Customer ID" 
                               {...field} 
                               className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                             />
@@ -515,10 +515,10 @@ export default function DeliveryPartners() {
                       name="keyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Key ID*</FormLabel>
+                          <FormLabel className="text-base font-semibold">Client ID*</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter Key ID" 
+                              placeholder="Enter Client ID" 
                               {...field} 
                               className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                             />
@@ -533,10 +533,10 @@ export default function DeliveryPartners() {
                       name="signingSecret"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Signing Secret*</FormLabel>
+                          <FormLabel className="text-base font-semibold">Client secret*</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter Signing Secret" 
+                              placeholder="Enter Client secret" 
                               type="password"
                               {...field} 
                               className="mt-1 w-full h-12 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
@@ -599,6 +599,9 @@ export default function DeliveryPartners() {
                               >
                                 <Copy className="h-5 w-5 text-gray-400" />
                               </button>
+                              <div className="absolute -bottom-6 right-0 text-sm italic text-gray-500">
+                                We need webhook creation system.
+                              </div>
                             </div>
                           </FormItem>
                         )}

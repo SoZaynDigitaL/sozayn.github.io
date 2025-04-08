@@ -634,96 +634,9 @@ export default function DeliveryPartners() {
         )}
       </div>
       
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-5">Available Integrations</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {[
-            { name: 'DoorDash', color: 'text-red-500', bgColor: 'bg-red-500/10', icon: 'DD' },
-            { name: 'UberEats', color: 'text-green-500', bgColor: 'bg-green-500/10', icon: 'UE' },
-            { name: 'Grubhub', color: 'text-orange-500', bgColor: 'bg-orange-500/10', icon: 'GH' },
-            { name: 'Postmates', color: 'text-blue-500', bgColor: 'bg-blue-500/10', icon: 'PM' },
-            { name: 'SkipDishes', color: 'text-purple-500', bgColor: 'bg-purple-500/10', icon: 'SD' },
-            { name: 'Seamless', color: 'text-gray-500', bgColor: 'bg-gray-500/10', icon: 'SM' }
-          ].map((partner) => (
-            <div 
-              key={partner.name}
-              className="bg-white border border-gray-100 rounded-lg p-4 flex items-center justify-between hover:shadow-sm transition-all"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 ${partner.bgColor} rounded-full flex items-center justify-center`}>
-                  <span className={`${partner.color} font-bold text-sm`}>{partner.icon}</span>
-                </div>
-                <span className="font-medium text-gray-800">{partner.name}</span>
-              </div>
-              <button 
-                type="button"
-                className="w-7 h-7 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-100"
-                onClick={() => {
-                  addForm.setValue('provider', partner.name);
-                  setIsAddDialogOpen(true);
-                }}
-              >
-                <PlusCircle className="h-3.5 w-3.5 text-gray-500" />
-              </button>
-            </div>
-          ))}
-        </div>
-        <div className="mt-6">
-          <button className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1 font-medium">
-            View all available delivery partners
-            <ExternalLink className="h-3 w-3" />
-          </button>
-        </div>
-      </div>
-      
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         <TopSellingItems />
         <OrderSources />
-      </div>
-
-      <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-5">Integration Benefits</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mb-3">
-              <ArrowUpRight className="h-5 w-5 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-medium mb-2 text-gray-900">Expanded Reach</h3>
-            <p className="text-gray-600 text-sm">
-              Access a wider customer base by integrating with popular delivery platforms.
-            </p>
-          </div>
-          
-          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-3">
-              <Loader2 className="h-5 w-5 text-green-600" />
-            </div>
-            <h3 className="text-lg font-medium mb-2 text-gray-900">Automated Orders</h3>
-            <p className="text-gray-600 text-sm">
-              All orders from delivery partners automatically sync with your system.
-            </p>
-          </div>
-          
-          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mb-3">
-              <ChevronRight className="h-5 w-5 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-medium mb-2 text-gray-900">Simplified Management</h3>
-            <p className="text-gray-600 text-sm">
-              Manage all your delivery partners from a single dashboard.
-            </p>
-          </div>
-          
-          <div className="p-5 bg-white rounded-lg border border-gray-100 shadow-sm">
-            <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center mb-3">
-              <PlusCircle className="h-5 w-5 text-orange-600" />
-            </div>
-            <h3 className="text-lg font-medium mb-2 text-gray-900">Increased Revenue</h3>
-            <p className="text-gray-600 text-sm">
-              Drive more sales by making your menu available on multiple platforms.
-            </p>
-          </div>
-        </div>
       </div>
     </div>
   );

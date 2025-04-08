@@ -22,6 +22,7 @@ import {
   Megaphone,
   BarChart
 } from 'lucide-react';
+import { FaYoutube, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import {
   Tabs,
   TabsContent,
@@ -58,7 +59,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 
 const socialPostSchema = z.object({
-  platform: z.enum(['instagram', 'facebook', 'twitter']),
+  platform: z.enum(['instagram', 'facebook', 'twitter', 'youtube', 'linkedin', 'tiktok']),
   message: z.string().min(10, {
     message: "Message must be at least 10 characters.",
   }),
@@ -461,7 +462,7 @@ export default function Marketing() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Platform</FormLabel>
-                          <div className="flex space-x-4">
+                          <div className="flex flex-wrap gap-4">
                             <div 
                               className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'instagram' ? 'border-accent-purple bg-accent-purple/10' : 'border-border-color'}`}
                               onClick={() => field.onChange('instagram')}
@@ -479,6 +480,24 @@ export default function Marketing() {
                               onClick={() => field.onChange('twitter')}
                             >
                               <Twitter className={`h-5 w-5 ${field.value === 'twitter' ? 'text-accent-blue' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'youtube' ? 'border-red-500 bg-red-500/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('youtube')}
+                            >
+                              <FaYoutube className={`h-5 w-5 ${field.value === 'youtube' ? 'text-red-500' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'linkedin' ? 'border-blue-600 bg-blue-600/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('linkedin')}
+                            >
+                              <FaLinkedin className={`h-5 w-5 ${field.value === 'linkedin' ? 'text-blue-600' : 'text-text-secondary'}`} />
+                            </div>
+                            <div 
+                              className={`flex items-center justify-center p-3 rounded-lg cursor-pointer border ${field.value === 'tiktok' ? 'border-black bg-black/10' : 'border-border-color'}`}
+                              onClick={() => field.onChange('tiktok')}
+                            >
+                              <FaTiktok className={`h-5 w-5 ${field.value === 'tiktok' ? 'text-black' : 'text-text-secondary'}`} />
                             </div>
                           </div>
                         </FormItem>

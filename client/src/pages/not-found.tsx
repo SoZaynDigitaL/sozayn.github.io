@@ -1,13 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function NotFound() {
   const { user } = useAuth();
+  const [location] = useLocation();
+  
+  // List of valid routes to ignore 404
+  const validRoutes = [
+    "/",
+    "/login",
+    "/register",
+    "/auth",
+    "/dashboard",
+    "/plans",
+    "/about",
+    "/support",
+    "/privacy",
+    "/terms",
+    "/cookies",
+    "/test-firebase",
+    "/test-firebase-updated"
+  ];
+
+  // Check if we're on a valid route - if so, don't show 404
+  if (validRoutes.includes(location)) {
+    return null;
+  }
   
   // Determine where "Back" should take the user
   const backTo = user ? '/dashboard' : '/';

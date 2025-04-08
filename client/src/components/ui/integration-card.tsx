@@ -10,6 +10,7 @@ interface IntegrationCardProps {
   onToggle?: (value: boolean) => void;
   className?: string;
   description?: string;
+  onClick?: () => void;
 }
 
 export function IntegrationCard({
@@ -19,10 +20,14 @@ export function IntegrationCard({
   isActive = false,
   onToggle,
   className,
-  description
+  description,
+  onClick
 }: IntegrationCardProps) {
   return (
-    <Card className={cn("bg-bg-card border-border-color", className)}>
+    <Card 
+      className={cn("bg-bg-card border-border-color", className)}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
@@ -39,7 +44,16 @@ export function IntegrationCard({
           {onToggle && (
             <Switch
               checked={isActive}
-              onCheckedChange={onToggle}
+              onCheckedChange={(e) => {
+                // Prevent triggering card's onClick when toggling the switch
+                if (onClick) {
+                  const event = window.event;
+                  if (event) {
+                    event.stopPropagation();
+                  }
+                }
+                onToggle(e);
+              }}
             />
           )}
         </div>

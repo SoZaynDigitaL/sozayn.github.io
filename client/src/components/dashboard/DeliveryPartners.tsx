@@ -9,7 +9,8 @@ import {
   Loader2,
   ExternalLink,
   ChevronRight,
-  ArrowUpRight
+  ArrowUpRight,
+  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -35,21 +36,32 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from '@/hooks/use-toast';
 
-// Form schema for adding a new delivery partner integration
-const integrationSchema = z.object({
+// Form schema for simplified add partner dialog
+const addPartnerSchema = z.object({
   provider: z.string().min(1, "Provider name is required"),
-  environment: z.enum(["sandbox", "live"]).default("sandbox"),
+  apiKey: z.string().min(1, "API key is required"),
+});
+
+type AddPartnerFormValues = z.infer<typeof addPartnerSchema>;
+
+// Form schema for detailed configuration dialog
+const configurationSchema = z.object({
+  id: z.number(),
+  provider: z.string(),
+  environment: z.enum(["sandbox", "live"]),
   developerId: z.string().min(1, "Developer ID is required"),
   keyId: z.string().min(1, "Key ID is required"),
   signingSecret: z.string().min(1, "Signing Secret is required"),
-  webhookUrl: z.string().url("Please enter a valid URL").optional(),
+  webhookUrl: z.string().optional(),
   sendOrderStatus: z.boolean().default(true),
 });
 
-type IntegrationFormValues = z.infer<typeof integrationSchema>;
+type ConfigurationFormValues = z.infer<typeof configurationSchema>;
 
 export default function DeliveryPartners() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<any | null>(null);
   const { toast } = useToast();
   
   // Fetch existing integrations
@@ -62,10 +74,20 @@ export default function DeliveryPartners() {
     integration.type === 'delivery'
   );
   
-  // Define the form
-  const form = useForm<IntegrationFormValues>({
-    resolver: zodResolver(integrationSchema),
+  // Define the add partner form
+  const addForm = useForm<AddPartnerFormValues>({
+    resolver: zodResolver(addPartnerSchema),
     defaultValues: {
+      provider: "",
+      apiKey: "",
+    },
+  });
+  
+  // Define the configuration form
+  const configForm = useForm<ConfigurationFormValues>({
+    resolver: zodResolver(configurationSchema),
+    defaultValues: {
+      id: 0,
       provider: "",
       environment: "sandbox",
       developerId: "",
@@ -76,29 +98,82 @@ export default function DeliveryPartners() {
     },
   });
   
+  // Open configuration dialog for a specific integration
+  const openConfigDialog = (integration: any) => {
+    setSelectedIntegration(integration);
+    
+    // Set form values based on the selected integration
+    configForm.reset({
+      id: integration.id,
+      provider: integration.provider,
+      environment: integration.environment || "sandbox",
+      developerId: integration.developerId || "",
+      keyId: integration.keyId || "",
+      signingSecret: integration.signingSecret || "",
+      webhookUrl: integration.webhookUrl || "",
+      sendOrderStatus: integration.sendOrderStatus !== undefined ? integration.sendOrderStatus : true,
+    });
+    
+    setIsConfigDialogOpen(true);
+  };
+  
   // Create mutation to add a new integration
   const addIntegrationMutation = useMutation({
-    mutationFn: (data: IntegrationFormValues) => {
+    mutationFn: (data: AddPartnerFormValues) => {
       return apiRequest('POST', '/api/integrations', {
-        ...data,
+        provider: data.provider,
+        apiKey: data.apiKey,
         type: 'delivery',
         isActive: true,
+        environment: "sandbox", // Default values for simplified add flow
+        sendOrderStatus: true,
         settings: {}
       });
     },
-    onSuccess: () => {
+    onSuccess: (response: any) => {
       toast({
         title: "Integration added",
         description: "The delivery partner has been integrated successfully.",
       });
-      form.reset();
-      setIsDialogOpen(false);
+      
+      addForm.reset();
+      setIsAddDialogOpen(false);
       queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
+      
+      // Optionally open the detailed configuration dialog for the newly added integration
+      if (response && response.id) {
+        setTimeout(() => {
+          openConfigDialog(response);
+        }, 500);
+      }
     },
     onError: (error) => {
       toast({
         title: "Error",
         description: "Failed to add integration. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Update mutation for detailed configuration
+  const updateIntegrationMutation = useMutation({
+    mutationFn: (data: ConfigurationFormValues) => {
+      const { id, ...updateData } = data;
+      return apiRequest('PATCH', `/api/integrations/${id}`, updateData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Integration updated",
+        description: "The delivery partner configuration has been updated successfully.",
+      });
+      setIsConfigDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update integration. Please try again.",
         variant: "destructive",
       });
     }
@@ -122,9 +197,14 @@ export default function DeliveryPartners() {
     }
   };
   
-  // Submit handler for the form
-  function onSubmit(data: IntegrationFormValues) {
+  // Submit handler for the add form
+  function onAddSubmit(data: AddPartnerFormValues) {
     addIntegrationMutation.mutate(data);
+  }
+  
+  // Submit handler for the configuration form
+  function onConfigSubmit(data: ConfigurationFormValues) {
+    updateIntegrationMutation.mutate(data);
   }
   
   if (isLoading) {
@@ -166,227 +246,77 @@ export default function DeliveryPartners() {
       <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Delivery Partners</h1>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {/* Add Partner Dialog - Simple Version */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2 bg-accent-blue hover:bg-accent-blue/90">
               <PlusCircle className="h-4 w-4" />
               Add New Partner
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-bg-card border-border-color">
-            <DialogHeader>
-              <DialogTitle>Add Delivery Partner</DialogTitle>
-              <DialogDescription className="text-text-secondary">
-                Connect with a new delivery partner to expand your reach.
-              </DialogDescription>
-            </DialogHeader>
+          <DialogContent className="bg-bg-card border-border-color max-w-md">
+            <div className="absolute right-4 top-4">
+              <Button variant="ghost" size="icon" onClick={() => setIsAddDialogOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
             
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
-                <div className="space-y-4 mb-6">
-                  <h3 className="text-lg font-semibold">Configuration</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="provider"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Provider Name</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="e.g., DoorDash, UberEats" 
-                            {...field}
-                            className="bg-bg-chart border-border-color" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-text-secondary">
-                          Enter the name of the delivery provider.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="bg-bg-chart/50 rounded-lg p-4 border border-border-color">
-                    <h4 className="text-sm font-medium mb-3">Select Environment</h4>
-                    <FormField
-                      control={form.control}
-                      name="environment"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormControl>
-                            <div className="flex flex-wrap gap-4">
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  id="sandbox"
-                                  value="sandbox"
-                                  checked={field.value === "sandbox"}
-                                  onChange={() => field.onChange("sandbox")}
-                                  className="rounded-full h-4 w-4 text-accent-blue"
-                                />
-                                <label htmlFor="sandbox" className="text-sm cursor-pointer">Sandbox</label>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  id="live"
-                                  value="live"
-                                  checked={field.value === "live"}
-                                  onChange={() => field.onChange("live")}
-                                  className="rounded-full h-4 w-4 text-accent-blue"
-                                />
-                                <label htmlFor="live" className="text-sm cursor-pointer">Live</label>
-                              </div>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+            <div className="py-4">
+              <h2 className="text-xl font-bold">Add Delivery Partner</h2>
+              <p className="text-text-secondary mt-1">Connect with a new delivery partner to expand your reach.</p>
+            </div>
+            
+            <Form {...addForm}>
+              <form onSubmit={addForm.handleSubmit(onAddSubmit)} className="space-y-6">
+                <FormField
+                  control={addForm.control}
+                  name="provider"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Provider Name</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="e.g., DoorDash, UberEats" 
+                          {...field}
+                          className="bg-bg-chart border-border-color" 
+                        />
+                      </FormControl>
+                      <FormDescription className="text-text-secondary">
+                        Enter the name of the delivery provider.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">API Credentials</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="developerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Developer ID*</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Developer ID" 
-                            {...field} 
-                            className="bg-bg-chart border-border-color" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-text-secondary">
-                          Your Developer ID from the delivery service dashboard.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="keyId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Key ID*</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Key ID" 
-                            {...field} 
-                            className="bg-bg-chart border-border-color" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-text-secondary">
-                          Your API Key ID from the delivery service.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="signingSecret"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Signing Secret*</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="Enter Signing Secret" 
-                            type="password"
-                            {...field} 
-                            className="bg-bg-chart border-border-color" 
-                          />
-                        </FormControl>
-                        <FormDescription className="text-text-secondary">
-                          Your API Signing Secret from the delivery service.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <FormField
+                  control={addForm.control}
+                  name="apiKey"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>API Key</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter API key" 
+                          type="password"
+                          {...field} 
+                          className="bg-bg-chart border-border-color" 
+                        />
+                      </FormControl>
+                      <FormDescription className="text-text-secondary">
+                        The API key provided by the delivery service.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Webhook Endpoints</h3>
-                  
-                  <FormField
-                    control={form.control}
-                    name="webhookUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Webhook URL (Optional)</FormLabel>
-                        <FormControl>
-                          <div className="flex">
-                            <Input 
-                              placeholder="Enter webhook URL" 
-                              {...field} 
-                              className="bg-bg-chart border-border-color flex-1 rounded-r-none" 
-                            />
-                            <button 
-                              type="button"
-                              className="bg-bg-chart border border-l-0 border-border-color px-2 rounded-r-md"
-                              onClick={() => {
-                                const url = field.value || '';
-                                navigator.clipboard.writeText(url);
-                                toast({
-                                  title: "Copied to clipboard",
-                                  description: "The webhook URL has been copied to your clipboard.",
-                                });
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                              </svg>
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormDescription className="text-text-secondary">
-                          URL where order notifications will be sent.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="sendOrderStatus"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-bg-chart/50 border border-border-color">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-border-color mt-1"
-                            checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Send on order status updates</FormLabel>
-                          <FormDescription className="text-text-secondary">
-                            Receive real-time notifications when order statuses change.
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <DialogFooter>
+                <div className="flex justify-end gap-2 mt-8">
                   <Button 
                     type="button" 
-                    variant="ghost" 
-                    onClick={() => setIsDialogOpen(false)}
+                    variant="outline" 
+                    className="border-border-color"
+                    onClick={() => setIsAddDialogOpen(false)}
                   >
                     Cancel
                   </Button>
@@ -402,6 +332,208 @@ export default function DeliveryPartners() {
                       </>
                     ) : (
                       'Add Partner'
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Configuration Dialog - Detailed Settings */}
+        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+          <DialogContent className="bg-bg-card border-border-color max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Configuration For {selectedIntegration?.provider}</DialogTitle>
+              <DialogDescription className="text-text-secondary">
+                Update your delivery partner configuration and credentials.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...configForm}>
+              <form onSubmit={configForm.handleSubmit(onConfigSubmit)} className="space-y-6 pt-4">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Select Environments</h3>
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="environment"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormControl>
+                          <div className="flex flex-wrap gap-4 p-4 bg-bg-chart/50 rounded-lg border border-border-color">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="config-sandbox"
+                                value="sandbox"
+                                checked={field.value === "sandbox"}
+                                onChange={() => field.onChange("sandbox")}
+                                className="rounded-full h-4 w-4 text-accent-blue"
+                              />
+                              <label htmlFor="config-sandbox" className="text-sm cursor-pointer">Sandbox</label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="config-live"
+                                value="live"
+                                checked={field.value === "live"}
+                                onChange={() => field.onChange("live")}
+                                className="rounded-full h-4 w-4 text-accent-blue"
+                              />
+                              <label htmlFor="config-live" className="text-sm cursor-pointer">Live</label>
+                            </div>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="developerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Developer ID*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Developer ID" 
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="keyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Key ID*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Key ID" 
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="signingSecret"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Signing Secret*</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter Signing Secret" 
+                            type="password"
+                            {...field} 
+                            className="bg-bg-chart border-border-color" 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Webhook Endpoints</h3>
+                  
+                  <div>
+                    <p className="mb-2 font-medium">{selectedIntegration?.provider}</p>
+                    <FormField
+                      control={configForm.control}
+                      name="webhookUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <div className="flex">
+                              <Input 
+                                placeholder="Enter webhook URL" 
+                                {...field} 
+                                className="bg-bg-chart border-border-color flex-1 rounded-r-none" 
+                              />
+                              <button 
+                                type="button"
+                                className="bg-bg-chart border border-l-0 border-border-color px-2 rounded-r-md"
+                                onClick={() => {
+                                  const url = field.value || '';
+                                  navigator.clipboard.writeText(url);
+                                  toast({
+                                    title: "Copied to clipboard",
+                                    description: "The webhook URL has been copied to your clipboard.",
+                                  });
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                                </svg>
+                              </button>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <FormField
+                    control={configForm.control}
+                    name="sendOrderStatus"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4 p-4 rounded-md bg-bg-chart/50 border border-border-color">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-border-color mt-1"
+                            checked={field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Send on order status*</FormLabel>
+                          <FormDescription className="text-text-secondary">
+                            Receive real-time notifications when order statuses change.
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <DialogFooter>
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="border-border-color"
+                    onClick={() => setIsConfigDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    className="bg-accent-blue hover:bg-accent-blue/90"
+                    disabled={updateIntegrationMutation.isPending}
+                  >
+                    {updateIntegrationMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      'Update'
                     )}
                   </Button>
                 </DialogFooter>
@@ -422,12 +554,14 @@ export default function DeliveryPartners() {
               isActive={integration.isActive}
               onToggle={(value) => toggleIntegrationStatus(integration.id, value)}
               description={integration.isActive ? 'Connected and active' : 'Integration inactive'}
+              className="cursor-pointer"
+              onClick={() => openConfigDialog(integration)}
             />
           ))
         ) : (
           <div className="col-span-2 p-6 bg-bg-card border border-border-color rounded-xl text-center">
             <p className="text-text-secondary mb-4">No delivery partners connected yet.</p>
-            <Button onClick={() => setIsDialogOpen(true)}>Add Your First Partner</Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}>Add Your First Partner</Button>
           </div>
         )}
       </div>
@@ -455,7 +589,10 @@ export default function DeliveryPartners() {
               <Button 
                 variant="ghost" 
                 size="icon"
-                onClick={() => setIsDialogOpen(true)}
+                onClick={() => {
+                  addForm.setValue('provider', partner.name);
+                  setIsAddDialogOpen(true);
+                }}
               >
                 <PlusCircle className="h-4 w-4" />
               </Button>

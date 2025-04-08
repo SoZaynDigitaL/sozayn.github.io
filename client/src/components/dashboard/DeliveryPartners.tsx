@@ -103,6 +103,34 @@ export default function DeliveryPartners() {
       webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/ubereats",
       sendOrderStatus: true,
       settings: {}
+    },
+    {
+      id: 3,
+      provider: "Grubhub",
+      type: "delivery",
+      apiKey: "demo_api_key",
+      isActive: true,
+      environment: "sandbox",
+      developerId: "demo_developer_id",
+      keyId: "demo_key_id",
+      signingSecret: "demo_signing_secret",
+      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/grubhub",
+      sendOrderStatus: true,
+      settings: {}
+    },
+    {
+      id: 4,
+      provider: "Jet GO",
+      type: "delivery",
+      apiKey: "demo_api_key",
+      isActive: false,
+      environment: "sandbox",
+      developerId: "demo_developer_id",
+      keyId: "demo_key_id",
+      signingSecret: "demo_signing_secret",
+      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/jetgo",
+      sendOrderStatus: true,
+      settings: {}
     }
   ]);
   const isLoading = false;
@@ -297,6 +325,7 @@ export default function DeliveryPartners() {
       'Grubhub': 'text-accent-green',
       'Postmates': 'text-text-primary',
       'SkipDishes': 'text-accent-yellow',
+      'Jet GO': 'text-accent-purple',
     };
     
     return colors[provider] || 'text-accent-purple';
@@ -310,6 +339,7 @@ export default function DeliveryPartners() {
       'Grubhub': 'GH',
       'Postmates': 'PM',
       'SkipDishes': 'SD',
+      'Jet GO': 'JG',
     };
     
     return icons[provider] || provider.substring(0, 2).toUpperCase();

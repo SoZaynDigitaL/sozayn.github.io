@@ -11,6 +11,8 @@ import {
   ChevronRight,
   ArrowUpRight,
   X,
+  Copy,
+  HelpCircle,
 } from 'lucide-react';
 import {
   Dialog,
@@ -35,6 +37,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from '@/hooks/use-toast';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Form schema for simplified add partner dialog
 const addPartnerSchema = z.object({
@@ -390,7 +398,23 @@ export default function DeliveryPartners() {
                     name="developerId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Developer ID*</FormLabel>
+                        <div className="flex items-center gap-1">
+                          <FormLabel>Developer ID*</FormLabel>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs text-xs">
+                                  The unique developer identifier provided by the delivery service.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <FormControl>
                           <Input 
                             placeholder="Enter Developer ID" 
@@ -398,6 +422,9 @@ export default function DeliveryPartners() {
                             className="bg-bg-chart border-border-color" 
                           />
                         </FormControl>
+                        <FormDescription className="text-xs text-text-secondary">
+                          Please fill out this field
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -408,7 +435,23 @@ export default function DeliveryPartners() {
                     name="keyId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Key ID*</FormLabel>
+                        <div className="flex items-center gap-1">
+                          <FormLabel>Key ID*</FormLabel>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs text-xs">
+                                  Your API key identifier used to authenticate with the delivery service.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <FormControl>
                           <Input 
                             placeholder="Enter Key ID" 
@@ -416,6 +459,9 @@ export default function DeliveryPartners() {
                             className="bg-bg-chart border-border-color" 
                           />
                         </FormControl>
+                        <FormDescription className="text-xs text-text-secondary">
+                          Please fill out this field
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -426,7 +472,23 @@ export default function DeliveryPartners() {
                     name="signingSecret"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Signing Secret*</FormLabel>
+                        <div className="flex items-center gap-1">
+                          <FormLabel>Signing Secret*</FormLabel>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs text-xs">
+                                  The secret key used to sign and verify API requests.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <FormControl>
                           <Input 
                             placeholder="Enter Signing Secret" 
@@ -435,6 +497,9 @@ export default function DeliveryPartners() {
                             className="bg-bg-chart border-border-color" 
                           />
                         </FormControl>
+                        <FormDescription className="text-xs text-text-secondary">
+                          Please fill out this field
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -454,15 +519,16 @@ export default function DeliveryPartners() {
                           <FormControl>
                             <div className="flex">
                               <Input 
-                                placeholder="Enter webhook URL" 
-                                {...field} 
-                                className="bg-bg-chart border-border-color flex-1 rounded-r-none" 
+                                placeholder="https://delivery.apps.hyperzod.com/api/12345/webhook/partner/doordash" 
+                                value={field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
+                                readOnly
+                                className="bg-bg-chart border-border-color flex-1 rounded-r-none text-xs" 
                               />
                               <button 
                                 type="button"
                                 className="bg-bg-chart border border-l-0 border-border-color px-2 rounded-r-md"
                                 onClick={() => {
-                                  const url = field.value || '';
+                                  const url = field.value || `https://delivery.apps.hyperzod.com/api/${selectedIntegration?.id || '12345'}/webhook/partner/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`;
                                   navigator.clipboard.writeText(url);
                                   toast({
                                     title: "Copied to clipboard",
@@ -470,13 +536,27 @@ export default function DeliveryPartners() {
                                   });
                                 }}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                                </svg>
+                                <Copy className="h-4 w-4 text-text-secondary" />
                               </button>
                             </div>
                           </FormControl>
+                          <FormDescription className="text-xs text-text-secondary flex items-center gap-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <HelpCircle className="h-3.5 w-3.5 text-text-secondary cursor-help" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs text-xs">
+                                    You'll need to provide this webhook URL in your delivery partner's dashboard.
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            Configure this webhook URL in your {selectedIntegration?.provider} dashboard
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

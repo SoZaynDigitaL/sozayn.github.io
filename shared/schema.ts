@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -100,5 +100,65 @@ export type InsertIntegration = z.infer<typeof insertIntegrationSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
+// Webhooks
+export const webhooks = pgTable("webhooks", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  secretKey: uuid("secret_key").defaultRandom().notNull(),
+  endpointUrl: text("endpoint_url").notNull(),
+  description: text("description"),
+  sourceType: text("source_type").notNull(), // ecommerce, delivery
+  sourceProvider: text("source_provider").notNull(), // shopify, doordash, etc.
+  destinationType: text("destination_type").notNull(), // ecommerce, delivery
+  destinationProvider: text("destination_provider").notNull(), // shopify, doordash, etc.
+  eventTypes: json("event_types").notNull(), // array of event types to listen for
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertWebhookSchema = createInsertSchema(webhooks).pick({
+  userId: true,
+  name: true,
+  endpointUrl: true,
+  description: true,
+  sourceType: true,
+  sourceProvider: true,
+  destinationType: true,
+  destinationProvider: true,
+  eventTypes: true,
+  isActive: true,
+});
+
+// Webhook logs
+export const webhookLogs = pgTable("webhook_logs", {
+  id: serial("id").primaryKey(),
+  webhookId: integer("webhook_id").notNull().references(() => webhooks.id),
+  eventType: text("event_type").notNull(),
+  requestPayload: json("request_payload"),
+  responsePayload: json("response_payload"),
+  statusCode: integer("status_code"),
+  errorMessage: text("error_message"),
+  processingTimeMs: integer("processing_time_ms"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertWebhookLogSchema = createInsertSchema(webhookLogs).pick({
+  webhookId: true,
+  eventType: true,
+  requestPayload: true,
+  responsePayload: true,
+  statusCode: true,
+  errorMessage: true,
+  processingTimeMs: true,
+});
+
 export type Customer = typeof customers.$inferSelect;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+
+export type Webhook = typeof webhooks.$inferSelect;
+export type InsertWebhook = z.infer<typeof insertWebhookSchema>;
+
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = z.infer<typeof insertWebhookLogSchema>;

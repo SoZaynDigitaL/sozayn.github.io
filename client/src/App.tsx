@@ -13,6 +13,7 @@ import Integrations from "@/pages/dashboard/integrations";
 import Loyalty from "@/pages/dashboard/loyalty";
 import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
+import Webhooks from "@/pages/dashboard/webhooks";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import Contact from "@/pages/contact";
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
+      <Route path="/dashboard/webhooks" component={Webhooks} />
       
       {/* Payment routes */}
       <Route path="/checkout" component={Checkout} />

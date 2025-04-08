@@ -1,10 +1,11 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema } from "../shared/schema";
+import { insertUserSchema, insertWebhookSchema } from "../shared/schema";
 import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
+import crypto from "crypto";
 
 // Extend the Express Session interface
 declare module 'express-session' {
@@ -252,6 +253,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating subscription:", error);
       res.status(500).json({ 
         error: "Error creating subscription", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Webhook Management Routes
+  app.get("/api/webhooks", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const webhooksData = await storage.getWebhooks(userId);
+      res.json(webhooksData);
+    } catch (error: any) {
+      console.error("Error fetching webhooks:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhooks", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.get("/api/webhooks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Check if the webhook belongs to this user
+      const userId = req.session.userId as number;
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(webhook);
+    } catch (error: any) {
+      console.error("Error fetching webhook:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.post("/api/webhooks", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Validate and create the webhook
+      const webhookData = insertWebhookSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const newWebhook = await storage.createWebhook(webhookData);
+      res.status(201).json(newWebhook);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating webhook:", error);
+      res.status(500).json({ 
+        error: "Error creating webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.patch("/api/webhooks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Update the webhook
+      const updatedWebhook = await storage.updateWebhook(id, req.body);
+      res.json(updatedWebhook);
+    } catch (error: any) {
+      console.error("Error updating webhook:", error);
+      res.status(500).json({ 
+        error: "Error updating webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/webhooks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Delete the webhook
+      await storage.deleteWebhook(id);
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Error deleting webhook:", error);
+      res.status(500).json({ 
+        error: "Error deleting webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Webhook logs
+  app.get("/api/webhooks/:id/logs", isAuthenticated, async (req, res) => {
+    try {
+      const webhookId = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Get the logs with a default limit
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const logs = await storage.getWebhookLogs(webhookId, limit);
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Error fetching webhook logs:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook logs", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Webhook receiver endpoint (public)
+  app.post("/api/webhook/:secretKey", async (req, res) => {
+    const start = Date.now();
+    try {
+      const { secretKey } = req.params;
+      
+      // Find the webhook by the secret key
+      const webhook = await storage.getWebhookBySecretKey(secretKey);
+      if (!webhook || !webhook.isActive) {
+        return res.status(404).json({ error: "Webhook not found or inactive" });
+      }
+      
+      // Determine the event type based on the request body or headers
+      const eventType = req.headers['x-event-type'] as string || 'unknown';
+      
+      // Process the webhook based on configuration
+      // This is where you'd implement the webhook handling logic
+      // For now, we'll just log the request
+      
+      // Generate a signature for the response
+      const signature = crypto
+        .createHmac('sha256', secretKey)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+      
+      // Create response payload
+      const responsePayload = {
+        success: true,
+        message: "Webhook received and processed",
+        webhook_id: webhook.id,
+        signature
+      };
+      
+      // Log the webhook call
+      await storage.createWebhookLog({
+        webhookId: webhook.id,
+        eventType,
+        requestPayload: req.body,
+        responsePayload,
+        statusCode: 200,
+        processingTimeMs: Date.now() - start
+      });
+      
+      res.json(responsePayload);
+    } catch (error: any) {
+      console.error("Error processing webhook:", error);
+      
+      // Try to log the error if possible
+      try {
+        if (req.params.secretKey) {
+          const webhook = await storage.getWebhookBySecretKey(req.params.secretKey);
+          if (webhook) {
+            await storage.createWebhookLog({
+              webhookId: webhook.id,
+              eventType: req.headers['x-event-type'] as string || 'unknown',
+              requestPayload: req.body,
+              errorMessage: error.message,
+              statusCode: 500,
+              processingTimeMs: Date.now() - start
+            });
+          }
+        }
+      } catch (logError) {
+        console.error("Error logging webhook failure:", logError);
+      }
+      
+      res.status(500).json({ 
+        error: "Error processing webhook", 
         message: error.message 
       });
     }

@@ -9,7 +9,8 @@ import {
   Gift, 
   Settings, 
   Menu, 
-  X
+  X,
+  Link as LinkIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ export default function DashboardSidebar() {
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
     { href: '/dashboard/integrations', icon: ExternalLink, label: 'Delivery Partners' },
     { href: '/dashboard/pos', icon: Layers, label: 'POS Integration' },
+    { href: '/dashboard/webhooks', icon: LinkIcon, label: 'Webhooks' },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
     { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },

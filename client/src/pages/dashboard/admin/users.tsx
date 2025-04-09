@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -116,16 +116,20 @@ export default function UserManagement() {
   const usersPerPage = 10;
   const totalPages = Math.ceil(users.length / usersPerPage);
 
+  // Store admin status
+  const adminStatus = isAdmin();
+  
   // Check for admin access
-  if (!isAdmin()) {
-    navigate('/dashboard');
-    toast({
-      title: 'Access Denied',
-      description: 'You do not have permission to access this page.',
-      variant: 'destructive'
-    });
-    return null;
-  }
+  React.useEffect(() => {
+    if (!adminStatus) {
+      navigate('/dashboard');
+      toast({
+        title: 'Access Denied',
+        description: 'You do not have permission to access this page.',
+        variant: 'destructive'
+      });
+    }
+  }, [adminStatus, navigate, toast]);
 
   // Filter users based on search term
   const filteredUsers = users.filter(user => 

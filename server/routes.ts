@@ -603,12 +603,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get a quote for a delivery
   app.post("/api/delivery/quote", isAuthenticated, async (req, res) => {
     try {
-      const { integrationId, pickup, dropoff, items, orderItems, orderValue } = req.body;
+      console.log("Received delivery quote request:", JSON.stringify(req.body, null, 2));
+      
+      const { integrationId, pickup, dropoff, items, orderItems, orderValue, partner } = req.body;
       // Support both items and orderItems field names
       const deliveryItems = items || orderItems || [];
       
+      console.log("Parsed fields:", { 
+        integrationId, 
+        pickup: pickup ? 'present' : 'missing', 
+        dropoff: dropoff ? 'present' : 'missing',
+        items: items ? `${items.length} items` : 'missing',
+        orderItems: orderItems ? `${orderItems.length} items` : 'missing',
+        partner
+      });
+      
       if (!integrationId || !pickup || !dropoff) {
-        console.log("Missing required fields in delivery quote request:", req.body);
+        console.log("Missing required fields in delivery quote request");
+        console.log("integrationId:", integrationId);
+        console.log("pickup:", pickup);
+        console.log("dropoff:", dropoff);
         return res.status(400).json({ error: "Missing required fields" });
       }
       

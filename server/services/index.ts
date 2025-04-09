@@ -6,6 +6,8 @@ import { eq } from 'drizzle-orm';
 // Get a service client for a specific delivery integration
 export async function getDeliveryServiceClient(integrationId: number): Promise<UberDirectService | null> {
   try {
+    console.log(`Getting delivery service client for integration ID: ${integrationId}`);
+    
     // Get the integration from the database
     const [integration] = await db.select().from(integrations).where(eq(integrations.id, integrationId));
     
@@ -14,8 +16,17 @@ export async function getDeliveryServiceClient(integrationId: number): Promise<U
       return null;
     }
     
-    // Only UberDirect is supported currently
-    if (integration.provider !== 'UberDirect') {
+    console.log(`Found integration:`, JSON.stringify({
+      id: integration.id,
+      provider: integration.provider,
+      environment: integration.environment,
+      hasDevId: !!integration.developerId,
+      hasKeyId: !!integration.keyId,
+      hasSecret: !!integration.signingSecret
+    }));
+    
+    // We support UberDirect or UberEats integrations that have Direct Delivery credentials
+    if (integration.provider !== 'UberDirect' && integration.provider !== 'UberEats') {
       console.error(`Unsupported delivery provider: ${integration.provider}`);
       return null;
     }

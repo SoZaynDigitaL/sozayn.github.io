@@ -446,7 +446,7 @@ export default function DeliveryPartners() {
             <DialogTitle className="sr-only">Configuration</DialogTitle>
             <DialogDescription className="sr-only">Update your delivery partner configuration and credentials.</DialogDescription>
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-100">Configuration</h2>
+              <h2 className="text-2xl font-bold">Configuration</h2>
               
               <Form {...configForm}>
                 <form onSubmit={configForm.handleSubmit(onConfigSubmit)}>
@@ -607,7 +607,6 @@ export default function DeliveryPartners() {
                                 <Copy className="h-4 w-4 text-gray-400" />
                               </button>
                               <div className="text-xs italic text-gray-500 text-right mt-1">
-                                We need webhook creation system.
                               </div>
                             </div>
                           </FormItem>

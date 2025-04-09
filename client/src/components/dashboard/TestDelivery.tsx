@@ -160,6 +160,14 @@ export default function TestDelivery() {
             if (uberDirectIntegration) {
               integrationId = uberDirectIntegration.id;
             }
+          } else if (data.deliveryPartner === 'jetgo') {
+            const jetGoIntegration = integrations.find((i: any) => 
+              i.provider === 'JetGo' && i.apiKey && i.merchantId
+            );
+            
+            if (jetGoIntegration) {
+              integrationId = jetGoIntegration.id;
+            }
           }
         }
       } catch (error) {
@@ -297,6 +305,14 @@ export default function TestDelivery() {
             
             if (uberDirectIntegration) {
               integrationId = uberDirectIntegration.id;
+            }
+          } else if (formData.deliveryPartner === 'jetgo') {
+            const jetGoIntegration = integrations.find((i: any) => 
+              i.provider === 'JetGo' && i.apiKey && i.merchantId
+            );
+            
+            if (jetGoIntegration) {
+              integrationId = jetGoIntegration.id;
             }
           }
         }

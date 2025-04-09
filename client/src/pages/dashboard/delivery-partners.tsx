@@ -63,9 +63,15 @@ const integrationFormSchema = z.object({
   provider: z.string(),
   type: z.string(),
   environment: z.string(),
-  customerId: z.string().min(1, "Customer ID is required"),
-  clientId: z.string().min(1, "Client ID is required"),  
-  clientSecret: z.string().min(1, "Client Secret is required"),
+  // UberDirect fields - required only if provider is UberDirect
+  customerId: z.string().optional(),
+  clientId: z.string().optional(),
+  clientSecret: z.string().optional(),
+  // JetGo fields - required only if provider is JetGo
+  apiKey: z.string().optional(),
+  merchantId: z.string().optional(),
+  webhookSecret: z.string().optional(),
+  // Common fields
   description: z.string().optional(),
   isActive: z.boolean().default(false),
 });
@@ -101,9 +107,15 @@ export default function DeliveryPartners() {
       provider: 'UberDirect',
       type: 'delivery',
       environment: 'sandbox',
+      // UberDirect fields
       customerId: '',
       clientId: '',
       clientSecret: '',
+      // JetGo fields
+      apiKey: '',
+      merchantId: '',
+      webhookSecret: '',
+      // Common fields
       description: '',
       isActive: false,
     },
@@ -256,33 +268,88 @@ export default function DeliveryPartners() {
   // Open dialog for editing an integration
   function handleEditIntegration(integration: any) {
     setEditingIntegration(integration);
-    form.reset({
+    
+    // Common fields for all integration types
+    const commonFields = {
       provider: integration.provider,
       type: integration.type,
       environment: integration.environment,
-      customerId: integration.customerId,
-      clientId: integration.clientId,
-      clientSecret: integration.clientSecret,
       description: integration.description || '',
       isActive: integration.isActive,
-    });
+    };
+    
+    // Set provider-specific fields
+    if (integration.provider === 'UberDirect') {
+      form.reset({
+        ...commonFields,
+        customerId: integration.customerId || '',
+        clientId: integration.clientId || '',
+        clientSecret: integration.clientSecret || '',
+        // Reset JetGo fields
+        apiKey: '',
+        merchantId: '',
+        webhookSecret: '',
+      });
+    } else if (integration.provider === 'JetGo') {
+      form.reset({
+        ...commonFields,
+        apiKey: integration.apiKey || '',
+        merchantId: integration.merchantId || '',
+        webhookSecret: integration.webhookSecret || '',
+        // Reset UberDirect fields
+        customerId: '',
+        clientId: '',
+        clientSecret: '',
+      });
+    }
+    
     setDialogOpen(true);
   }
 
   // Open dialog for adding a new integration
-  function handleAddIntegration() {
+  // Function to add a new integration with a specific provider
+  function handleAddIntegrationWithProvider(provider: string) {
     setEditingIntegration(null);
-    form.reset({
-      provider: 'UberDirect',
-      type: 'delivery',
-      environment: 'sandbox',
-      customerId: '',
-      clientId: '',
-      clientSecret: '',
-      description: '',
-      isActive: false,
-    });
+    
+    // Set up provider-specific default values
+    if (provider === 'UberDirect') {
+      form.reset({
+        provider: provider,
+        type: 'delivery',
+        environment: 'sandbox',
+        customerId: '',
+        clientId: '',
+        clientSecret: '',
+        description: '',
+        isActive: false,
+        // Reset JetGo fields
+        apiKey: '',
+        merchantId: '',
+        webhookSecret: '',
+      });
+    } else if (provider === 'JetGo') {
+      form.reset({
+        provider: provider,
+        type: 'delivery',
+        environment: 'sandbox',
+        apiKey: '',
+        merchantId: '',
+        webhookSecret: '',
+        description: '',
+        isActive: false,
+        // Reset UberDirect fields
+        customerId: '',
+        clientId: '',
+        clientSecret: '',
+      });
+    }
+    
     setDialogOpen(true);
+  }
+
+  // Button click handler for adding a default integration (UberDirect)
+  function handleAddIntegration() {
+    handleAddIntegrationWithProvider('UberDirect');
   }
 
   // Check if user has required plan
@@ -298,7 +365,7 @@ export default function DeliveryPartners() {
           </p>
         </div>
         {!isLoading && canAddIntegration && (
-          <Button onClick={handleAddIntegration}>
+          <Button onClick={() => handleAddIntegration()}>
             <Plus className="mr-2 h-4 w-4" /> Add Integration
           </Button>
         )}
@@ -321,8 +388,7 @@ export default function DeliveryPartners() {
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="uberdirect">UberDirect</TabsTrigger>
-          <TabsTrigger value="doordash" disabled>DoorDash Drive</TabsTrigger>
-          <TabsTrigger value="grubhub" disabled>Grubhub</TabsTrigger>
+          <TabsTrigger value="jetgo">JetGo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-6">
@@ -418,7 +484,7 @@ export default function DeliveryPartners() {
                     <p className="mb-4 text-muted-foreground">
                       Add your first delivery partner integration to start offering delivery services
                     </p>
-                    <Button onClick={handleAddIntegration}>
+                    <Button onClick={() => handleAddIntegration()}>
                       <Plus className="mr-2 h-4 w-4" /> Add Integration
                     </Button>
                   </div>
@@ -519,7 +585,7 @@ export default function DeliveryPartners() {
                     <div className="text-center py-6">
                       <p className="mb-4 text-muted-foreground">No UberDirect integrations found</p>
                       {canAddIntegration && (
-                        <Button onClick={handleAddIntegration}>
+                        <Button onClick={() => handleAddIntegrationWithProvider('UberDirect')}>
                           <Plus className="mr-2 h-4 w-4" /> Add UberDirect
                         </Button>
                       )}
@@ -577,38 +643,144 @@ export default function DeliveryPartners() {
           )}
         </TabsContent>
 
-        <TabsContent value="doordash" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>DoorDash Drive Coming Soon</CardTitle>
-              <CardDescription>
-                DoorDash Drive integration will be available in a future update
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                We're working on integrating DoorDash Drive's delivery services. Stay tuned!
-              </p>
-              <Button variant="outline" disabled>Coming Soon</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        <TabsContent value="jetgo" className="mt-6">
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>JetGo Integration</CardTitle>
+                  <CardDescription>
+                    Connect with JetGo's on-demand delivery network
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {integrations?.filter((i: any) => i.provider === 'JetGo').length > 0 ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Environment</TableHead>
+                          <TableHead>Merchant ID</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {integrations
+                          .filter((i: any) => i.provider === 'JetGo')
+                          .map((integration: any) => (
+                            <TableRow key={integration.id}>
+                              <TableCell>
+                                <Badge variant={integration.environment === 'live' ? 'default' : 'outline'}>
+                                  {integration.environment}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{integration.merchantId || 'N/A'}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center space-x-2">
+                                  <Switch
+                                    checked={integration.isActive}
+                                    onCheckedChange={(checked) => 
+                                      toggleActiveMutation.mutate({ id: integration.id, isActive: checked })
+                                    }
+                                    disabled={toggleActiveMutation.isPending}
+                                  />
+                                  <span>{integration.isActive ? 'Active' : 'Inactive'}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex items-center justify-end space-x-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleEditIntegration(integration)}
+                                  >
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => window.location.href = '/dashboard/test-order'}
+                                  >
+                                    Test Order
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => deleteIntegrationMutation.mutate(integration.id)}
+                                    disabled={deleteIntegrationMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="mb-4 text-muted-foreground">No JetGo integrations found</p>
+                      {canAddIntegration && (
+                        <Button onClick={() => handleAddIntegrationWithProvider('JetGo')}>
+                          <Plus className="mr-2 h-4 w-4" /> Add JetGo
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="bg-muted/50 flex flex-col items-start">
+                  <h3 className="text-sm font-semibold mb-2">About JetGo</h3>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    JetGo offers same-day delivery services for your business through their extensive courier network.
+                  </p>
+                  <Button variant="link" className="p-0 text-blue-500" asChild>
+                    <a href="https://www.jetgo.com" target="_blank" rel="noopener noreferrer">
+                      Learn more <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </Button>
+                </CardFooter>
+              </Card>
 
-        <TabsContent value="grubhub" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Grubhub Coming Soon</CardTitle>
-              <CardDescription>
-                Grubhub integration will be available in a future update
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground mb-4">
-                We're working on integrating Grubhub's delivery services. Stay tuned!
-              </p>
-              <Button variant="outline" disabled>Coming Soon</Button>
-            </CardContent>
-          </Card>
+              {/* JetGo Documentation Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>JetGo Integration Guide</CardTitle>
+                  <CardDescription>
+                    How to set up your JetGo integration
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Requirements</h3>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        <li>An active JetGo account</li>
+                        <li>Developer credentials from the JetGo Developer Portal</li>
+                        <li>API Key (provided by JetGo)</li>
+                        <li>Merchant ID (your merchant identifier in JetGo)</li>
+                        <li>Webhook Secret (for securing webhook notifications)</li>
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2">Setup Instructions</h3>
+                      <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+                        <li>Sign up for a JetGo account at <a href="https://www.jetgo.com" className="text-blue-500" target="_blank" rel="noopener noreferrer">jetgo.com</a></li>
+                        <li>Access the JetGo Developer Portal and create an application</li>
+                        <li>Copy your API Key, Merchant ID, and Webhook Secret</li>
+                        <li>Add a new JetGo integration using these credentials</li>
+                        <li>Test your integration using the "Test" button or create a test order</li>
+                      </ol>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -645,8 +817,7 @@ export default function DeliveryPartners() {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="UberDirect">UberDirect</SelectItem>
-                          <SelectItem value="DoorDashDrive" disabled>DoorDash Drive</SelectItem>
-                          <SelectItem value="Grubhub" disabled>Grubhub</SelectItem>
+                          <SelectItem value="JetGo">JetGo</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -684,60 +855,123 @@ export default function DeliveryPartners() {
               </div>
 
               <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Customer ID (Developer ID)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your UberDirect Developer ID" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        This is your Developer ID from the UberDirect portal
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {form.watch('provider') === 'UberDirect' ? (
+                  // UberDirect specific fields
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="customerId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Customer ID (Developer ID)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your UberDirect Developer ID" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            This is your Developer ID from the UberDirect portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="clientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client ID (Key ID)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your UberDirect Key ID" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        This is your Key ID from the UberDirect portal
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="clientId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client ID (Key ID)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your UberDirect Key ID" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            This is your Key ID from the UberDirect portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="clientSecret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Secret (Signing Secret)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="Enter your UberDirect Signing Secret"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This is your Signing Secret from the UberDirect portal
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    <FormField
+                      control={form.control}
+                      name="clientSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Client Secret (Signing Secret)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Enter your UberDirect Signing Secret"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This is your Signing Secret from the UberDirect portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                ) : (
+                  // JetGo specific fields
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="apiKey"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>API Key</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your JetGo API Key" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            This is your API Key from the JetGo portal
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="merchantId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Merchant ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your JetGo Merchant ID" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            This is your merchant identifier in JetGo
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="webhookSecret"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Webhook Secret</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Enter your JetGo Webhook Secret"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            This is your Webhook Secret from the JetGo portal for securing webhook notifications
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <FormField
                   control={form.control}

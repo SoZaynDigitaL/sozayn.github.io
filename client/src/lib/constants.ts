@@ -53,12 +53,8 @@ export const ORDER_STATUSES = [
 
 // Delivery partners
 export const DELIVERY_PARTNERS = [
-  { label: 'DoorDash', value: 'doordash', icon: 'DD', color: 'text-accent-orange' },
   { label: 'UberDirect', value: 'uberdirect', icon: 'UE', color: 'text-accent-blue' },
-  { label: 'Grubhub', value: 'grubhub', icon: 'GH', color: 'text-accent-green' },
-  { label: 'Postmates', value: 'postmates', icon: 'PM', color: 'text-text-primary' },
-  { label: 'SkipDishes', value: 'skipdishes', icon: 'SD', color: 'text-accent-yellow' },
-  { label: 'Seamless', value: 'seamless', icon: 'SM', color: 'text-accent-purple' },
+  { label: 'JetGo', value: 'jetgo', icon: 'JG', color: 'text-accent-purple' },
 ];
 
 // POS systems

@@ -32,11 +32,9 @@ export default function DeliveryPartnerIntegrations() {
     }
   });
 
-  // Group integrations by provider
+  // Group integrations by provider - only UberDirect and JetGo for pilot
   const integrations = {
     uberDirect: allIntegrations?.find((i: any) => i.provider === 'UberDirect') || null,
-    doordash: allIntegrations?.find((i: any) => i.provider === 'DoorDash') || null,
-    grubhub: allIntegrations?.find((i: any) => i.provider === 'Grubhub') || null,
     jetgo: allIntegrations?.find((i: any) => i.provider === 'JetGo') || null
   };
 
@@ -223,29 +221,6 @@ export default function DeliveryPartnerIntegrations() {
           onTest={handleTest}
           onDelete={handleDelete}
         />
-        
-        {/* Placeholders for future partner integrations */}
-        <div className="border border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center">
-          <div className="bg-green-100 text-green-700 font-bold h-12 w-12 rounded-full flex items-center justify-center mb-3">
-            GH
-          </div>
-          <h3 className="text-lg font-semibold">Grubhub</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Coming soon - integrate with Grubhub delivery services
-          </p>
-          <Button variant="outline" disabled>Available Soon</Button>
-        </div>
-        
-        <div className="border border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center">
-          <div className="bg-orange-100 text-orange-700 font-bold h-12 w-12 rounded-full flex items-center justify-center mb-3">
-            DD
-          </div>
-          <h3 className="text-lg font-semibold">DoorDash Drive</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            Coming soon - integrate with DoorDash Drive delivery services
-          </p>
-          <Button variant="outline" disabled>Available Soon</Button>
-        </div>
       </div>
     </div>
   );

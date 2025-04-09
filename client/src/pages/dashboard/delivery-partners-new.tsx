@@ -135,41 +135,7 @@ export default function DeliveryPartners() {
                         </a>
                       </div>
                       
-                      <div className="border p-4 rounded-lg opacity-60">
-                        <div className="flex items-center mb-2">
-                          <div className="bg-orange-100 text-orange-700 font-bold h-8 w-8 rounded flex items-center justify-center mr-2">
-                            DD
-                          </div>
-                          <h4 className="font-semibold">DoorDash Drive</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Coming soon</p>
-                        <a 
-                          href="https://developer.doordash.com/en-US/docs/drive/tutorials/quickstart" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs flex items-center text-primary mt-2"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" /> Documentation
-                        </a>
-                      </div>
-                      
-                      <div className="border p-4 rounded-lg opacity-60">
-                        <div className="flex items-center mb-2">
-                          <div className="bg-green-100 text-green-700 font-bold h-8 w-8 rounded flex items-center justify-center mr-2">
-                            GH
-                          </div>
-                          <h4 className="font-semibold">Grubhub</h4>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Coming soon</p>
-                        <a 
-                          href="https://developer.grubhub.com/" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs flex items-center text-primary mt-2"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" /> Documentation
-                        </a>
-                      </div>
+
                     </div>
                   </div>
                 </div>

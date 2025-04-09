@@ -22,16 +22,16 @@ interface DeliveryRequest {
     address: string;
     phoneNumber: string;
     instructions?: string;
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
   };
   dropoff: {
     name: string;
     address: string;
     phoneNumber: string;
     instructions?: string;
-    latitude: number;
-    longitude: number;
+    latitude?: number;
+    longitude?: number;
   };
   orderValue: number;
   currency: string;
@@ -107,6 +107,19 @@ export class UberDirectService {
       
       console.log(`Getting delivery quote for delivery from ${request.pickup.address} to ${request.dropoff.address}`);
       
+      // Add default lat/long coordinates if missing
+      if (!request.pickup.latitude || !request.pickup.longitude) {
+        request.pickup.latitude = 37.7749; // Default San Francisco coordinates
+        request.pickup.longitude = -122.4194;
+        console.log(`Using default pickup coordinates: ${request.pickup.latitude}, ${request.pickup.longitude}`);
+      }
+      
+      if (!request.dropoff.latitude || !request.dropoff.longitude) {
+        request.dropoff.latitude = 37.7833;  // Default slightly different SF coordinates
+        request.dropoff.longitude = -122.4167;
+        console.log(`Using default dropoff coordinates: ${request.dropoff.latitude}, ${request.dropoff.longitude}`);
+      }
+      
       // In a real implementation, this would make an actual API call to Uber
       // For now, we'll return a simulated quote
       return {
@@ -130,6 +143,19 @@ export class UberDirectService {
       const token = await this.authenticate();
       
       console.log(`Creating delivery for order from ${request.pickup.name} to ${request.dropoff.name}`);
+      
+      // Add default lat/long coordinates if missing
+      if (!request.pickup.latitude || !request.pickup.longitude) {
+        request.pickup.latitude = 37.7749; // Default San Francisco coordinates
+        request.pickup.longitude = -122.4194;
+        console.log(`Using default pickup coordinates: ${request.pickup.latitude}, ${request.pickup.longitude}`);
+      }
+      
+      if (!request.dropoff.latitude || !request.dropoff.longitude) {
+        request.dropoff.latitude = 37.7833;  // Default slightly different SF coordinates
+        request.dropoff.longitude = -122.4167;
+        console.log(`Using default dropoff coordinates: ${request.dropoff.latitude}, ${request.dropoff.longitude}`);
+      }
       
       // In a real implementation, this would make an actual API call to Uber
       // For now, we'll return a simulated delivery

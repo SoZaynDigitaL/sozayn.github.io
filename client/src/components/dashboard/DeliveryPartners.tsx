@@ -166,15 +166,15 @@ export default function DeliveryPartners() {
   const openConfigDialog = (integration: any) => {
     setSelectedIntegration(integration);
     
-    // Set form values based on the selected integration
+    // Set form values based on the selected integration but don't preload fields
     configForm.reset({
       id: integration.id,
       provider: integration.provider,
       environment: integration.environment || "sandbox",
-      developerId: integration.developerId || "",
-      keyId: integration.keyId || "",
-      signingSecret: integration.signingSecret || "",
-      webhookUrl: integration.webhookUrl || "",
+      developerId: "", // Keep empty for user input
+      keyId: "", // Keep empty for user input
+      signingSecret: "", // Keep empty for user input
+      webhookUrl: "", // Keep empty for user to paste or edit
       sendOrderStatus: integration.sendOrderStatus !== undefined ? integration.sendOrderStatus : true,
     });
     
@@ -497,7 +497,7 @@ export default function DeliveryPartners() {
                       name="developerId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-700">Customer ID*</FormLabel>
+                          <FormLabel className="text-sm font-bold text-gray-700">Customer ID*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Customer ID" 
@@ -515,7 +515,7 @@ export default function DeliveryPartners() {
                       name="keyId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-700">Client ID*</FormLabel>
+                          <FormLabel className="text-sm font-bold text-gray-700">Client ID*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Client ID" 
@@ -533,7 +533,7 @@ export default function DeliveryPartners() {
                       name="signingSecret"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-medium text-gray-700">Client secret*</FormLabel>
+                          <FormLabel className="text-sm font-bold text-gray-700">Client secret*</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="Enter Client secret" 
@@ -563,14 +563,14 @@ export default function DeliveryPartners() {
                               onChange={(e) => field.onChange(e.target.checked)}
                             />
                           </FormControl>
-                          <FormLabel className="text-sm font-medium text-gray-700 cursor-pointer m-0">Send on order status</FormLabel>
+                          <FormLabel className="text-sm font-bold text-gray-700 cursor-pointer m-0">Send on order status</FormLabel>
                         </FormItem>
                       )}
                     />
                   </div>
                   
                   <div className="mt-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Webhook Endpoints</h3>
+                    <h3 className="text-sm font-bold text-gray-700 mb-2">Webhook Endpoints</h3>
                     
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">{selectedIntegration?.provider}</p>
@@ -581,16 +581,23 @@ export default function DeliveryPartners() {
                           <FormItem>
                             <div className="relative">
                               <Input 
-                                value={field.value || `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`}
-                                readOnly
+                                placeholder={`Paste webhook URL for ${selectedIntegration?.provider || ''} here`}
+                                {...field}
                                 className="w-full h-10 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 pr-10" 
                               />
                               <button 
                                 type="button"
                                 className="absolute right-2 top-1/2 transform -translate-y-1/2"
                                 onClick={() => {
-                                  const url = field.value || `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${selectedIntegration?.provider?.toLowerCase() || 'doordash'}`;
-                                  navigator.clipboard.writeText(url);
+                                  if (!field.value) {
+                                    toast({
+                                      title: "No URL to copy",
+                                      description: "Please enter a webhook URL first.",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  navigator.clipboard.writeText(field.value);
                                   toast({
                                     title: "Copied to clipboard",
                                     description: "The webhook URL has been copied to your clipboard.",

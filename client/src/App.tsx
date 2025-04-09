@@ -15,6 +15,7 @@ import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
 import Settings from "@/pages/dashboard/settings";
+import TestOrder from "@/pages/dashboard/test-order";
 import Users from "@/pages/dashboard/admin/users";
 import AdminWebhooks from "@/pages/dashboard/admin/webhooks";
 import ShopifyIntegration from "@/pages/dashboard/ecommerce/shopify";
@@ -45,6 +46,7 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
+      <Route path="/dashboard/test-order" component={TestOrder} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
       <Route path="/dashboard/settings" component={Settings} />
       <Route path="/dashboard/admin/users" component={Users} />

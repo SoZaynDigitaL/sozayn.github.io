@@ -14,6 +14,7 @@ import session from "express-session";
 import Stripe from "stripe";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
+import { getDeliveryServiceClient } from "./services";
 
 // Helper function for MailerLite initialization
 async function getMailerLiteClient() {
@@ -500,6 +501,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/orders/recent", isAuthenticated, (req, res) => {
     // Return empty array for now - frontend will handle demo data
     res.json([]);
+  });
+  
+  // Delivery API endpoints for UberDirect integration
+  
+  // Get a quote for a delivery
+  app.post("/api/delivery/quote", isAuthenticated, async (req, res) => {
+    try {
+      const { integrationId, pickup, dropoff, items, orderValue } = req.body;
+      
+      if (!integrationId || !pickup || !dropoff) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Get the delivery service client
+      const deliveryService = await getDeliveryServiceClient(integrationId);
+      
+      if (!deliveryService) {
+        return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
+      }
+      
+      // Get a quote
+      const quote = await deliveryService.getQuote({
+        pickup,
+        dropoff,
+        items: items || [],
+        orderValue: orderValue || 0,
+        currency: "USD"
+      });
+      
+      res.json(quote);
+    } catch (error: any) {
+      console.error("Error getting delivery quote:", error);
+      res.status(500).json({ 
+        error: "Failed to get delivery quote", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Create a delivery
+  app.post("/api/delivery/create", isAuthenticated, async (req, res) => {
+    try {
+      const { integrationId, pickup, dropoff, items, orderValue, quoteId } = req.body;
+      
+      if (!integrationId || !pickup || !dropoff) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+      
+      // Get the delivery service client
+      const deliveryService = await getDeliveryServiceClient(integrationId);
+      
+      if (!deliveryService) {
+        return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
+      }
+      
+      // Create a delivery
+      const delivery = await deliveryService.createDelivery({
+        pickup,
+        dropoff,
+        items: items || [],
+        orderValue: orderValue || 0,
+        currency: "USD"
+      }, quoteId);
+      
+      res.json(delivery);
+    } catch (error: any) {
+      console.error("Error creating delivery:", error);
+      res.status(500).json({ 
+        error: "Failed to create delivery", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Get delivery status
+  app.get("/api/delivery/:deliveryId/status", isAuthenticated, async (req, res) => {
+    try {
+      const { deliveryId } = req.params;
+      const { integrationId } = req.query;
+      
+      if (!integrationId) {
+        return res.status(400).json({ error: "Missing integration ID" });
+      }
+      
+      // Get the delivery service client
+      const deliveryService = await getDeliveryServiceClient(Number(integrationId));
+      
+      if (!deliveryService) {
+        return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
+      }
+      
+      // Get delivery status
+      const status = await deliveryService.getDeliveryStatus(deliveryId);
+      
+      res.json(status);
+    } catch (error: any) {
+      console.error("Error getting delivery status:", error);
+      res.status(500).json({ 
+        error: "Failed to get delivery status", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Cancel delivery
+  app.post("/api/delivery/:deliveryId/cancel", isAuthenticated, async (req, res) => {
+    try {
+      const { deliveryId } = req.params;
+      const { integrationId } = req.body;
+      
+      if (!integrationId) {
+        return res.status(400).json({ error: "Missing integration ID" });
+      }
+      
+      // Get the delivery service client
+      const deliveryService = await getDeliveryServiceClient(integrationId);
+      
+      if (!deliveryService) {
+        return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
+      }
+      
+      // Cancel delivery
+      const success = await deliveryService.cancelDelivery(deliveryId);
+      
+      res.json({ success });
+    } catch (error: any) {
+      console.error("Error canceling delivery:", error);
+      res.status(500).json({ 
+        error: "Failed to cancel delivery", 
+        message: error.message 
+      });
+    }
   });
 
   app.get("/api/integrations", isAuthenticated, async (req, res) => {

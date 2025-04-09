@@ -74,54 +74,21 @@ export default function DeliveryPartners() {
   const [selectedIntegration, setSelectedIntegration] = useState<any | null>(null);
   const { toast } = useToast();
   
-  // TEMPORARY: Hardcoded integrations until API authentication is fixed
-  const [integrations, setIntegrations] = useState<any[]>([
-    {
-      id: 1,
-      provider: "DoorDash",
-      type: "delivery",
-      apiKey: "******",
-      isActive: true,
-      environment: "sandbox",
-      settings: {}
-    },
-    {
-      id: 2,
-      provider: "UberEats",
-      type: "delivery",
-      apiKey: "******",
-      isActive: false,
-      environment: "sandbox",
-      settings: {}
-    },
-    {
-      id: 3,
-      provider: "Grubhub",
-      type: "delivery",
-      apiKey: "******",
-      isActive: true,
-      environment: "sandbox",
-      settings: {}
-    },
-    {
-      id: 4,
-      provider: "Jet GO",
-      type: "delivery",
-      apiKey: "******",
-      isActive: false,
-      environment: "sandbox",
-      settings: {}
-    }
-  ]);
+  // State to keep track of integrations
+  const [integrations, setIntegrations] = useState<any[]>([]);
   
-  // API call ready but disabled until authentication is fixed
-  /*
+  // Fetch integrations from API
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['/api/integrations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/integrations');
-      const data = await response.json();
-      return data;
+      try {
+        const response = await apiRequest('GET', '/api/integrations');
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching integrations:', error);
+        // Return an empty array if fetch fails to avoid errors
+        return [];
+      }
     }
   });
   
@@ -131,10 +98,6 @@ export default function DeliveryPartners() {
       setIntegrations(data);
     }
   }, [data]);
-  */
-  
-  // Use hardcoded loading state until API is enabled
-  const isLoading = false;
   
   // Filter to only show delivery type integrations (not needed with hardcoded data)
   const deliveryIntegrations = integrations;
@@ -182,60 +145,14 @@ export default function DeliveryPartners() {
     setIsConfigDialogOpen(true);
   };
   
-  // TEMPORARY: Mutation using local state while API is fixed
-  const addIntegrationMutation = useMutation({
-    mutationFn: async (data: AddPartnerFormValues) => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Create a new integration object
-      const newIntegration = {
-        id: Math.floor(Math.random() * 10000) + 5, // Generate random ID (avoiding conflicts with hardcoded IDs 1-4)
-        provider: data.provider,
-        type: 'delivery',
-        apiKey: "******", // Mask for display
-        isActive: false, // Set to inactive by default until configured
-        environment: "sandbox",
-        settings: {}
-      };
-      
-      // Add to local state
-      setIntegrations(prev => [...prev, newIntegration]);
-      
-      return newIntegration;
-    },
-    onSuccess: (newIntegration: any) => {
-      toast({
-        title: "Integration added",
-        description: "The delivery partner has been integrated successfully.",
-      });
-      
-      addForm.reset();
-      setIsAddDialogOpen(false);
-      
-      // Open the detailed configuration dialog for the newly added integration
-      setTimeout(() => {
-        openConfigDialog(newIntegration);
-      }, 500);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add integration. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  /* 
-  // ORIGINAL API IMPLEMENTATION - Commented until authentication is fixed
+  // API implementation for adding integrations
   const addIntegrationMutation = useMutation({
     mutationFn: async (data: AddPartnerFormValues) => {
       const response = await apiRequest('POST', '/api/integrations', {
         provider: data.provider,
         type: 'delivery',
         apiKey: data.apiKey,
-        isActive: true,
+        isActive: false, // Set to inactive by default until configured
         environment: "sandbox",
         settings: {}
       });
@@ -272,61 +189,8 @@ export default function DeliveryPartners() {
       });
     }
   });
-  */
   
-  // TEMPORARY: Update mutation using local state while API is fixed
-  const updateIntegrationMutation = useMutation({
-    mutationFn: async (data: ConfigurationFormValues) => {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Update integration in local state
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === data.id 
-            ? { 
-                ...integration, 
-                environment: data.environment,
-                developerId: data.developerId,
-                keyId: data.keyId,
-                signingSecret: data.signingSecret,
-                webhookUrl: data.webhookUrl,
-                sendOrderStatus: data.sendOrderStatus,
-                settings: {
-                  ...integration.settings,
-                  developerId: data.developerId,
-                  keyId: data.keyId,
-                  signingSecret: data.signingSecret,
-                  webhookUrl: data.webhookUrl,
-                }
-              } 
-            : integration
-        )
-      );
-      
-      return { id: data.id };
-    },
-    onSuccess: (updatedIntegration: any) => {
-      // If all required fields are filled, enable automatic activation
-      const integration = integrations.find(int => int.id === updatedIntegration.id);
-      
-      toast({
-        title: "Integration updated",
-        description: "The delivery partner configuration has been updated successfully.",
-      });
-      setIsConfigDialogOpen(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update integration. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
-  
-  /*
-  // ORIGINAL API IMPLEMENTATION - Commented until authentication is fixed
+  // API implementation for updating integrations
   const updateIntegrationMutation = useMutation({
     mutationFn: async (data: ConfigurationFormValues) => {
       const response = await apiRequest('PATCH', `/api/integrations/${data.id}`, {
@@ -363,9 +227,8 @@ export default function DeliveryPartners() {
       });
     }
   });
-  */
   
-  // TEMPORARY: Toggle function using local state while API is fixed
+  // API implementation for toggling integration status
   const toggleIntegrationStatus = async (id: number, isActive: boolean) => {
     try {
       // Find the integration in our state
@@ -373,10 +236,9 @@ export default function DeliveryPartners() {
       
       // Check if integration has the required fields for activation
       const hasRequiredFields = integration && 
-        integration.settings && 
-        (integration.developerId || integration.settings.developerId) && 
-        (integration.keyId || integration.settings.keyId) && 
-        (integration.signingSecret || integration.settings.signingSecret);
+        (integration.developerId || (integration.settings && integration.settings.developerId)) && 
+        (integration.keyId || (integration.settings && integration.settings.keyId)) && 
+        (integration.signingSecret || (integration.settings && integration.settings.signingSecret));
       
       // If trying to activate but missing required fields, show error
       if (isActive && !hasRequiredFields) {
@@ -388,35 +250,6 @@ export default function DeliveryPartners() {
         return;
       }
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Update local state
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === id 
-            ? { ...integration, isActive } 
-            : integration
-        )
-      );
-      
-      toast({
-        title: isActive ? "Integration activated" : "Integration deactivated",
-        description: `The integration has been ${isActive ? "activated" : "deactivated"} successfully.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update integration status. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  /* 
-  // ORIGINAL API IMPLEMENTATION - Commented until authentication is fixed
-  const toggleIntegrationStatus = async (id: number, isActive: boolean) => {
-    try {
       // Call the API to update the integration status
       const response = await apiRequest('PATCH', `/api/integrations/${id}`, {
         isActive: isActive
@@ -442,7 +275,6 @@ export default function DeliveryPartners() {
       });
     }
   };
-  */
   
   // Submit handler for the add form
   function onAddSubmit(data: AddPartnerFormValues) {

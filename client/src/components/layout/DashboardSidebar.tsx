@@ -12,7 +12,8 @@ import {
   X,
   Link as LinkIcon,
   ShoppingCart,
-  Users
+  Users,
+  TestTube
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -66,6 +67,12 @@ export default function DashboardSidebar() {
       href: '/dashboard/integrations', 
       icon: ExternalLink, 
       label: 'Delivery Partners', 
+      requiredPlans: ['growth', 'professional', 'enterprise'] 
+    },
+    { 
+      href: '/dashboard/test-order', 
+      icon: TestTube, 
+      label: 'Test Order Flow', 
       requiredPlans: ['growth', 'professional', 'enterprise'] 
     },
     { 

@@ -20,14 +20,16 @@ app.use(
       tableName: 'session', // Default table name
       createTableIfMissing: true,
     }),
-    secret: "sozayn-secret-key",
-    resave: true, // Force the session to be saved back to the store
-    saveUninitialized: false,
+    secret: process.env.SESSION_SECRET || "sozayn-secret-key-DO-NOT-USE-IN-PRODUCTION",
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something stored
+    rolling: true, // Reset maxAge on every response
     cookie: { 
       secure: false, // Set to true in production with HTTPS
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/' // Ensure cookie is valid for all paths
     }
   })
 );

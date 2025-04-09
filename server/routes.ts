@@ -29,14 +29,35 @@ declare module 'express-session' {
 }
 
 // Helper function to authenticate requests
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
   console.log('Checking authentication:', {
     hasSession: !!req.session,
-    userId: req.session?.userId
+    userId: req.session?.userId,
+    sessionID: req.sessionID,
+    cookies: req.headers.cookie
   });
   
   if (req.session && req.session.userId) {
-    next();
+    try {
+      // Verify userId refers to a valid user
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        console.log(`User with ID ${req.session.userId} not found in database`);
+        req.session.destroy((err) => {
+          if (err) console.error("Error destroying invalid session:", err);
+        });
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      // Log success
+      console.log(`Authentication successful for user: ${user.username} (${user.id})`);
+      
+      // Call next middleware
+      next();
+    } catch (error) {
+      console.error("Error during authentication:", error);
+      res.status(500).json({ error: "Server error during authentication" });
+    }
   } else {
     res.status(401).json({ error: "Not authenticated" });
   }

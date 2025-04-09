@@ -219,8 +219,9 @@ export default function TestDelivery() {
       // Log the quote request for debugging
       console.log("Sending delivery quote request:", JSON.stringify(quoteRequest, null, 2));
       
-      // Get delivery quote
-      const quoteResponse = await apiRequest('POST', '/api/delivery/quote', quoteRequest);
+      // TEMPORARY: Use the test endpoint for debugging
+      // TODO: Switch back to /api/delivery/quote once the main endpoint works
+      const quoteResponse = await apiRequest('POST', '/api/delivery/test-quote', quoteRequest);
       
       if (!quoteResponse.ok) {
         throw new Error('Failed to get delivery quote');
@@ -349,8 +350,9 @@ export default function TestDelivery() {
       // Log the delivery request for debugging
       console.log("Sending delivery creation request:", JSON.stringify(deliveryRequest, null, 2));
       
-      // Create delivery
-      const deliveryResponse = await apiRequest('POST', '/api/delivery/create', deliveryRequest);
+      // TEMPORARY: Use the test endpoint for debugging
+      // TODO: Switch back to /api/delivery/create once the main endpoint works
+      const deliveryResponse = await apiRequest('POST', '/api/delivery/test-create', deliveryRequest);
       
       if (!deliveryResponse.ok) {
         throw new Error('Failed to create delivery');

@@ -1057,6 +1057,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // BEGIN TEST ENDPOINTS - FOR DEBUGGING ONLY
+  
+  // Simple test endpoint for delivery quotes (debug purposes only)
+  app.post("/api/delivery/test-quote", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== TEST DELIVERY QUOTE REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      // Create a simulated delivery quote response
+      const quoteId = `quote_${Math.random().toString(36).substring(2, 10)}`;
+      const randomFee = Math.floor(Math.random() * 1000) / 100 + 5; // Random fee between $5 and $15
+      const randomEta = Math.floor(Math.random() * 30) + 15; // Random ETA between 15 and 45 minutes
+      
+      // Return a successful quote response
+      const quoteResponse = {
+        id: quoteId,
+        fee: randomFee,
+        eta: randomEta,
+        currency: "USD",
+        expires_at: new Date(Date.now() + 15 * 60000).toISOString() // Expires in 15 minutes
+      };
+      
+      // Delay the response by 1 second to simulate network latency
+      setTimeout(() => {
+        res.json(quoteResponse);
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in test delivery quote:", error);
+      res.status(500).json({ 
+        error: "Test delivery quote error", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Test endpoint for delivery creation (debug purposes only)
+  app.post("/api/delivery/test-create", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== TEST DELIVERY CREATE REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      // Create a simulated delivery response
+      const deliveryId = `del_${Math.random().toString(36).substring(2, 10)}`;
+      const randomFee = req.body.quoteId ? parseFloat(req.body.quoteId.split('_')[1]) + 5 : Math.floor(Math.random() * 1000) / 100 + 5;
+      
+      // Current time plus 20-40 minutes
+      const pickupEta = new Date(Date.now() + (Math.floor(Math.random() * 20) + 20) * 60000).toISOString();
+      // Pickup ETA plus 15-30 minutes
+      const dropoffEta = new Date(new Date(pickupEta).getTime() + (Math.floor(Math.random() * 15) + 15) * 60000).toISOString();
+      
+      // Return a successful delivery creation response
+      const deliveryResponse = {
+        id: deliveryId,
+        status: "created",
+        tracking_url: `https://example.com/track/${deliveryId}`,
+        fee: randomFee,
+        currency: "USD",
+        created_at: new Date().toISOString(),
+        pickup_eta: pickupEta,
+        dropoff_eta: dropoffEta
+      };
+      
+      // Delay the response by 1 second to simulate network latency
+      setTimeout(() => {
+        res.json(deliveryResponse);
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in test delivery creation:", error);
+      res.status(500).json({ 
+        error: "Test delivery creation error", 
+        message: error.message 
+      });
+    }
+  });
+  
   // UberDirect Webhook Setup Helper
   app.post("/api/webhooks/setup/uberdirect", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
     try {

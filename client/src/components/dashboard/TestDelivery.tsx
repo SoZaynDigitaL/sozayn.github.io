@@ -171,6 +171,17 @@ export default function TestDelivery() {
       }
       
       // Convert form data to API format
+      // Create properly structured items
+      const orderItemsArray = data.orderItems.split(',').map(item => {
+        const itemDetail = item.trim();
+        const price = parseFloat(data.orderValue) / data.orderItems.split(',').length;
+        return { 
+          name: itemDetail,
+          quantity: 1,
+          price: parseFloat(price.toFixed(2))
+        };
+      });
+      
       // Add default coordinates
       const quoteRequest = {
         partner: data.deliveryPartner,
@@ -192,14 +203,9 @@ export default function TestDelivery() {
           longitude: -122.4167
         },
         orderValue: parseFloat(data.orderValue),
-        orderItems: data.orderItems.split(',').map(item => {
-          const itemDetail = item.trim();
-          return { 
-            name: itemDetail,
-            quantity: 1,
-            price: parseFloat(data.orderValue) / data.orderItems.split(',').length
-          };
-        }),
+        // Send both item formats to ensure compatibility
+        items: orderItemsArray,
+        orderItems: orderItemsArray,
         notes: data.orderNotes
       };
       
@@ -294,6 +300,17 @@ export default function TestDelivery() {
         throw new Error(`Could not find a configured integration for ${formData.deliveryPartner}`);
       }
       
+      // Create properly structured items
+      const orderItemsArray = formData.orderItems.split(',').map(item => {
+        const itemDetail = item.trim();
+        const price = parseFloat(formData.orderValue) / formData.orderItems.split(',').length;
+        return { 
+          name: itemDetail,
+          quantity: 1,
+          price: parseFloat(price.toFixed(2))
+        };
+      });
+      
       // Convert form data to API format
       const deliveryRequest = {
         partner: formData.deliveryPartner,
@@ -316,16 +333,14 @@ export default function TestDelivery() {
           longitude: -122.4167
         },
         orderValue: parseFloat(formData.orderValue),
-        orderItems: formData.orderItems.split(',').map(item => {
-          const itemDetail = item.trim();
-          return { 
-            name: itemDetail,
-            quantity: 1,
-            price: parseFloat(formData.orderValue) / formData.orderItems.split(',').length
-          };
-        }),
+        // Send both item formats to ensure compatibility
+        items: orderItemsArray,
+        orderItems: orderItemsArray,
         notes: formData.orderNotes
       };
+      
+      // Log the delivery request for debugging
+      console.log("Sending delivery creation request:", JSON.stringify(deliveryRequest, null, 2));
       
       // Create delivery
       const deliveryResponse = await apiRequest('POST', '/api/delivery/create', deliveryRequest);

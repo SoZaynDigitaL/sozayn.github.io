@@ -101,24 +101,64 @@ export class UberDirectService {
   /**
    * Get a delivery quote from UberDirect
    */
-  async getQuote(request: DeliveryRequest): Promise<DeliveryQuote> {
+  async getQuote(request: any): Promise<DeliveryQuote> {
     try {
       const token = await this.authenticate();
       
+      console.log(`Attempting to get delivery quote with request:`, JSON.stringify(request, null, 2));
+      
+      // Validate the request has the minimum required structure
+      if (!request.pickup || !request.dropoff) {
+        console.error(`Missing pickup or dropoff in request`);
+        throw new Error('Invalid request: Missing pickup or dropoff data');
+      }
+      
       console.log(`Getting delivery quote for delivery from ${request.pickup.address} to ${request.dropoff.address}`);
       
-      // Add default lat/long coordinates if missing
-      if (!request.pickup.latitude || !request.pickup.longitude) {
-        request.pickup.latitude = 37.7749; // Default San Francisco coordinates
-        request.pickup.longitude = -122.4194;
-        console.log(`Using default pickup coordinates: ${request.pickup.latitude}, ${request.pickup.longitude}`);
+      // Ensure pickup and dropoff objects have the required fields
+      const pickup = {
+        name: request.pickup.name || 'Customer',
+        address: request.pickup.address || '123 Main St, San Francisco, CA',
+        phoneNumber: request.pickup.phoneNumber || '555-555-5555',
+        instructions: request.pickup.instructions || '',
+        latitude: request.pickup.latitude || 37.7749,
+        longitude: request.pickup.longitude || -122.4194
+      };
+      
+      const dropoff = {
+        name: request.dropoff.name || 'Customer',
+        address: request.dropoff.address || '456 Market St, San Francisco, CA',
+        phoneNumber: request.dropoff.phoneNumber || '555-555-5555',
+        instructions: request.dropoff.instructions || '',
+        latitude: request.dropoff.latitude || 37.7833,
+        longitude: request.dropoff.longitude || -122.4167
+      };
+      
+      // Create standardized items array
+      let items = [];
+      if (Array.isArray(request.items)) {
+        items = request.items;
+      } else if (Array.isArray(request.orderItems)) {
+        items = request.orderItems;
+      } else {
+        // Default item if none provided
+        items = [{ name: "Food item", quantity: 1, price: 15.0 }];
       }
       
-      if (!request.dropoff.latitude || !request.dropoff.longitude) {
-        request.dropoff.latitude = 37.7833;  // Default slightly different SF coordinates
-        request.dropoff.longitude = -122.4167;
-        console.log(`Using default dropoff coordinates: ${request.dropoff.latitude}, ${request.dropoff.longitude}`);
-      }
+      // Update the request with normalized data
+      request.pickup = pickup;
+      request.dropoff = dropoff;
+      request.items = items;
+      request.currency = request.currency || 'USD';
+      request.orderValue = request.orderValue || 15.0;
+      
+      console.log(`Normalized request:`, JSON.stringify({
+        pickup: request.pickup,
+        dropoff: request.dropoff,
+        itemsCount: request.items.length,
+        currency: request.currency,
+        orderValue: request.orderValue
+      }, null, 2));
       
       // In a real implementation, this would make an actual API call to Uber
       // For now, we'll return a simulated quote
@@ -138,24 +178,65 @@ export class UberDirectService {
   /**
    * Create a delivery with UberDirect
    */
-  async createDelivery(request: DeliveryRequest, quoteId?: string): Promise<DeliveryResponse> {
+  async createDelivery(request: any, quoteId?: string): Promise<DeliveryResponse> {
     try {
       const token = await this.authenticate();
       
-      console.log(`Creating delivery for order from ${request.pickup.name} to ${request.dropoff.name}`);
+      console.log(`Attempting to create delivery with request:`, JSON.stringify(request, null, 2));
       
-      // Add default lat/long coordinates if missing
-      if (!request.pickup.latitude || !request.pickup.longitude) {
-        request.pickup.latitude = 37.7749; // Default San Francisco coordinates
-        request.pickup.longitude = -122.4194;
-        console.log(`Using default pickup coordinates: ${request.pickup.latitude}, ${request.pickup.longitude}`);
+      // Validate the request has the minimum required structure
+      if (!request.pickup || !request.dropoff) {
+        console.error(`Missing pickup or dropoff in request`);
+        throw new Error('Invalid request: Missing pickup or dropoff data');
       }
       
-      if (!request.dropoff.latitude || !request.dropoff.longitude) {
-        request.dropoff.latitude = 37.7833;  // Default slightly different SF coordinates
-        request.dropoff.longitude = -122.4167;
-        console.log(`Using default dropoff coordinates: ${request.dropoff.latitude}, ${request.dropoff.longitude}`);
+      console.log(`Creating delivery from ${request.pickup.address} to ${request.dropoff.address}`);
+      
+      // Ensure pickup and dropoff objects have the required fields
+      const pickup = {
+        name: request.pickup.name || 'Customer',
+        address: request.pickup.address || '123 Main St, San Francisco, CA',
+        phoneNumber: request.pickup.phoneNumber || '555-555-5555',
+        instructions: request.pickup.instructions || '',
+        latitude: request.pickup.latitude || 37.7749,
+        longitude: request.pickup.longitude || -122.4194
+      };
+      
+      const dropoff = {
+        name: request.dropoff.name || 'Customer',
+        address: request.dropoff.address || '456 Market St, San Francisco, CA',
+        phoneNumber: request.dropoff.phoneNumber || '555-555-5555',
+        instructions: request.dropoff.instructions || '',
+        latitude: request.dropoff.latitude || 37.7833,
+        longitude: request.dropoff.longitude || -122.4167
+      };
+      
+      // Create standardized items array
+      let items = [];
+      if (Array.isArray(request.items)) {
+        items = request.items;
+      } else if (Array.isArray(request.orderItems)) {
+        items = request.orderItems;
+      } else {
+        // Default item if none provided
+        items = [{ name: "Food item", quantity: 1, price: 15.0 }];
       }
+      
+      // Update the request with normalized data
+      request.pickup = pickup;
+      request.dropoff = dropoff;
+      request.items = items;
+      request.currency = request.currency || 'USD';
+      request.orderValue = request.orderValue || 15.0;
+      
+      console.log(`Normalized delivery request:`, JSON.stringify({
+        pickup: request.pickup,
+        dropoff: request.dropoff,
+        itemsCount: request.items.length,
+        currency: request.currency,
+        orderValue: request.orderValue,
+        quoteId: quoteId || 'none'
+      }, null, 2));
       
       // In a real implementation, this would make an actual API call to Uber
       // For now, we'll return a simulated delivery

@@ -30,7 +30,7 @@ app.use(
       secure: false, // Using false because Replit doesn't use HTTPS locally
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'none', // Required for cross-site requests
+      sameSite: 'lax', // Changed from 'none' - 'none' only works with secure:true
       path: '/' // Ensure cookie is valid for all paths
     },
     name: 'sozayn.sid' // Custom name for the session cookie

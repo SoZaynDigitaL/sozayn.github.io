@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { DashboardCard } from '@/components/ui/dashboard-card';
@@ -74,66 +74,25 @@ export default function DeliveryPartners() {
   const [selectedIntegration, setSelectedIntegration] = useState<any | null>(null);
   const { toast } = useToast();
   
-  // For demo purposes, we'll use hardcoded integrations 
-  const [integrations, setIntegrations] = useState<any[]>([
-    {
-      id: 1,
-      provider: "DoorDash",
-      type: "delivery",
-      apiKey: "demo_api_key",
-      isActive: true,
-      environment: "sandbox",
-      developerId: "demo_developer_id",
-      keyId: "demo_key_id",
-      signingSecret: "demo_signing_secret",
-      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/doordash",
-      sendOrderStatus: true,
-      settings: {}
-    },
-    {
-      id: 2,
-      provider: "UberEats",
-      type: "delivery",
-      apiKey: "demo_api_key",
-      isActive: false,
-      environment: "sandbox",
-      developerId: "demo_developer_id",
-      keyId: "demo_key_id",
-      signingSecret: "demo_signing_secret",
-      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/ubereats",
-      sendOrderStatus: true,
-      settings: {}
-    },
-    {
-      id: 3,
-      provider: "Grubhub",
-      type: "delivery",
-      apiKey: "demo_api_key",
-      isActive: true,
-      environment: "sandbox",
-      developerId: "demo_developer_id",
-      keyId: "demo_key_id",
-      signingSecret: "demo_signing_secret",
-      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/grubhub",
-      sendOrderStatus: true,
-      settings: {}
-    },
-    {
-      id: 4,
-      provider: "Jet GO",
-      type: "delivery",
-      apiKey: "demo_api_key",
-      isActive: false,
-      environment: "sandbox",
-      developerId: "demo_developer_id",
-      keyId: "demo_key_id",
-      signingSecret: "demo_signing_secret",
-      webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/jetgo",
-      sendOrderStatus: true,
-      settings: {}
+  // Fetch integrations from the API
+  const [integrations, setIntegrations] = useState<any[]>([]);
+  
+  // Fetch integrations from the API
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['/api/integrations'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/integrations');
+      const data = await response.json();
+      return data;
     }
-  ]);
-  const isLoading = false;
+  });
+  
+  // Update state when data changes
+  useEffect(() => {
+    if (data) {
+      setIntegrations(data);
+    }
+  }, [data]);
   
   // Filter to only show delivery type integrations (not needed with hardcoded data)
   const deliveryIntegrations = integrations;
@@ -181,33 +140,28 @@ export default function DeliveryPartners() {
     setIsConfigDialogOpen(true);
   };
   
-  // Create mutation to add a new integration (using local state)
+  // Create mutation to add a new integration (using API)
   const addIntegrationMutation = useMutation({
-    mutationFn: (data: AddPartnerFormValues) => {
-      // Create a dummy promise to simulate API call
-      return new Promise<any>((resolve) => {
-        setTimeout(() => {
-          const newIntegration = {
-            id: integrations.length + 1,
-            provider: data.provider,
-            apiKey: data.apiKey,
-            type: 'delivery',
-            isActive: true,
-            environment: "sandbox",
-            developerId: "",
-            keyId: "",
-            signingSecret: "",
-            webhookUrl: `https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/${data.provider.toLowerCase()}`,
-            sendOrderStatus: true,
-            settings: {}
-          };
-          resolve(newIntegration);
-        }, 500);
+    mutationFn: async (data: AddPartnerFormValues) => {
+      const response = await apiRequest('POST', '/api/integrations', {
+        provider: data.provider,
+        type: 'delivery',
+        apiKey: data.apiKey,
+        isActive: true,
+        environment: "sandbox",
+        settings: {}
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add integration');
+      }
+      
+      return await response.json();
     },
     onSuccess: (newIntegration: any) => {
-      // Update local state
-      setIntegrations(prev => [...prev, newIntegration]);
+      // Invalidate the query cache to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
       
       toast({
         title: "Integration added",
@@ -222,42 +176,37 @@ export default function DeliveryPartners() {
         openConfigDialog(newIntegration);
       }, 500);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to add integration. Please try again.",
+        description: error.message || "Failed to add integration. Please try again.",
         variant: "destructive",
       });
     }
   });
   
-  // Update mutation for detailed configuration (using local state)
+  // Update mutation for detailed configuration (using API)
   const updateIntegrationMutation = useMutation({
-    mutationFn: (data: ConfigurationFormValues) => {
-      // Create a dummy promise to simulate API call
-      return new Promise<any>((resolve) => {
-        setTimeout(() => {
-          resolve(data);
-        }, 500);
+    mutationFn: async (data: ConfigurationFormValues) => {
+      const response = await apiRequest('PATCH', `/api/integrations/${data.id}`, {
+        environment: data.environment,
+        developerId: data.developerId,
+        keyId: data.keyId,
+        signingSecret: data.signingSecret,
+        webhookUrl: data.webhookUrl,
+        sendOrderStatus: data.sendOrderStatus
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update integration');
+      }
+      
+      return await response.json();
     },
-    onSuccess: (data: ConfigurationFormValues) => {
-      // Update local state
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === data.id 
-            ? { 
-                ...integration, 
-                environment: data.environment,
-                developerId: data.developerId,
-                keyId: data.keyId,
-                signingSecret: data.signingSecret,
-                webhookUrl: data.webhookUrl,
-                sendOrderStatus: data.sendOrderStatus
-              }
-            : integration
-        )
-      );
+    onSuccess: () => {
+      // Invalidate the query cache to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
       
       toast({
         title: "Integration updated",
@@ -265,35 +214,39 @@ export default function DeliveryPartners() {
       });
       setIsConfigDialogOpen(false);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to update integration. Please try again.",
+        description: error.message || "Failed to update integration. Please try again.",
         variant: "destructive",
       });
     }
   });
   
-  // Function to toggle integration status with local state update
+  // Function to toggle integration status using the API
   const toggleIntegrationStatus = async (id: number, isActive: boolean) => {
     try {
-      // Update local state instead of making API call
-      setIntegrations(prev => 
-        prev.map(integration => 
-          integration.id === id 
-            ? { ...integration, isActive }
-            : integration
-        )
-      );
+      // Call the API to update the integration status
+      const response = await apiRequest('PATCH', `/api/integrations/${id}`, {
+        isActive: isActive
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update integration status');
+      }
+      
+      // Invalidate the query cache to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
       
       toast({
         title: isActive ? "Integration activated" : "Integration deactivated",
         description: `The integration has been ${isActive ? "activated" : "deactivated"} successfully.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update integration status. Please try again.",
+        description: error.message || "Failed to update integration status. Please try again.",
         variant: "destructive",
       });
     }

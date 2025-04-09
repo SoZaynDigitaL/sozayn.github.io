@@ -25,6 +25,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   businessName: true,
   businessType: true,
+  role: true,
+  subscriptionPlan: true,
 });
 
 // Integrations (delivery services, POS systems)

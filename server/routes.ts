@@ -265,6 +265,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Admin account setup/recovery route
+  app.post("/api/admin/setup", async (req, res) => {
+    try {
+      const adminPassword = "admin123"; // Default admin password
+      
+      // Check if admin exists
+      let adminUser = await storage.getUserByUsername("admin");
+      
+      if (!adminUser) {
+        console.log("Creating new admin user");
+        // Create admin user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
+        
+        adminUser = await storage.createUser({
+          username: "admin",
+          password: hashedPassword,
+          email: "admin@sozayn.com",
+          businessName: "SoZayn Admin",
+          businessType: "admin",
+          role: "admin",
+          subscriptionPlan: "enterprise"
+        });
+      } else {
+        console.log("Updating existing admin user password");
+        // Reset admin password to default and ensure role is admin
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
+        
+        adminUser = await storage.updateUser(adminUser.id, { 
+          password: hashedPassword,
+          role: "admin",
+          subscriptionPlan: "enterprise" 
+        }) || adminUser;
+      }
+      
+      // Set user in session
+      req.session.userId = adminUser.id;
+      
+      // Save session explicitly
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        
+        const { password, ...userWithoutPassword } = adminUser;
+        res.json({
+          success: true,
+          user: userWithoutPassword,
+          message: "Admin account has been set up successfully"
+        });
+      });
+    } catch (error) {
+      console.error("Admin setup error:", error);
+      res.status(500).json({ error: "Failed to setup admin account" });
+    }
+  });
+  
   // Demo data generation
   app.post("/api/demo/generate", isAuthenticated, async (req, res) => {
     try {

@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 
 // Schema for login validation
 const loginSchema = z.object({
@@ -32,6 +32,7 @@ export default function Login() {
   const { login, user, isLoading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSetupAdmin, setIsSetupAdmin] = useState(false);
   
   // Redirect if user is already logged in
   useEffect(() => {
@@ -67,6 +68,49 @@ export default function Login() {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+  
+  // Admin account setup function
+  const setupAdminAccount = async () => {
+    setIsSetupAdmin(true);
+    
+    try {
+      const response = await fetch('/api/admin/setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: 'Admin Setup Successful',
+          description: 'The admin account has been set up. You can now login using username: admin and password: admin123',
+          variant: 'default',
+        });
+        
+        // Set form values to admin credentials
+        form.setValue('username', 'admin');
+        form.setValue('password', 'admin123');
+      } else {
+        toast({
+          title: 'Setup Failed',
+          description: data.error || 'Failed to set up admin account',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Admin setup error:', error);
+      toast({
+        title: 'Setup Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSetupAdmin(false);
     }
   };
   
@@ -159,11 +203,36 @@ export default function Login() {
               </Link>
             </div>
             
-            {/* Demo credentials */}
-            <div className="text-xs text-center text-text-secondary border-t border-border-color pt-4 w-full">
-              <p className="mb-2">Demo credentials:</p>
-              <p>Username: <span className="font-mono bg-bg-chart p-1 rounded">demo</span></p>
-              <p>Password: <span className="font-mono bg-bg-chart p-1 rounded">password123</span></p>
+            {/* Demo credentials and admin setup button */}
+            <div className="text-xs text-center text-text-secondary border-t border-border-color pt-4 w-full space-y-4">
+              <div>
+                <p className="mb-2">Demo credentials:</p>
+                <p>Username: <span className="font-mono bg-bg-chart p-1 rounded">demo</span></p>
+                <p>Password: <span className="font-mono bg-bg-chart p-1 rounded">password123</span></p>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <p className="mb-2">Having trouble logging in?</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={setupAdminAccount}
+                  disabled={isSetupAdmin}
+                  className="text-yellow-500 border-yellow-500 hover:text-yellow-600 hover:border-yellow-600"
+                >
+                  {isSetupAdmin ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      Setting up admin...
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="mr-2 h-3 w-3" />
+                      Reset Admin Account
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardFooter>
         </Card>

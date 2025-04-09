@@ -107,13 +107,13 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
       console.log(`Authentication successful for user: ${user.username} (${user.id}), role: ${user.role}`);
       
       // Call next middleware
-      next();
+      return next();
     } catch (error: any) {
       console.error("Error during authentication:", error);
-      res.status(500).json({ error: "Server error during authentication" });
+      return res.status(500).json({ error: "Server error during authentication" });
     }
   } else {
-    res.status(401).json({ error: "Not authenticated" });
+    return res.status(401).json({ error: "Not authenticated" });
   }
 };
 
@@ -154,9 +154,9 @@ const hasRequiredRole = (requiredRoles: string[]) => {
       
       // Check if user's role is in the required roles list
       if (requiredRoles.includes(user.role)) {
-        next();
+        return next();
       } else {
-        res.status(403).json({ 
+        return res.status(403).json({ 
           error: "Access denied", 
           message: "You don't have permission to access this resource",
           userRole: user.role,
@@ -165,7 +165,7 @@ const hasRequiredRole = (requiredRoles: string[]) => {
       }
     } catch (error: any) {
       console.error("Error checking user role:", error);
-      res.status(500).json({ error: "Server error" });
+      return res.status(500).json({ error: "Server error" });
     }
   };
 };
@@ -202,9 +202,9 @@ const hasRequiredPlan = (requiredPlans: string[]) => {
       
       // Check if user's plan is in the required plans list
       if (requiredPlans.includes(user.subscriptionPlan)) {
-        next();
+        return next();
       } else {
-        res.status(403).json({ 
+        return res.status(403).json({ 
           error: "Plan upgrade required", 
           message: "This feature requires a higher subscription tier",
           userPlan: user.subscriptionPlan,
@@ -213,7 +213,7 @@ const hasRequiredPlan = (requiredPlans: string[]) => {
       }
     } catch (error: any) {
       console.error("Error checking subscription plan:", error);
-      res.status(500).json({ error: "Server error" });
+      return res.status(500).json({ error: "Server error" });
     }
   };
 };

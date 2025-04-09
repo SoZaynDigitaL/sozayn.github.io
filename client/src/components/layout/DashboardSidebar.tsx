@@ -68,7 +68,7 @@ export default function DashboardSidebar() {
       label: 'Delivery Partners', 
       requiredPlans: ['growth', 'professional', 'enterprise'],
       items: [
-        { href: '/dashboard/integrations', label: 'Manage Partners' },
+        { href: '/dashboard/delivery-partners', label: 'Manage Partners' },
         { href: '/dashboard/test-order', label: 'Test Order Flow' }
       ]
     },

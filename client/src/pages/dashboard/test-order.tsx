@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import TestDelivery from "@/components/dashboard/TestDelivery";
+import TestEcommerceDelivery from "@/components/dashboard/TestEcommerceDelivery";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function TestOrderPage() {
   const { user, isLoading } = useAuth();
@@ -35,17 +37,33 @@ export default function TestOrderPage() {
     return <div>Not authenticated</div>;
   }
 
+  // State for active tab
+  const [activeTab, setActiveTab] = useState("delivery");
+  
   return (
     <DashboardLayout>
       <div className="container mx-auto py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Test Order Flow</h1>
           <p className="text-muted-foreground">
-            Create test deliveries to verify your delivery integrations are working correctly.
+            Test delivery services and e-commerce integrations to verify they work correctly.
           </p>
         </div>
 
-        <TestDelivery />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="delivery">Direct Delivery Test</TabsTrigger>
+            <TabsTrigger value="integration">E-commerce Integration</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="delivery" className="space-y-6">
+            <TestDelivery />
+          </TabsContent>
+          
+          <TabsContent value="integration" className="space-y-6">
+            <TestEcommerceDelivery />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

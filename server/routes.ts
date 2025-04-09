@@ -798,8 +798,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.session.userId as number;
       
-      // Get integrations from database
-      const integrationsList = await db.select().from(integrations)
+      // Get integrations from database - select only columns that should exist in DB
+      const integrationsList = await db.select({
+        id: integrations.id,
+        userId: integrations.userId,
+        type: integrations.type,
+        provider: integrations.provider,
+        apiKey: integrations.apiKey,
+        apiSecret: integrations.apiSecret,
+        isActive: integrations.isActive,
+        environment: integrations.environment,
+        developerId: integrations.developerId,
+        keyId: integrations.keyId,
+        signingSecret: integrations.signingSecret,
+        webhookUrl: integrations.webhookUrl,
+        sendOrderStatus: integrations.sendOrderStatus,
+        storeUrl: integrations.storeUrl,
+        storeApiVersion: integrations.storeApiVersion,
+        settings: integrations.settings,
+        createdAt: integrations.createdAt
+        // Omit merchant_id and webhook_secret which might not exist yet
+      }).from(integrations)
         .where(eq(integrations.userId, userId))
         .orderBy(integrations.id);
       
@@ -928,6 +947,132 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Webhook endpoints for connecting e-commerce and delivery services
+  app.post("/api/webhook/ecommerce-to-delivery", isAuthenticated, async (req, res) => {
+    try {
+      const { 
+        ecommerceIntegrationId, 
+        deliveryIntegrationId, 
+        order 
+      } = req.body;
+      
+      if (!ecommerceIntegrationId || !deliveryIntegrationId || !order) {
+        return res.status(400).json({ 
+          error: "Missing required fields", 
+          message: "ecommerceIntegrationId, deliveryIntegrationId, and order are required" 
+        });
+      }
+      
+      // Log the incoming webhook payload
+      console.log("E-commerce to delivery webhook received:", {
+        ecommerceIntegrationId,
+        deliveryIntegrationId,
+        orderSummary: {
+          customer: order.customer,
+          items: order.items ? `${order.items.length} items` : 'No items',
+          total: order.totalAmount
+        }
+      });
+      
+      // Get the e-commerce integration to verify it's valid
+      const [ecommerceIntegration] = await db.select()
+        .from(integrations)
+        .where(eq(integrations.id, ecommerceIntegrationId));
+      
+      if (!ecommerceIntegration || ecommerceIntegration.type !== 'ecommerce') {
+        return res.status(404).json({ error: "E-commerce integration not found" });
+      }
+      
+      // Get the delivery integration to verify it's valid
+      const [deliveryIntegration] = await db.select()
+        .from(integrations)
+        .where(eq(integrations.id, deliveryIntegrationId));
+      
+      if (!deliveryIntegration || deliveryIntegration.type !== 'delivery') {
+        return res.status(404).json({ error: "Delivery integration not found" });
+      }
+      
+      // Get the delivery service client
+      const deliveryService = await getDeliveryServiceClient(deliveryIntegrationId);
+      
+      if (!deliveryService) {
+        return res.status(500).json({ error: "Failed to initialize delivery service" });
+      }
+      
+      // Format addresses
+      const pickupAddress = order.pickup ? order.pickup.address : 
+        `${order.pickupAddress || order.restaurant?.address || "123 Restaurant St"}, ${order.pickupCity || "City"}, ${order.pickupState || "State"} ${order.pickupZip || "12345"}`;
+      
+      const dropoffAddress = order.dropoff ? order.dropoff.address : 
+        `${order.dropoffAddress || order.customer?.address || order.customerAddress || "123 Customer St"}, ${order.dropoffCity || "City"}, ${order.dropoffState || "State"} ${order.dropoffZip || "12345"}`;
+      
+      // Create a delivery quote request
+      const quoteRequest = {
+        pickup: {
+          name: order.pickup?.name || order.restaurant?.name || order.pickupName || "Restaurant",
+          address: pickupAddress,
+          phoneNumber: order.pickup?.phoneNumber || order.restaurant?.phone || order.pickupPhone || "555-123-4567",
+          instructions: order.pickup?.instructions || order.pickupInstructions || "",
+          latitude: order.pickup?.latitude || 37.7749,
+          longitude: order.pickup?.longitude || -122.4194
+        },
+        dropoff: {
+          name: order.dropoff?.name || order.customer?.name || order.customerName || order.dropoffName || "Customer",
+          address: dropoffAddress,
+          phoneNumber: order.dropoff?.phoneNumber || order.customer?.phone || order.customerPhone || order.dropoffPhone || "555-987-6543",
+          instructions: order.dropoff?.instructions || order.dropoffInstructions || "",
+          latitude: order.dropoff?.latitude || 37.7833,
+          longitude: order.dropoff?.longitude || -122.4167
+        },
+        orderValue: order.totalAmount || 0,
+        items: order.items || [],
+        currency: order.currency || "USD"
+      };
+      
+      // Get a delivery quote
+      const quote = await deliveryService.getQuote(quoteRequest);
+      
+      if (!quote || !quote.id) {
+        throw new Error("Failed to get delivery quote");
+      }
+      
+      // Create the delivery using the quote
+      const delivery = await deliveryService.createDelivery({
+        ...quoteRequest,
+        quoteId: quote.id
+      });
+      
+      // Log the webhook event
+      console.log("Delivery created successfully:", {
+        eventType: 'ecommerce.order.delivery_created',
+        orderId: order.id,
+        deliveryId: delivery.id
+      });
+      
+      // Return the delivery information
+      res.json({
+        success: true,
+        message: "Delivery created successfully",
+        orderId: order.id,
+        delivery: {
+          id: delivery.id,
+          status: delivery.status,
+          trackingUrl: delivery.tracking_url,
+          fee: delivery.fee,
+          currency: delivery.currency,
+          pickupEta: delivery.pickup_eta,
+          dropoffEta: delivery.dropoff_eta
+        }
+      });
+    } catch (error: any) {
+      console.error("Error in e-commerce to delivery webhook:", error);
+      res.status(500).json({
+        error: "Failed to process webhook",
+        message: error.message
+      });
+    }
+  });
+  
   // E-commerce integration test endpoints
   app.post("/api/ecommerce/test-product", isAuthenticated, async (req, res) => {
     try {

@@ -37,6 +37,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             {location === '/dashboard' && 'Dashboard'}
             {location === '/dashboard/orders' && 'Orders'}
             {location === '/dashboard/integrations' && 'Delivery Integrations'}
+            {location === '/dashboard/delivery-partners' && 'Delivery Partners'}
+            {location === '/dashboard/test-order' && 'Test Order Flow'}
             {location === '/dashboard/pos' && 'POS Integration'}
             {location === '/dashboard/marketing' && 'Marketing'}
             {location === '/dashboard/loyalty' && 'Loyalty & Rewards'}

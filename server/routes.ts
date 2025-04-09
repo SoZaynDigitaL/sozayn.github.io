@@ -54,7 +54,7 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
       
       // Call next middleware
       next();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during authentication:", error);
       res.status(500).json({ error: "Server error during authentication" });
     }
@@ -88,7 +88,7 @@ const hasRequiredRole = (requiredRoles: string[]) => {
           requiredRoles
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error checking user role:", error);
       res.status(500).json({ error: "Server error" });
     }
@@ -120,7 +120,7 @@ const hasRequiredPlan = (requiredPlans: string[]) => {
           requiredPlans
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error checking subscription plan:", error);
       res.status(500).json({ error: "Server error" });
     }
@@ -177,7 +177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = newUser;
       
       res.status(201).json(userWithoutPassword);
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: error.errors });
       }
@@ -253,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         res.json(userWithoutPassword);
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
@@ -272,7 +272,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { password, ...userWithoutPassword } = user;
       
       res.json(userWithoutPassword);
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -339,18 +339,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Admin account has been set up successfully"
         });
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Admin setup error:", error);
       res.status(500).json({ error: "Failed to setup admin account" });
     }
   });
   
+  // Helper endpoint to set up Uber Direct webhook
+  app.post("/api/webhooks/setup/uberdirect", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Check if webhook already exists for this user and provider
+      const existingWebhooks = await storage.getWebhooks(userId);
+      const uberDirectWebhook = existingWebhooks.find(wh => 
+        wh.sourceProvider.toLowerCase() === 'uberdirect' || 
+        wh.sourceProvider.toLowerCase() === 'uber'
+      );
+      
+      if (uberDirectWebhook) {
+        return res.json({
+          success: true,
+          message: "UberDirect webhook already exists",
+          webhook: uberDirectWebhook
+        });
+      }
+      
+      // Create a new webhook for UberDirect
+      const newWebhook = await storage.createWebhook({
+        userId,
+        name: "UberDirect Integration",
+        endpointUrl: "https://sozayn.SoZaynDigitaL.repl.co/api/webhooks/uberdirect",
+        description: "Webhook for UberDirect delivery status updates and courier tracking",
+        sourceType: "delivery",
+        sourceProvider: "UberDirect",
+        destinationType: "ecommerce",
+        destinationProvider: "SoZayn",
+        eventTypes: ["event.delivery_status", "event.courier_update", "event.refund_request"],
+        isActive: true
+      });
+      
+      res.json({
+        success: true,
+        message: "UberDirect webhook created successfully",
+        webhook: newWebhook
+      });
+    } catch (error: any) {
+      console.error("Error creating UberDirect webhook:", error);
+      res.status(500).json({ 
+        error: "Failed to create UberDirect webhook",
+        message: error.message
+      });
+    }
+  });
+
   // Demo data generation
   app.post("/api/demo/generate", isAuthenticated, async (req, res) => {
     try {
       // For now just return success - the frontend will mock data
       res.json({ success: true });
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: "Failed to generate demo data" });
     }
   });
@@ -544,6 +592,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Error deleting social media account", 
         message: error.message 
+      });
+    }
+  });
+  
+  // Uber Direct Webhook Handler
+  app.post("/api/webhooks/uberdirect", async (req, res) => {
+    try {
+      console.log("Received Uber Direct webhook:", JSON.stringify(req.body));
+      
+      const webhookData = req.body;
+      let eventType = 'unknown';
+      
+      // Determine event type from Uber Direct payload
+      if (webhookData.event_type) {
+        eventType = webhookData.event_type;
+      } else if (webhookData.type) {
+        eventType = webhookData.type;
+      }
+      
+      // Get webhook by provider
+      let webhook;
+      try {
+        // Find the corresponding webhook in our database
+        const webhooks = await storage.getWebhooks(0); // Get all webhooks (improvement: add filter by provider)
+        webhook = webhooks.find(wh => 
+          wh.sourceProvider.toLowerCase() === 'uberdirect' || 
+          wh.sourceProvider.toLowerCase() === 'uber'
+        );
+      } catch (error: any) {
+        console.error("Error finding webhook:", error);
+      }
+      
+      // Process based on event type
+      const startTime = Date.now();
+      let statusCode = 200;
+      let errorMessage;
+      
+      try {
+        switch(eventType) {
+          case 'event.delivery_status':
+            // Handle delivery status update
+            console.log("Processing delivery status update:", 
+              webhookData.delivery_id, 
+              webhookData.status || 'unknown status'
+            );
+            // Here you would update order status in your database
+            break;
+            
+          case 'event.courier_update':
+            // Handle courier location update
+            console.log("Processing courier update:", 
+              webhookData.delivery_id, 
+              webhookData.location || 'unknown location'
+            );
+            // Here you would update courier location in your database
+            break;
+            
+          case 'event.refund_request':
+            // Handle refund request
+            console.log("Processing refund request:", 
+              webhookData.delivery_id, 
+              webhookData.reason || 'no reason provided'
+            );
+            // Here you would handle the refund process
+            break;
+            
+          default:
+            console.log("Unhandled event type:", eventType);
+        }
+      } catch (processError: any) {
+        console.error("Error processing webhook data:", processError);
+        statusCode = 500;
+        errorMessage = processError.message;
+      }
+      
+      // Calculate processing time
+      const processingTimeMs = Date.now() - startTime;
+      
+      // Log the webhook if we found a matching webhook record
+      if (webhook) {
+        try {
+          await storage.createWebhookLog({
+            webhookId: webhook.id,
+            eventType,
+            requestPayload: webhookData,
+            responsePayload: { success: statusCode === 200 },
+            statusCode,
+            errorMessage,
+            processingTimeMs
+          });
+        } catch (logError) {
+          console.error("Error logging webhook:", logError);
+        }
+      } else {
+        console.log("No matching webhook found for provider: UberDirect");
+      }
+      
+      // Always respond with success to acknowledge receipt
+      // This prevents Uber Direct from retrying unnecessarily
+      res.status(200).json({ 
+        success: true,
+        message: "Webhook received and processed"
+      });
+      
+    } catch (error: any) {
+      console.error("Error handling Uber Direct webhook:", error);
+      
+      // Still return 200 to prevent Uber Direct from retrying
+      // Log failure internally instead
+      res.status(200).json({ 
+        success: false,
+        message: "Webhook received but processing failed"
       });
     }
   });

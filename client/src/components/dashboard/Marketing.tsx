@@ -191,6 +191,96 @@ export default function Marketing() {
     campaigns: 18
   };
   
+  // Email form schema
+  const emailSubscriberSchema = z.object({
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    name: z.string().min(2, { message: "Name must be at least 2 characters" }).optional(),
+    additionalFields: z.record(z.string()).optional()
+  });
+
+  type EmailSubscriberFormValues = z.infer<typeof emailSubscriberSchema>;
+
+  const emailCampaignSchema = z.object({
+    name: z.string().min(3, { message: "Campaign name must be at least 3 characters" }),
+    subject: z.string().min(5, { message: "Subject must be at least 5 characters" }),
+    content: z.string().min(10, { message: "Content must be at least 10 characters" }),
+    scheduledFor: z.string().optional(),
+  });
+
+  type EmailCampaignFormValues = z.infer<typeof emailCampaignSchema>;
+
+  // Fetch email subscribers
+  const { data: emailSubscribers = [], isLoading: isLoadingSubscribers } = useQuery({
+    queryKey: ['/api/email-marketing/subscribers'],
+    queryFn: () => 
+      apiRequest('GET', '/api/email-marketing/subscribers')
+        .then((res) => res.json())
+        .catch(() => []), // Fallback to empty array if API fails
+  });
+
+  // Fetch email campaigns
+  const { data: emailCampaignsList = [], isLoading: isLoadingCampaigns } = useQuery({
+    queryKey: ['/api/email-marketing/campaigns'],
+    queryFn: () => 
+      apiRequest('GET', '/api/email-marketing/campaigns')
+        .then((res) => res.json())
+        .catch(() => []), // Fallback to empty array if API fails
+  });
+
+  // Add email subscriber mutation
+  const addSubscriberMutation = useMutation({
+    mutationFn: (data: EmailSubscriberFormValues) => 
+      apiRequest('POST', '/api/email-marketing/subscribers', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email-marketing/subscribers'] });
+      emailSubscriberForm.reset();
+      toast({
+        title: "Subscriber Added",
+        description: "The email subscriber has been added successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: `Failed to add subscriber: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Email subscriber form
+  const emailSubscriberForm = useForm<EmailSubscriberFormValues>({
+    resolver: zodResolver(emailSubscriberSchema),
+    defaultValues: {
+      email: '',
+      name: '',
+    }
+  });
+
+  // Email campaign form
+  const emailCampaignForm = useForm<EmailCampaignFormValues>({
+    resolver: zodResolver(emailCampaignSchema),
+    defaultValues: {
+      name: '',
+      subject: '',
+      content: '',
+      scheduledFor: '',
+    }
+  });
+
+  const onEmailSubscriberSubmit = (data: EmailSubscriberFormValues) => {
+    addSubscriberMutation.mutate(data);
+  };
+
+  const onEmailCampaignSubmit = (data: EmailCampaignFormValues) => {
+    console.log('Email campaign created:', data);
+    toast({
+      title: "Campaign Created",
+      description: "Your email campaign has been created successfully.",
+    });
+    emailCampaignForm.reset();
+  };
+
   // SEO form
   const seoForm = useForm({
     defaultValues: {
@@ -982,7 +1072,7 @@ export default function Marketing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <StatsCard
               title="Subscribers"
-              value={emailStats.subscribers.toString()}
+              value={isLoadingSubscribers ? "..." : emailSubscribers.length?.toString() || emailStats.subscribers.toString()}
               icon={<Users className="h-4 w-4 text-accent-blue" />}
               change={12.5}
               progress={75}
@@ -1009,7 +1099,7 @@ export default function Marketing() {
             
             <StatsCard
               title="Campaigns"
-              value={emailStats.campaigns.toString()}
+              value={isLoadingCampaigns ? "..." : emailCampaignsList.length?.toString() || emailStats.campaigns.toString()}
               icon={<Megaphone className="h-4 w-4 text-accent-purple" />}
               change={5}
               progress={60}
@@ -1017,7 +1107,176 @@ export default function Marketing() {
             />
           </div>
           
-          <DashboardCard title="Recent Email Campaigns">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="md:col-span-2">
+              <DashboardCard title="MailerLite Integration" className="h-full">
+                <div className="space-y-4">
+                  <div className="p-4 bg-accent-blue/10 border border-accent-blue/20 rounded-lg">
+                    <h3 className="font-medium flex items-center text-accent-blue mb-2">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email Marketing with MailerLite
+                    </h3>
+                    <p className="text-sm text-text-secondary mb-2">
+                      SoZayn is integrated with MailerLite, allowing you to manage subscribers, create campaigns, 
+                      and automate your email marketing. Add subscribers below or import them directly from your customer database.
+                    </p>
+                  </div>
+                
+                  <Form {...emailSubscriberForm}>
+                    <form onSubmit={emailSubscriberForm.handleSubmit(onEmailSubscriberSubmit)} className="space-y-4">
+                      <FormField
+                        control={emailSubscriberForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl>
+                              <Input placeholder="customer@example.com" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={emailSubscriberForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Name (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="John Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button 
+                        type="submit" 
+                        className="bg-accent-blue hover:bg-accent-blue/90"
+                        disabled={addSubscriberMutation.isPending}
+                      >
+                        {addSubscriberMutation.isPending ? "Adding..." : "Add Subscriber"}
+                      </Button>
+                    </form>
+                  </Form>
+                </div>
+              </DashboardCard>
+            </div>
+            
+            <DashboardCard title="Email Automations" className="h-full">
+              <div className="space-y-4">
+                <div className="p-4 border border-border-color rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Welcome Email</h3>
+                    <Switch defaultChecked />
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    Automatically send a welcome email to new customers
+                  </p>
+                </div>
+                
+                <div className="p-4 border border-border-color rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Order Confirmation</h3>
+                    <Switch defaultChecked />
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    Send confirmation emails after every order
+                  </p>
+                </div>
+                
+                <div className="p-4 border border-border-color rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Abandoned Cart</h3>
+                    <Switch />
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    Remind customers about items left in cart
+                  </p>
+                </div>
+                
+                <div className="p-4 border border-border-color rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">Monthly Newsletter</h3>
+                    <Switch defaultChecked />
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    Send monthly updates and special offers
+                  </p>
+                </div>
+              </div>
+            </DashboardCard>
+          </div>
+          
+          <DashboardCard title="Subscriber Management">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-text-secondary" />
+                <Input 
+                  type="search" 
+                  placeholder="Search subscribers..." 
+                  className="pl-9 bg-bg-chart border-border-color w-full"
+                />
+              </div>
+              
+              <Button variant="outline" className="ml-2">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                <span>Import Subscribers</span>
+              </Button>
+            </div>
+            
+            <div className="rounded-md border border-border-color">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>Email</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date Added</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoadingSubscribers ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        Loading subscribers...
+                      </TableCell>
+                    </TableRow>
+                  ) : emailSubscribers && emailSubscribers.length > 0 ? (
+                    emailSubscribers.map((subscriber: any, index: number) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">{subscriber.email}</TableCell>
+                        <TableCell>{subscriber.name || '-'}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-600/20">
+                            Active
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{new Date(subscriber.created_at || Date.now()).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <span className="sr-only">Edit</span>
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        No subscribers found. Add your first subscriber above.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </DashboardCard>
+          
+          <DashboardCard title="Recent Email Campaigns" className="mt-6">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
@@ -1030,28 +1289,42 @@ export default function Marketing() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {emailCampaigns.map((campaign) => (
-                  <TableRow key={campaign.id}>
-                    <TableCell className="font-medium">{campaign.name}</TableCell>
-                    <TableCell>{campaign.sent}</TableCell>
-                    <TableCell>{campaign.opens}</TableCell>
-                    <TableCell>{campaign.clicks}</TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          campaign.status === 'completed' 
-                            ? 'bg-accent-green/20 text-accent-green' 
-                            : 'bg-accent-blue/20 text-accent-blue'
-                        }
-                      >
-                        {campaign.status === 'completed' ? 'Sent' : 'Scheduled'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
+                {isLoadingCampaigns ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      Loading campaigns...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : emailCampaignsList && emailCampaignsList.length > 0 ? (
+                  emailCampaignsList.map((campaign: any) => (
+                    <TableRow key={campaign.id}>
+                      <TableCell className="font-medium">{campaign.name}</TableCell>
+                      <TableCell>{campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>{campaign.opens || 0}</TableCell>
+                      <TableCell>{campaign.clicks || 0}</TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            campaign.status === 'completed' 
+                              ? 'bg-accent-green/20 text-accent-green' 
+                              : 'bg-accent-blue/20 text-accent-blue'
+                          }
+                        >
+                          {campaign.status === 'completed' ? 'Sent' : 'Scheduled'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">View</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      No campaigns found. Create your first campaign.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
             

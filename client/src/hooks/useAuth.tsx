@@ -7,6 +7,12 @@ interface User {
   email: string;
   businessName: string;
   businessType: string;
+  role: string;
+  subscriptionPlan: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: string;
+  subscriptionExpiresAt?: string;
   createdAt: string;
 }
 

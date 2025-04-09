@@ -10,6 +10,12 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   businessName: text("business_name").notNull(),
   businessType: text("business_type").notNull(), // restaurant, grocery, etc.
+  role: text("role").notNull().default("client"), // client, admin
+  subscriptionPlan: text("subscription_plan").notNull().default("free"), // free, starter, professional, enterprise
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status"),
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

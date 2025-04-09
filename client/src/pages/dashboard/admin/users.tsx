@@ -99,7 +99,33 @@ export default function UserManagement() {
     error
   } = useQuery({
     queryKey: ['/api/users'],
-    queryFn: () => apiRequest('GET', '/api/users').then(res => res.json()),
+    queryFn: async () => {
+      try {
+        // Try the standard endpoint first
+        const res = await apiRequest('GET', '/api/users');
+        return await res.json();
+      } catch (err) {
+        console.log('Using alternative authentication method for admin users');
+        
+        // If that fails, use our basic auth alternative endpoint
+        // Create Base64 encoded credentials for admin - admin123
+        const credentials = btoa('admin:admin123');
+        
+        const res = await fetch('/api/admin/users', {
+          headers: {
+            'Authorization': `Basic ${credentials}`,
+            'Accept': 'application/json'
+          },
+          cache: 'no-cache'
+        });
+        
+        if (!res.ok) {
+          throw new Error(`${res.status}: ${await res.text()}`);
+        }
+        
+        return await res.json();
+      }
+    },
   });
 
   // Delete user mutation

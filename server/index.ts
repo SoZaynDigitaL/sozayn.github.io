@@ -13,6 +13,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Set up session middleware with Postgres session store
+app.set('trust proxy', 1); // Trust the first proxy to handle secure cookies
+
 app.use(
   session({
     store: new PostgresStore({
@@ -25,10 +27,10 @@ app.use(
     saveUninitialized: true, // Create session even if nothing is stored
     rolling: true, // Reset maxAge on every response
     cookie: { 
-      secure: false, // Set to true in production with HTTPS
+      secure: false, // Using false because Replit doesn't use HTTPS locally
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'none', // Required for cross-site requests
       path: '/' // Ensure cookie is valid for all paths
     },
     name: 'sozayn.sid' // Custom name for the session cookie

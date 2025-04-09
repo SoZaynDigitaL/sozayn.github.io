@@ -17,11 +17,21 @@ export async function apiRequest(
   data?: unknown | undefined,
   options?: Partial<ApiRequestOptions>
 ): Promise<Response> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/json'
+  };
+
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include", // Always include credentials (cookies) with requests
+    mode: "cors", // Allow CORS
+    cache: "no-cache" // Don't cache requests
   });
 
   // Skip error throwing for 401 errors if specified in options
@@ -43,7 +53,13 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      },
+      credentials: "include", // Always include credentials (cookies) with requests
+      mode: "cors", // Allow CORS
+      cache: "no-cache" // Don't cache requests
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

@@ -168,16 +168,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
+      console.log("Login attempt:", { username });
       
       // Find user
       const user = await storage.getUserByUsername(username);
       if (!user) {
+        console.log("User not found:", username);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      // Check password with bcrypt
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
+      // First try direct password comparison (for legacy unhashed passwords)
+      // This is temporary and will be removed after all passwords are hashed
+      if (user.password === password) {
+        console.log("Legacy password match, updating to hashed format");
+        
+        // Update the user's password to a hashed version for future logins
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        await storage.updateUser(user.id, { password: hashedPassword });
+        
+        // Set user ID in session
+        req.session.userId = user.id;
+        
+        // Save the session explicitly to ensure it's stored before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session:", err);
+            return res.status(500).json({ error: "Failed to save session" });
+          }
+          
+          // Don't return password
+          const { password: _, ...userWithoutPassword } = user;
+          
+          res.json(userWithoutPassword);
+        });
+        return;
+      }
+      
+      // If not a direct match, try bcrypt comparison
+      try {
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+          console.log("Password mismatch for:", username);
+          return res.status(401).json({ error: "Invalid credentials" });
+        }
+      } catch (bcryptError) {
+        console.error("Bcrypt error - likely not a hashed password:", bcryptError);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       

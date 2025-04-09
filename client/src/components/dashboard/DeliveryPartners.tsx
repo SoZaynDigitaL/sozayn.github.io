@@ -194,7 +194,7 @@ export default function DeliveryPartners() {
         provider: data.provider,
         type: 'delivery',
         apiKey: "******", // Mask for display
-        isActive: true,
+        isActive: false, // Set to inactive by default until configured
         environment: "sandbox",
         settings: {}
       };
@@ -306,7 +306,10 @@ export default function DeliveryPartners() {
       
       return { id: data.id };
     },
-    onSuccess: () => {
+    onSuccess: (updatedIntegration: any) => {
+      // If all required fields are filled, enable automatic activation
+      const integration = integrations.find(int => int.id === updatedIntegration.id);
+      
       toast({
         title: "Integration updated",
         description: "The delivery partner configuration has been updated successfully.",
@@ -365,6 +368,26 @@ export default function DeliveryPartners() {
   // TEMPORARY: Toggle function using local state while API is fixed
   const toggleIntegrationStatus = async (id: number, isActive: boolean) => {
     try {
+      // Find the integration in our state
+      const integration = integrations.find(int => int.id === id);
+      
+      // Check if integration has the required fields for activation
+      const hasRequiredFields = integration && 
+        integration.settings && 
+        (integration.developerId || integration.settings.developerId) && 
+        (integration.keyId || integration.settings.keyId) && 
+        (integration.signingSecret || integration.settings.signingSecret);
+      
+      // If trying to activate but missing required fields, show error
+      if (isActive && !hasRequiredFields) {
+        toast({
+          title: "Cannot activate",
+          description: "Please configure all required fields first before activating this integration.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 300));
       

@@ -1,11 +1,55 @@
 import { UberDirectService } from './UberDirectService';
 import { JetGoService } from './JetGoService';
+import { EcommerceService, createEcommerceService } from './EcommerceService';
 import { db } from '../db';
 import { integrations } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 
 // Service type for any delivery service
 type DeliveryService = UberDirectService | JetGoService;
+
+// Service type for any e-commerce service
+type EcommerceServiceType = EcommerceService;
+
+// Get a service client for a specific e-commerce integration
+export async function getEcommerceServiceClient(integrationId?: number, platform?: string, credentials?: any): Promise<EcommerceServiceType | null> {
+  try {
+    // If an integration ID is provided, load from the database
+    if (integrationId) {
+      // Get the integration from the database
+      const [integration] = await db.select().from(integrations).where(eq(integrations.id, integrationId));
+      
+      if (!integration || integration.type !== 'ecommerce') {
+        console.error(`E-commerce integration with ID ${integrationId} not found`);
+        return null;
+      }
+      
+      // Create and return the e-commerce service client
+      return createEcommerceService({
+        platform: integration.provider.toLowerCase(),
+        apiKey: integration.apiKey || 'demo_api_key',
+        apiSecret: integration.apiSecret || 'demo_api_secret',
+        storeUrl: integration.storeUrl || 'https://example-store.com',
+        environment: integration.environment as 'sandbox' | 'live'
+      });
+    }
+    // If credentials are provided directly, use them
+    else if (platform && credentials) {
+      return createEcommerceService({
+        platform: platform,
+        apiKey: credentials.apiKey || 'demo_api_key',
+        apiSecret: credentials.apiSecret || 'demo_api_secret',
+        storeUrl: credentials.storeUrl || 'https://example-store.com',
+        environment: credentials.environment || 'sandbox'
+      });
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting e-commerce service client:', error);
+    return null;
+  }
+}
 
 // Get a service client for a specific delivery integration
 export async function getDeliveryServiceClient(integrationId: number): Promise<DeliveryService | null> {

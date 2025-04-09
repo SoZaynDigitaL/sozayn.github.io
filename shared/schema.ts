@@ -36,6 +36,7 @@ export const integrations = pgTable("integrations", {
   type: text("type").notNull(), // delivery, pos, ecommerce
   provider: text("provider").notNull(), // doordash, ubereats, toast, square, jetgo, shopify, woocommerce, etc.
   apiKey: text("api_key"),
+  apiSecret: text("api_secret"), // API Secret for e-commerce platforms
   isActive: boolean("is_active").default(false),
   environment: text("environment").default("sandbox"), // sandbox, live
   developerId: text("developer_id"), // Customer ID for UberDirect
@@ -56,6 +57,7 @@ export const insertIntegrationSchema = createInsertSchema(integrations).pick({
   type: true,
   provider: true,
   apiKey: true,
+  apiSecret: true,
   environment: true,
   developerId: true,
   keyId: true,

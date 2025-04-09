@@ -63,10 +63,14 @@ export default function DashboardSidebar() {
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
     { 
-      href: '/dashboard/integrations', 
+      group: 'delivery',
       icon: ExternalLink, 
       label: 'Delivery Partners', 
-      requiredPlans: ['growth', 'professional', 'enterprise'] 
+      requiredPlans: ['growth', 'professional', 'enterprise'],
+      items: [
+        { href: '/dashboard/integrations', label: 'Manage Partners' },
+        { href: '/dashboard/test-order', label: 'Test Order Flow' }
+      ]
     },
     { 
       href: '/dashboard/pos', 

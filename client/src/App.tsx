@@ -16,7 +16,7 @@ import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
 import Settings from "@/pages/dashboard/settings";
 import TestOrder from "@/pages/dashboard/test-order";
-import DeliveryPartners from "@/pages/dashboard/delivery-partners";
+import DeliveryPartners from "@/pages/dashboard/delivery-partners-new";
 import Users from "@/pages/dashboard/admin/users";
 import AdminWebhooks from "@/pages/dashboard/admin/webhooks";
 import Ecommerce from "@/pages/dashboard/ecommerce";

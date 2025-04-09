@@ -628,14 +628,15 @@ export default function TestDelivery() {
                     <Button 
                       type="button" 
                       onClick={createDelivery}
-                      disabled={deliveryStatus.status === 'creating'}
+                      disabled={deliveryStatus.status !== 'quoted'}
                     >
-                      {deliveryStatus.status === 'creating' ? (
+                      {deliveryStatus.status === 'creating' && (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Creating Delivery...
                         </>
-                      ) : (
+                      )}
+                      {deliveryStatus.status !== 'creating' && (
                         <>
                           <TruckIcon className="mr-2 h-4 w-4" />
                           Create Delivery

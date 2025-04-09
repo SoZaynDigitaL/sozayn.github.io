@@ -603,9 +603,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get a quote for a delivery
   app.post("/api/delivery/quote", isAuthenticated, async (req, res) => {
     try {
-      const { integrationId, pickup, dropoff, items, orderValue } = req.body;
+      const { integrationId, pickup, dropoff, items, orderItems, orderValue } = req.body;
+      // Support both items and orderItems field names
+      const deliveryItems = items || orderItems || [];
       
       if (!integrationId || !pickup || !dropoff) {
+        console.log("Missing required fields in delivery quote request:", req.body);
         return res.status(400).json({ error: "Missing required fields" });
       }
       
@@ -620,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quote = await deliveryService.getQuote({
         pickup,
         dropoff,
-        items: items || [],
+        items: deliveryItems,
         orderValue: orderValue || 0,
         currency: "USD"
       });
@@ -638,9 +641,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a delivery
   app.post("/api/delivery/create", isAuthenticated, async (req, res) => {
     try {
-      const { integrationId, pickup, dropoff, items, orderValue, quoteId } = req.body;
+      const { integrationId, pickup, dropoff, items, orderItems, orderValue, quoteId } = req.body;
+      // Support both items and orderItems field names
+      const deliveryItems = items || orderItems || [];
       
       if (!integrationId || !pickup || !dropoff) {
+        console.log("Missing required fields in create delivery request:", req.body);
         return res.status(400).json({ error: "Missing required fields" });
       }
       
@@ -655,7 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const delivery = await deliveryService.createDelivery({
         pickup,
         dropoff,
-        items: items || [],
+        items: deliveryItems,
         orderValue: orderValue || 0,
         currency: "USD"
       }, quoteId);

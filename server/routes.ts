@@ -618,6 +618,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         partner
       });
       
+      // Add more detailed logging of pickup and dropoff objects
+      if (pickup) {
+        console.log("Pickup details:", {
+          name: pickup.name || 'missing',
+          address: pickup.address || 'missing',
+          phoneNumber: pickup.phoneNumber || 'missing',
+          latitude: pickup.latitude || 'missing',
+          longitude: pickup.longitude || 'missing'
+        });
+      }
+      
+      if (dropoff) {
+        console.log("Dropoff details:", {
+          name: dropoff.name || 'missing',
+          address: dropoff.address || 'missing',
+          phoneNumber: dropoff.phoneNumber || 'missing',
+          latitude: dropoff.latitude || 'missing',
+          longitude: dropoff.longitude || 'missing'
+        });
+      }
+      
       if (!integrationId || !pickup || !dropoff) {
         console.log("Missing required fields in delivery quote request");
         console.log("integrationId:", integrationId);
@@ -633,14 +654,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
       }
       
-      // Get a quote
-      const quote = await deliveryService.getQuote({
+      // Debug the items array
+      console.log("Items array for delivery service:", deliveryItems);
+      
+      // Create proper request object - making sure the items field is correctly set
+      const quoteRequest = {
         pickup,
         dropoff,
-        items: deliveryItems,
+        items: deliveryItems,  // The UberDirectService expects "items" not "orderItems"
         orderValue: orderValue || 0,
         currency: "USD"
-      });
+      };
+      
+      console.log("Final quote request to delivery service:", JSON.stringify(quoteRequest));
+      
+      // Get a quote
+      const quote = await deliveryService.getQuote(quoteRequest);
       
       res.json(quote);
     } catch (error: any) {
@@ -671,14 +700,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Delivery service not found or not configured correctly" });
       }
       
-      // Create a delivery
-      const delivery = await deliveryService.createDelivery({
+      // Debug the items array
+      console.log("Items array for delivery creation:", deliveryItems);
+      
+      // Create proper request object
+      const deliveryRequest = {
         pickup,
         dropoff,
-        items: deliveryItems,
+        items: deliveryItems,  // The UberDirectService expects "items" not "orderItems"
         orderValue: orderValue || 0,
         currency: "USD"
-      }, quoteId);
+      };
+      
+      console.log("Final delivery creation request:", JSON.stringify(deliveryRequest));
+      
+      // Create a delivery
+      const delivery = await deliveryService.createDelivery(deliveryRequest, quoteId);
       
       res.json(delivery);
     } catch (error: any) {

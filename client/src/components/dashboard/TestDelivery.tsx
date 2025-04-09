@@ -171,6 +171,7 @@ export default function TestDelivery() {
       }
       
       // Convert form data to API format
+      // Add default coordinates
       const quoteRequest = {
         partner: data.deliveryPartner,
         integrationId: integrationId,
@@ -179,12 +180,16 @@ export default function TestDelivery() {
           address: `${data.pickupAddress}, ${data.pickupCity}, ${data.pickupState} ${data.pickupZip}`,
           phoneNumber: data.pickupPhone,
           instructions: data.pickupInstructions,
+          latitude: 37.7749,
+          longitude: -122.4194
         },
         dropoff: {
           name: data.dropoffName,
           address: `${data.dropoffAddress}, ${data.dropoffCity}, ${data.dropoffState} ${data.dropoffZip}`,
           phoneNumber: data.dropoffPhone,
           instructions: data.dropoffInstructions,
+          latitude: 37.7833,
+          longitude: -122.4167
         },
         orderValue: parseFloat(data.orderValue),
         orderItems: data.orderItems.split(',').map(item => {
@@ -197,6 +202,9 @@ export default function TestDelivery() {
         }),
         notes: data.orderNotes
       };
+      
+      // Log the quote request for debugging
+      console.log("Sending delivery quote request:", JSON.stringify(quoteRequest, null, 2));
       
       // Get delivery quote
       const quoteResponse = await apiRequest('POST', '/api/delivery/quote', quoteRequest);
@@ -296,12 +304,16 @@ export default function TestDelivery() {
           address: `${formData.pickupAddress}, ${formData.pickupCity}, ${formData.pickupState} ${formData.pickupZip}`,
           phoneNumber: formData.pickupPhone,
           instructions: formData.pickupInstructions,
+          latitude: 37.7749,
+          longitude: -122.4194
         },
         dropoff: {
           name: formData.dropoffName,
           address: `${formData.dropoffAddress}, ${formData.dropoffCity}, ${formData.dropoffState} ${formData.dropoffZip}`,
           phoneNumber: formData.dropoffPhone,
           instructions: formData.dropoffInstructions,
+          latitude: 37.7833,
+          longitude: -122.4167
         },
         orderValue: parseFloat(formData.orderValue),
         orderItems: formData.orderItems.split(',').map(item => {

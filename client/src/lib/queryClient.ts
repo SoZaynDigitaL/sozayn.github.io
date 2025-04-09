@@ -9,6 +9,7 @@ async function throwIfResNotOk(res: Response) {
 
 type ApiRequestOptions = {
   on401: "returnNull" | "throw";
+  headers?: Record<string, string>;
 };
 
 export async function apiRequest(
@@ -18,7 +19,8 @@ export async function apiRequest(
   options?: Partial<ApiRequestOptions>
 ): Promise<Response> {
   const headers: Record<string, string> = {
-    'Accept': 'application/json'
+    'Accept': 'application/json',
+    ...(options?.headers || {})
   };
 
   if (data) {
@@ -68,11 +70,22 @@ export const getQueryFn: <T>(options: {
       documentCookie: document.cookie ? 'present' : 'missing'
     });
     
+    // Check if we have an auth token in localStorage
+    const TOKEN_KEY = 'sozayn_auth_token';
+    const authToken = localStorage.getItem(TOKEN_KEY);
+    
+    // Create headers with token if available
+    const headers: Record<string, string> = {
+      'Accept': 'application/json'
+    };
+    
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+    
     const res = await fetch(queryKey[0] as string, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
+      headers,
       credentials: "include", // Always include credentials (cookies) with requests
       mode: "same-origin", // Changed from "cors" to "same-origin" since we're on the same domain
       cache: "no-cache" // Don't cache requests

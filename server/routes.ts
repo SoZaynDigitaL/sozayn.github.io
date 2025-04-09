@@ -15,6 +15,7 @@ import Stripe from "stripe";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { getDeliveryServiceClient } from "./services";
+import jwt from "jsonwebtoken";
 
 // Helper function for MailerLite initialization
 async function getMailerLiteClient() {
@@ -39,6 +40,10 @@ declare module 'express-session' {
 
 // Helper function to authenticate requests
 const isAuthenticated = async (req: Request, res: Response, next: NextFunction) => {
+  // Check for auth token in the Authorization header
+  const authHeader = req.headers.authorization;
+  const JWT_SECRET = process.env.JWT_SECRET || 'sozayn-jwt-secret-DO-NOT-USE-IN-PRODUCTION';
+  
   console.log('Checking authentication:', {
     hasSession: !!req.session,
     userId: req.session?.userId,
@@ -46,8 +51,29 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
     sessionID: req.sessionID,
     cookies: req.headers.cookie,
     cookieSummary: req.headers.cookie ? 'present' : 'missing',
+    authHeader: authHeader ? 'present' : 'missing',
     sessionData: JSON.stringify(req.session)
   });
+  
+  // First try JWT token authentication
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.split(' ')[1];
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: number, role: string };
+      
+      if (decoded && decoded.userId) {
+        // Set the decoded user ID in the session
+        req.session.userId = decoded.userId;
+        req.session.role = decoded.role;
+        
+        console.log(`Authentication successful via JWT token for user ID: ${decoded.userId}, role: ${decoded.role}`);
+        return next();
+      }
+    } catch (error) {
+      console.error('JWT verification error:', error);
+      // Continue to other authentication methods
+    }
+  }
   
   // For specific API endpoints that need a user context, use a simpler approach
   // For admin-specific routes like /api/users, try to use Authorization header
@@ -340,6 +366,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.userId = user.id;
         req.session.role = user.role;
         
+        // Create a JWT token
+        const JWT_SECRET = process.env.JWT_SECRET || 'sozayn-jwt-secret-DO-NOT-USE-IN-PRODUCTION';
+        const token = jwt.sign(
+          { userId: user.id, role: user.role }, 
+          JWT_SECRET, 
+          { expiresIn: '7d' } // Token expires in 7 days
+        );
+        
         // Save the session explicitly to ensure it's stored before sending response
         req.session.save((err) => {
           if (err) {
@@ -354,7 +388,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Don't return password
           const { password: _, ...userWithoutPassword } = user;
           
-          res.json(userWithoutPassword);
+          // Return the user data and token
+          res.json({
+            ...userWithoutPassword,
+            token
+          });
         });
         return;
       }
@@ -375,6 +413,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       req.session.role = user.role;
       
+      // Create a JWT token
+      const JWT_SECRET = process.env.JWT_SECRET || 'sozayn-jwt-secret-DO-NOT-USE-IN-PRODUCTION';
+      const token = jwt.sign(
+        { userId: user.id, role: user.role }, 
+        JWT_SECRET, 
+        { expiresIn: '7d' } // Token expires in 7 days
+      );
+      
       // Save the session explicitly to ensure it's stored before sending response
       req.session.save((err) => {
         if (err) {
@@ -389,7 +435,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't return password
         const { password: _, ...userWithoutPassword } = user;
         
-        res.json(userWithoutPassword);
+        // Return the user data and token
+        res.json({
+          ...userWithoutPassword,
+          token
+        });
       });
     } catch (error: any) {
       console.error("Login error:", error);

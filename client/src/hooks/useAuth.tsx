@@ -14,7 +14,23 @@ interface User {
   subscriptionStatus?: string;
   subscriptionExpiresAt?: string;
   createdAt: string;
+  token?: string;
 }
+
+// Token storage helper functions
+const TOKEN_KEY = 'sozayn_auth_token';
+
+const saveToken = (token: string) => {
+  localStorage.setItem(TOKEN_KEY, token);
+};
+
+const getToken = () => {
+  return localStorage.getItem(TOKEN_KEY);
+};
+
+const removeToken = () => {
+  localStorage.removeItem(TOKEN_KEY);
+};
 
 interface AuthContextType {
   user: User | null;
@@ -48,14 +64,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
+        // Check if we have a token in localStorage
+        const token = getToken();
+        
+        if (!token) {
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Attach the token to the request
+        const headers = {
+          Authorization: `Bearer ${token}`
+        };
+        
         // Handle 401 errors gracefully by returning null instead of throwing
-        const response = await apiRequest('GET', '/api/auth/me', undefined, { on401: "returnNull" });
+        const response = await apiRequest(
+          'GET', 
+          '/api/auth/me', 
+          undefined, 
+          { 
+            on401: "returnNull",
+            headers
+          }
+        );
         
         if (response.ok) {
           const userData = await response.json();
-          setUser(userData);
+          setUser({
+            ...userData,
+            token
+          });
         } else {
-          // Not authenticated
+          // Token might be invalid, remove it
+          removeToken();
           setUser(null);
         }
       } catch (error) {
@@ -77,14 +119,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('Invalid credentials');
       }
       const userData = await response.json();
-      setUser(userData);
       
-      // After setting the user, verify the session is active with another call
-      try {
-        const sessionCheck = await apiRequest('GET', '/api/debug/session');
-        console.log("Session status after login:", await sessionCheck.json());
-      } catch (sessionError) {
-        console.warn("Session check failed but ignoring:", sessionError);
+      // Check if we received a token from the server
+      if (userData.token) {
+        // Save the token to localStorage
+        saveToken(userData.token);
+        
+        // Set the user data
+        setUser(userData);
+        
+        // Log the success
+        console.log("Login successful with token authentication");
+      } else {
+        console.error("No token received from server");
+        throw new Error('Authentication failed');
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -94,10 +142,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Call the logout endpoint (this will destroy the session on the server)
       await apiRequest('POST', '/api/auth/logout');
+      
+      // Remove the token from localStorage
+      removeToken();
+      
+      // Clear the user state
       setUser(null);
+      
+      console.log("Logged out successfully");
     } catch (error) {
       console.error('Logout failed', error);
+      
+      // Even if the server call fails, we should still remove the token and user data
+      removeToken();
+      setUser(null);
     }
   };
 
@@ -119,8 +179,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('User not logged in');
       }
       
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication token missing');
+      }
+      
+      // Include the token in the request
+      const headers = {
+        Authorization: `Bearer ${token}`
+      };
+      
       // Fetch updated user data
-      const response = await apiRequest('GET', '/api/auth/me');
+      const response = await apiRequest('GET', '/api/auth/me', undefined, { headers });
       if (!response.ok) {
         throw new Error('Failed to get user data');
       }
@@ -129,6 +199,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update local user object with new plan
       setUser({
         ...userData,
+        token,
         subscriptionPlan: plan
       });
       

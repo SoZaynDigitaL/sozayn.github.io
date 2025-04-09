@@ -7,19 +7,6 @@ import session from "express-session";
 import Stripe from "stripe";
 import crypto from "crypto";
 
-// Helper function for MailerLite initialization
-async function getMailerLiteClient() {
-  const mailerliteLib = await import('@mailerlite/mailerlite-nodejs');
-  const MailerLite = mailerliteLib.default;
-  const apiKey = process.env.MAILERLITE_API_KEY;
-  if (!apiKey) {
-    throw new Error('MAILERLITE_API_KEY is not set');
-  }
-  return new MailerLite({
-    api_key: apiKey,
-  });
-}
-
 // Extend the Express Session interface
 declare module 'express-session' {
   interface SessionData {
@@ -119,11 +106,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send welcome email via MailerLite if API key is available
       try {
         if (process.env.MAILERLITE_API_KEY && userData.email) {
-          const mailerlite = await getMailerLiteClient();
+          // Import MailerLite dynamically to avoid loading it if not used
+          const mailerliteSDK = await import('@mailerlite/mailerlite-nodejs');
+          const mailerlite = new mailerliteSDK.default({
+            api_key: process.env.MAILERLITE_API_KEY,
+          });
           
           // Add subscriber to MailerLite
           await mailerlite.subscribers.createOrUpdate({
             email: userData.email,
+            name: userData.username,
             fields: {
               signup_source: 'SoZayn Platform',
               business_name: userData.businessName,
@@ -485,102 +477,272 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // If user doesn't have a customer ID, create one
-      let stripeCustomerId = user.stripeCustomerId;
-      if (!stripeCustomerId) {
-        // Create a new customer
+      let customerId = user.stripeCustomerId;
+      
+      if (!customerId) {
         const customer = await stripe.customers.create({
           email: user.email,
           name: user.username,
           metadata: {
-            userId: user.id.toString(),
-            businessName: user.businessName
+            userId: user.id.toString()
           }
         });
         
-        stripeCustomerId = customer.id;
-        // Update user with Stripe customer ID
+        customerId = customer.id;
+        // Update user with customer ID
         await storage.updateStripeCustomerId(user.id, customer.id);
       }
       
-      // Create a payment intent for the subscription
+      // For demo purposes - in a real app, we would set up a proper subscription
+      // with trials, prices from Stripe Dashboard, etc.
       const paymentIntent = await stripe.paymentIntents.create({
+        customer: customerId,
         amount: 2000, // $20.00
         currency: "usd",
-        customer: stripeCustomerId,
         description: "SoZayn Monthly Subscription",
         metadata: {
           userId: user.id.toString(),
-          subscriptionPlan: req.body.plan || 'starter'
+          plan: "professional"
         }
       });
-      
-      res.json({
+
+      // In a real system, we'd use webhook to confirm payment and then update subscription
+
+      res.json({ 
         clientSecret: paymentIntent.client_secret,
-        stripeCustomerId
+        subscriptionId: "sub_" + crypto.randomBytes(10).toString('hex')
       });
-      
     } catch (error: any) {
-      console.error("Error handling subscription:", error);
+      console.error("Error creating subscription:", error);
       res.status(500).json({ 
-        error: "Error handling subscription", 
+        error: "Error creating subscription", 
         message: error.message 
       });
     }
   });
-  
-  // Handle subscription success
-  app.post("/api/subscription/success", isAuthenticated, async (req, res) => {
+
+  // Webhook Management Routes - Professional plan required
+  app.get("/api/webhooks", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
     try {
-      const userId = req.session.userId;
-      const { paymentIntentId, subscriptionPlan } = req.body;
-      
-      if (!paymentIntentId || !subscriptionPlan) {
-        return res.status(400).json({ error: "Missing required parameters" });
-      }
-      
-      // Update user subscription plan in the database
-      const updatedUser = await storage.updateUserSubscription(userId as number, subscriptionPlan);
-      
-      if (!updatedUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      // Update tags in MailerLite
-      try {
-        if (process.env.MAILERLITE_API_KEY && updatedUser.email) {
-          const mailerlite = await getMailerLiteClient();
-          
-          // Add/update subscriber with new plan information
-          await mailerlite.subscribers.createOrUpdate({
-            email: updatedUser.email,
-            fields: {
-              subscription_plan: subscriptionPlan,
-              subscription_date: new Date().toISOString().split('T')[0],
-            },
-          });
-          
-          console.log('User subscription updated in MailerLite:', updatedUser.email);
-        }
-      } catch (emailError) {
-        console.error('Error updating subscriber in MailerLite:', emailError);
-        // Don't fail if email update fails
-      }
-      
-      // Return updated user (without password)
-      const { password, ...userWithoutPassword } = updatedUser;
-      res.json(userWithoutPassword);
-      
+      const userId = req.session.userId as number;
+      const webhooksData = await storage.getWebhooks(userId);
+      res.json(webhooksData);
     } catch (error: any) {
-      console.error("Error updating subscription:", error);
-      res.status(500).json({
-        error: "Error updating subscription",
-        message: error.message
+      console.error("Error fetching webhooks:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhooks", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.get("/api/webhooks/:id", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Check if the webhook belongs to this user
+      const userId = req.session.userId as number;
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      res.json(webhook);
+    } catch (error: any) {
+      console.error("Error fetching webhook:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.post("/api/webhooks", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Validate and create the webhook
+      const webhookData = insertWebhookSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const newWebhook = await storage.createWebhook(webhookData);
+      res.status(201).json(newWebhook);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating webhook:", error);
+      res.status(500).json({ 
+        error: "Error creating webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.patch("/api/webhooks/:id", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Update the webhook
+      const updatedWebhook = await storage.updateWebhook(id, req.body);
+      res.json(updatedWebhook);
+    } catch (error: any) {
+      console.error("Error updating webhook:", error);
+      res.status(500).json({ 
+        error: "Error updating webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/webhooks/:id", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(id);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Delete the webhook
+      await storage.deleteWebhook(id);
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Error deleting webhook:", error);
+      res.status(500).json({ 
+        error: "Error deleting webhook", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Webhook logs
+  app.get("/api/webhooks/:id/logs", isAuthenticated, hasRequiredPlan(["professional", "enterprise"]), async (req, res) => {
+    try {
+      const webhookId = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if the webhook exists and belongs to this user
+      const webhook = await storage.getWebhook(webhookId);
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      if (webhook.userId !== userId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      // Get the logs with a default limit
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const logs = await storage.getWebhookLogs(webhookId, limit);
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Error fetching webhook logs:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook logs", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Webhook receiver endpoint (public)
+  app.post("/api/webhook/:secretKey", async (req, res) => {
+    const start = Date.now();
+    try {
+      const { secretKey } = req.params;
+      
+      // Find the webhook by the secret key
+      const webhook = await storage.getWebhookBySecretKey(secretKey);
+      if (!webhook || !webhook.isActive) {
+        return res.status(404).json({ error: "Webhook not found or inactive" });
+      }
+      
+      // Determine the event type based on the request body or headers
+      const eventType = req.headers['x-event-type'] as string || 'unknown';
+      
+      // Process the webhook based on configuration
+      // This is where you'd implement the webhook handling logic
+      // For now, we'll just log the request
+      
+      // Generate a signature for the response
+      const signature = crypto
+        .createHmac('sha256', secretKey)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+      
+      // Create response payload
+      const responsePayload = {
+        success: true,
+        message: "Webhook received and processed",
+        webhook_id: webhook.id,
+        signature
+      };
+      
+      // Log the webhook call
+      await storage.createWebhookLog({
+        webhookId: webhook.id,
+        eventType,
+        requestPayload: req.body,
+        responsePayload,
+        statusCode: 200,
+        processingTimeMs: Date.now() - start
+      });
+      
+      res.json(responsePayload);
+    } catch (error: any) {
+      console.error("Error processing webhook:", error);
+      
+      // Try to log the error if possible
+      try {
+        if (req.params.secretKey) {
+          const webhook = await storage.getWebhookBySecretKey(req.params.secretKey);
+          if (webhook) {
+            await storage.createWebhookLog({
+              webhookId: webhook.id,
+              eventType: req.headers['x-event-type'] as string || 'unknown',
+              requestPayload: req.body,
+              errorMessage: error.message,
+              statusCode: 500,
+              processingTimeMs: Date.now() - start
+            });
+          }
+        }
+      } catch (logError) {
+        console.error("Error logging webhook failure:", logError);
+      }
+      
+      res.status(500).json({ 
+        error: "Error processing webhook", 
+        message: error.message 
       });
     }
   });
 
   // Email marketing routes (MailerLite integration)
-  app.get("/api/email-marketing/subscribers", isAuthenticated, hasRequiredPlan(["growth", "professional", "enterprise"]), async (req, res) => {
+  app.get("/api/email-marketing/subscribers", isAuthenticated, hasRequiredPlan(["starter", "professional", "enterprise"]), async (req, res) => {
     try {
       // Check if MailerLite API key is available
       if (!process.env.MAILERLITE_API_KEY) {
@@ -589,7 +751,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const mailerlite = await getMailerLiteClient();
+      const { MailerLite } = await import('@mailerlite/mailerlite-nodejs');
+      const mailerlite = new MailerLite({
+        api_key: process.env.MAILERLITE_API_KEY,
+      });
       
       // Get subscribers list
       const params = {
@@ -608,7 +773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/email-marketing/subscribers", isAuthenticated, hasRequiredPlan(["growth", "professional", "enterprise"]), async (req, res) => {
+  app.post("/api/email-marketing/subscribers", isAuthenticated, hasRequiredPlan(["starter", "professional", "enterprise"]), async (req, res) => {
     try {
       // Check if MailerLite API key is available
       if (!process.env.MAILERLITE_API_KEY) {
@@ -617,35 +782,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const mailerlite = await getMailerLiteClient();
-      
-      // Validate the request
-      const { email, name, additionalFields } = req.body;
+      const { email, name, fields } = req.body;
       
       if (!email) {
         return res.status(400).json({ error: "Email is required" });
       }
       
-      // Add subscriber to MailerLite
-      const subscriber = await mailerlite.subscribers.createOrUpdate({
-        email,
-        fields: {
-          name: name || '',
-          ...additionalFields
-        }
+      const { MailerLite } = await import('@mailerlite/mailerlite-nodejs');
+      const mailerlite = new MailerLite({
+        api_key: process.env.MAILERLITE_API_KEY,
       });
       
-      res.status(201).json(subscriber);
+      // Prepare subscriber data
+      const subscriberData = {
+        email,
+        ...(name && { name }),
+        ...(fields && { fields }),
+      };
+      
+      // Create or update subscriber
+      const response = await mailerlite.subscribers.createOrUpdate(subscriberData);
+      res.status(201).json(response.data);
     } catch (error: any) {
-      console.error("Error adding subscriber:", error);
+      console.error("Error creating subscriber:", error);
       res.status(500).json({ 
-        error: "Error adding subscriber", 
+        error: "Error creating subscriber", 
         message: error.message 
       });
     }
   });
   
-  app.get("/api/email-marketing/campaigns", isAuthenticated, hasRequiredPlan(["growth", "professional", "enterprise"]), async (req, res) => {
+  app.get("/api/email-marketing/campaigns", isAuthenticated, hasRequiredPlan(["starter", "professional", "enterprise"]), async (req, res) => {
     try {
       // Check if MailerLite API key is available
       if (!process.env.MAILERLITE_API_KEY) {
@@ -654,7 +821,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const mailerlite = await getMailerLiteClient();
+      const { MailerLite } = await import('@mailerlite/mailerlite-nodejs');
+      const mailerlite = new MailerLite({
+        api_key: process.env.MAILERLITE_API_KEY,
+      });
       
       // Get campaigns list
       const params = {
@@ -673,7 +843,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/email-marketing/campaigns", isAuthenticated, hasRequiredPlan(["growth", "professional", "enterprise"]), async (req, res) => {
+  // Welcome email endpoint
+  app.post("/api/email-marketing/send-welcome", isAuthenticated, hasRequiredPlan(["starter", "professional", "enterprise"]), async (req, res) => {
     try {
       // Check if MailerLite API key is available
       if (!process.env.MAILERLITE_API_KEY) {
@@ -682,99 +853,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      const mailerlite = await getMailerLiteClient();
+      const { email, name } = req.body;
       
-      // First, add the subscriber to MailerLite
-      const { name, subject, content, scheduledFor } = req.body;
-      
-      if (!name || !subject || !content) {
-        return res.status(400).json({ error: "Missing required fields: name, subject, or content" });
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
       }
       
-      // For demo purposes, we'll create a campaign-like object
-      // In a real-world scenario, this would call mailerlite.campaigns.create()
-      const campaignResponse = {
-        id: crypto.randomUUID(),
-        name,
-        subject,
-        content,
-        created_at: new Date().toISOString(),
-        scheduled_at: scheduledFor || null,
-        status: scheduledFor ? 'scheduled' : 'draft',
-        opens: 0,
-        clicks: 0
+      const { MailerLite } = await import('@mailerlite/mailerlite-nodejs');
+      const mailerlite = new MailerLite({
+        api_key: process.env.MAILERLITE_API_KEY,
+      });
+      
+      // First, add the subscriber to MailerLite
+      const subscriberData = {
+        email,
+        ...(name && { name }),
+        fields: {
+          signup_source: 'SoZayn Platform',
+          business_type: req.body.businessType || 'restaurant',
+        },
       };
       
-      // Return the created campaign
-      // MailerLite API actually requires additional setup for campaigns 
-      // including segments, sender information, etc., which would be set up with 
+      await mailerlite.subscribers.createOrUpdate(subscriberData);
+      
+      // Simulate sending welcome email - in a real system, you'd need to create
       // a template for this in the MailerLite dashboard and use automations
-      res.status(201).json(campaignResponse);
+      
+      res.json({ success: true, message: "Welcome email process initiated" });
     } catch (error: any) {
-      console.error("Error creating campaign:", error);
+      console.error("Error sending welcome email:", error);
       res.status(500).json({ 
-        error: "Error creating campaign", 
+        error: "Error sending welcome email", 
         message: error.message 
       });
     }
   });
-
-  // Firebase auth routes
-  app.post("/api/auth/firebase-signin", async (req, res) => {
+  
+  // Subscription success callback route
+  app.get("/api/subscription-success", isAuthenticated, async (req, res) => {
     try {
-      const { uid, email, displayName, photoURL } = req.body;
-      
-      if (!uid || !email) {
-        return res.status(400).json({ error: "Missing required Firebase auth data" });
-      }
-      
-      // Check if user already exists by email
-      let user = await storage.getUserByUsername(email);
+      const userId = req.session.userId as number;
+      const user = await storage.getUser(userId);
       
       if (!user) {
-        // Create a new user based on Firebase data
-        const newUserData = {
-          username: email,
-          email,
-          password: crypto.randomUUID(), // Generate a random password (user will use Firebase auth)
-          businessName: displayName || 'My Business',
-          businessType: 'restaurant',
-          role: 'client',
-          subscriptionPlan: 'starter',
-          createdAt: new Date().toISOString()
-        };
-        
-        user = await storage.createUser(newUserData);
-        
-        // Send welcome email via MailerLite if API key is available
-        try {
-          if (process.env.MAILERLITE_API_KEY && email) {
-            const mailerlite = await getMailerLiteClient();
-            
-            await mailerlite.subscribers.createOrUpdate({
-              email,
-              fields: {
-                signup_source: 'Firebase Auth',
-                signup_date: new Date().toISOString().split('T')[0],
-              },
-            });
-          }
-        } catch (emailError) {
-          console.error('Error sending welcome email:', emailError);
-        }
+        return res.status(404).json({ error: "User not found" });
       }
       
-      // Set user ID in session
-      req.session.userId = user.id;
+      // Plan from query params or default to professional
+      const plan = req.query.plan as string || "professional";
+      
+      // Update user subscription plan
+      await storage.updateUserSubscription(userId, plan);
+      
+      // For email segmentation or user welcome emails based on plan
+      try {
+        if (process.env.MAILERLITE_API_KEY && user.email) {
+          const mailerliteSDK = await import('@mailerlite/mailerlite-nodejs');
+          const mailerlite = new mailerliteSDK.default({
+            api_key: process.env.MAILERLITE_API_KEY,
+          });
+          
+          // Update subscriber with new plan information
+          await mailerlite.subscribers.createOrUpdate({
+            email: user.email,
+            fields: {
+              subscription_plan: plan,
+              subscription_date: new Date().toISOString().split('T')[0],
+            },
+          });
+          
+          console.log('User subscription updated in MailerLite:', user.email);
+        }
+      } catch (emailError) {
+        // Don't fail subscription update if email service fails
+        console.error('Error updating subscriber in MailerLite:', emailError);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Subscription processed successfully",
+        plan: plan
+      });
+    } catch (error: any) {
+      console.error("Error in subscription success callback:", error);
+      res.status(500).json({ 
+        error: "Error processing subscription success", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Admin-only routes
+  app.get("/api/admin/users", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      // This would typically fetch users from a database
+      // For now, just return a mock list
+      res.json([
+        { id: 1, username: "admin", email: "admin@example.com", role: "admin", subscriptionPlan: "enterprise" },
+        { id: 2, username: "client1", email: "client1@example.com", role: "client", subscriptionPlan: "professional" },
+        { id: 3, username: "client2", email: "client2@example.com", role: "client", subscriptionPlan: "starter" },
+      ]);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ 
+        error: "Error fetching users", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update user role (admin only)
+  app.patch("/api/admin/users/:id/role", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { role } = req.body;
+      
+      if (!role || !["admin", "client"].includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+      }
+      
+      const updatedUser = await storage.updateUserRole(id, role);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
       
       // Don't return password
-      const { password, ...userWithoutPassword } = user;
+      const { password, ...userWithoutPassword } = updatedUser;
       
-      res.status(200).json(userWithoutPassword);
+      res.json(userWithoutPassword);
     } catch (error: any) {
-      console.error("Firebase sign-in error:", error);
+      console.error("Error updating user role:", error);
       res.status(500).json({ 
-        error: "Error processing Firebase sign-in", 
+        error: "Error updating user role", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update user subscription (admin only)
+  app.patch("/api/admin/users/:id/subscription", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { subscriptionPlan } = req.body;
+      
+      if (!subscriptionPlan || !["free", "starter", "professional", "enterprise"].includes(subscriptionPlan)) {
+        return res.status(400).json({ error: "Invalid subscription plan" });
+      }
+      
+      const updatedUser = await storage.updateUserSubscription(id, subscriptionPlan);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error updating user subscription:", error);
+      res.status(500).json({ 
+        error: "Error updating user subscription", 
         message: error.message 
       });
     }

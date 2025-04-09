@@ -75,6 +75,26 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
+// ExtendedDashboardCard component to support action prop
+interface ExtendedDashboardCardProps {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+  action?: React.ReactNode;
+}
+
+const ExtendedDashboardCard = ({ title, children, className, action }: ExtendedDashboardCardProps) => {
+  return (
+    <DashboardCard title={title} className={className}>
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-lg font-medium">{title}</h3>
+        {action}
+      </div>
+      {children}
+    </DashboardCard>
+  );
+};
+
 const socialPostSchema = z.object({
   platform: z.enum(['instagram', 'facebook', 'twitter', 'youtube', 'linkedin', 'tiktok']),
   message: z.string().min(10, {
@@ -460,19 +480,17 @@ export default function Marketing() {
                       />
                       <Tooltip 
                         contentStyle={{ 
-                          backgroundColor: 'var(--bg-card)', 
+                          backgroundColor: 'var(--bg-chart)', 
                           borderColor: 'var(--border-color)',
                           color: 'var(--text-primary)'
-                        }}
-                        itemStyle={{ color: 'var(--text-primary)' }}
-                        labelStyle={{ color: 'var(--text-primary)' }}
+                        }} 
                       />
                       <Line 
                         type="monotone" 
                         dataKey="visitors" 
                         stroke="var(--accent-blue)" 
                         strokeWidth={2}
-                        dot={{ fill: 'var(--accent-blue)', r: 4 }}
+                        dot={{ r: 4, fill: 'var(--accent-blue)' }}
                         activeDot={{ r: 6, fill: 'var(--accent-blue)' }}
                       />
                     </LineChart>
@@ -480,144 +498,211 @@ export default function Marketing() {
                 </div>
               </DashboardCard>
             </div>
-            
-            <DashboardCard title="Traffic Sources" className="h-full">
-              <div className="h-[300px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={trafficSourceData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {trafficSourceData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--bg-card)', 
-                        borderColor: 'var(--border-color)',
-                        color: 'var(--text-primary)'
-                      }}
-                      formatter={(value) => [`${value}%`, 'Percentage']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </DashboardCard>
+            <div>
+              <DashboardCard title="Traffic Sources" className="h-full">
+                <div className="py-4">
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={trafficSourceData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}
+                      >
+                        {trafficSourceData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </DashboardCard>
+            </div>
           </div>
           
-          <DashboardCard title="SEO Settings" className="mt-6">
-            <form onSubmit={seoForm.handleSubmit(onSEOSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="title">Page Title</label>
-                    <Input 
-                      id="title" 
-                      className="bg-bg-chart border-border-color"
-                      {...seoForm.register('title')} 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <DashboardCard title="SEO Settings" className="h-full">
+              <Form {...seoForm}>
+                <form onSubmit={seoForm.handleSubmit(onSEOSubmit)} className="space-y-4">
+                  <FormField
+                    control={seoForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Page Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Optimal length: 50-60 characters
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={seoForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Meta Description</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Optimal length: 150-160 characters
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={seoForm.control}
+                    name="keywords"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Keywords</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Separate keywords with commas
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={seoForm.control}
+                      name="trackingEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-3 border border-border-color rounded-md">
+                          <div>
+                            <FormLabel className="mb-1 cursor-pointer">Analytics Tracking</FormLabel>
+                            <FormDescription className="text-xs">
+                              Enable website analytics
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
                     />
-                    <p className="text-xs text-text-secondary">
-                      This will appear in search engine results and browser tabs.
-                    </p>
+                    
+                    <FormField
+                      control={seoForm.control}
+                      name="sitemapEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-3 border border-border-color rounded-md">
+                          <div>
+                            <FormLabel className="mb-1 cursor-pointer">XML Sitemap</FormLabel>
+                            <FormDescription className="text-xs">
+                              Generate XML sitemap
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={seoForm.control}
+                      name="metaTagsEnabled"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between p-3 border border-border-color rounded-md">
+                          <div>
+                            <FormLabel className="mb-1 cursor-pointer">Meta Tags</FormLabel>
+                            <FormDescription className="text-xs">
+                              Generate meta tags
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="description">Meta Description</label>
-                    <Textarea 
-                      id="description" 
-                      rows={3}
-                      className="bg-bg-chart border-border-color"
-                      {...seoForm.register('description')} 
-                    />
-                    <p className="text-xs text-text-secondary">
-                      A short description of your page that appears in search results.
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="keywords">Keywords</label>
-                    <Input 
-                      id="keywords" 
-                      className="bg-bg-chart border-border-color"
-                      {...seoForm.register('keywords')} 
-                    />
-                    <p className="text-xs text-text-secondary">
-                      Comma-separated keywords related to your business.
-                    </p>
+                  <Button type="submit">Save SEO Settings</Button>
+                </form>
+              </Form>
+            </DashboardCard>
+            
+            <DashboardCard title="SEO Recommendations" className="h-full">
+              <div className="space-y-3">
+                <div className="p-3 border border-accent-green/30 bg-accent-green/10 rounded-lg flex items-start gap-3">
+                  <Check className="h-5 w-5 text-accent-green mt-0.5" />
+                  <div>
+                    <p className="font-medium">Good meta description length</p>
+                    <p className="text-sm text-text-secondary">Your meta description is within the recommended length.</p>
                   </div>
                 </div>
                 
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <h3 className="font-medium">SEO Tools</h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Google Analytics Tracking</p>
-                        <p className="text-sm text-text-secondary">Enable visitor tracking</p>
-                      </div>
-                      <Switch 
-                        {...seoForm.register('trackingEnabled')}
-                        checked={seoForm.watch('trackingEnabled')}
-                        onCheckedChange={(value) => seoForm.setValue('trackingEnabled', value)}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">XML Sitemap</p>
-                        <p className="text-sm text-text-secondary">Help search engines crawl your site</p>
-                      </div>
-                      <Switch 
-                        {...seoForm.register('sitemapEnabled')}
-                        checked={seoForm.watch('sitemapEnabled')}
-                        onCheckedChange={(value) => seoForm.setValue('sitemapEnabled', value)}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Social Meta Tags</p>
-                        <p className="text-sm text-text-secondary">Enable rich social media sharing</p>
-                      </div>
-                      <Switch 
-                        {...seoForm.register('metaTagsEnabled')}
-                        checked={seoForm.watch('metaTagsEnabled')}
-                        onCheckedChange={(value) => seoForm.setValue('metaTagsEnabled', value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 bg-accent-blue/10 border border-accent-blue/20 rounded-lg">
-                    <h3 className="font-medium flex items-center text-accent-blue mb-2">
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      SEO Tips
-                    </h3>
-                    <ul className="text-sm space-y-1 text-text-secondary">
-                      <li>• Use your main keywords in your page title</li>
-                      <li>• Create unique descriptions for each page</li>
-                      <li>• Include local keywords if you serve a specific area</li>
-                      <li>• Update your content regularly to stay relevant</li>
-                    </ul>
+                <div className="p-3 border border-accent-green/30 bg-accent-green/10 rounded-lg flex items-start gap-3">
+                  <Check className="h-5 w-5 text-accent-green mt-0.5" />
+                  <div>
+                    <p className="font-medium">Proper use of keywords</p>
+                    <p className="text-sm text-text-secondary">Keywords are used effectively in your content.</p>
                   </div>
                 </div>
+                
+                <div className="p-3 border border-accent-orange/30 bg-accent-orange/10 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-accent-orange mt-0.5" />
+                  <div>
+                    <p className="font-medium">Improve page loading speed</p>
+                    <p className="text-sm text-text-secondary">Consider optimizing images and reducing server response time.</p>
+                  </div>
+                </div>
+                
+                {hasAdvancedSEO ? (
+                  <>
+                    <div className="p-3 border border-accent-orange/30 bg-accent-orange/10 rounded-lg flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-accent-orange mt-0.5" />
+                      <div>
+                        <p className="font-medium">Add more backlinks</p>
+                        <p className="text-sm text-text-secondary">Increase the number of quality backlinks to improve domain authority.</p>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 border border-accent-orange/30 bg-accent-orange/10 rounded-lg flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-accent-orange mt-0.5" />
+                      <div>
+                        <p className="font-medium">Improve mobile responsiveness</p>
+                        <p className="text-sm text-text-secondary">Optimize your site for mobile devices to improve rankings.</p>
+                      </div>
+                    </div>
+                    
+                    <Button className="w-full">Run Advanced SEO Audit</Button>
+                  </>
+                ) : (
+                  <div className="p-3 border border-accent-blue/20 bg-accent-blue/5 rounded-lg mt-4">
+                    <p className="text-sm text-text-secondary">Upgrade to Professional plan to access advanced SEO recommendations and automated audits.</p>
+                    <Button asChild size="sm" className="mt-2 bg-accent-blue hover:bg-accent-blue/90">
+                      <a href="/subscribe">Upgrade Plan</a>
+                    </Button>
+                  </div>
+                )}
               </div>
-              
-              <div className="flex justify-end">
-                <Button type="submit" className="bg-accent-blue hover:bg-accent-blue/90">
-                  Save SEO Settings
-                </Button>
-              </div>
-            </form>
-          </DashboardCard>
+            </DashboardCard>
+          </div>
         </TabsContent>
         
         {/* Social Media Tab */}
@@ -628,7 +713,7 @@ export default function Marketing() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Upgrade Your Plan</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Social media integration requires a Growth plan or higher. Upgrade now to connect your social accounts and schedule posts automatically.
+                    Social media integration requires a Growth plan or higher. Upgrade now to schedule posts, track social media performance, and engage with your audience.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -648,7 +733,7 @@ export default function Marketing() {
               title="Followers"
               value={socialStats.followers.toString()}
               icon={<Users className="h-4 w-4 text-accent-blue" />}
-              change={23.5}
+              change={8.3}
               progress={70}
               progressColor="bg-accent-blue"
             />
@@ -656,36 +741,36 @@ export default function Marketing() {
             <StatsCard
               title="Engagement Rate"
               value={`${socialStats.engagement}%`}
-              icon={<Share2 className="h-4 w-4 text-accent-purple" />}
-              change={1.8}
+              icon={<Share2 className="h-4 w-4 text-accent-green" />}
+              change={1.5}
               progress={62}
-              progressColor="bg-accent-purple"
+              progressColor="bg-accent-green"
             />
             
             <StatsCard
-              title="Total Posts"
+              title="Posts"
               value={socialStats.posts.toString()}
-              icon={<Instagram className="h-4 w-4 text-accent-orange" />}
-              change={8.4}
-              progress={55}
-              progressColor="bg-accent-orange"
+              icon={<Instagram className="h-4 w-4 text-accent-purple" />}
+              change={4.2}
+              progress={45}
+              progressColor="bg-accent-purple"
             />
             
             <StatsCard
               title="Link Clicks"
               value={socialStats.clicks.toString()}
-              icon={<ArrowRight className="h-4 w-4 text-accent-green" />}
-              change={15.7}
-              progress={78}
-              progressColor="bg-accent-green"
+              icon={<ArrowRight className="h-4 w-4 text-accent-orange" />}
+              change={12.8}
+              progress={68}
+              progressColor="bg-accent-orange"
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2">
-              <DashboardCard title="Schedule a Social Post">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="md:col-span-3">
+              <DashboardCard title="Create Social Media Post" className="h-full">
                 <Form {...socialForm}>
-                  <form onSubmit={socialForm.handleSubmit(onSocialSubmit)} className="space-y-6">
+                  <form onSubmit={socialForm.handleSubmit(onSocialSubmit)} className="space-y-4">
                     <FormField
                       control={socialForm.control}
                       name="platform"
@@ -730,6 +815,7 @@ export default function Marketing() {
                               <FaTiktok className={`h-5 w-5 ${field.value === 'tiktok' ? 'text-black' : 'text-text-secondary'}`} />
                             </div>
                           </div>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -743,14 +829,10 @@ export default function Marketing() {
                           <FormControl>
                             <Textarea 
                               placeholder="Enter your post message" 
-                              className="bg-bg-chart border-border-color" 
-                              rows={4}
+                              className="min-h-[120px]" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription>
-                            {field.value.length}/280 characters
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -764,8 +846,7 @@ export default function Marketing() {
                           <FormLabel>Image URL (Optional)</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter image URL" 
-                              className="bg-bg-chart border-border-color" 
+                              placeholder="https://..." 
                               {...field} 
                             />
                           </FormControl>
@@ -779,28 +860,24 @@ export default function Marketing() {
                       name="scheduledAt"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Schedule For (Optional)</FormLabel>
+                          <FormLabel>Schedule Post (Optional)</FormLabel>
                           <FormControl>
-                            <div className="flex items-center">
-                              <Calendar className="h-4 w-4 mr-2 text-text-secondary" />
-                              <Input 
-                                type="datetime-local" 
-                                className="bg-bg-chart border-border-color" 
-                                {...field} 
-                              />
-                            </div>
+                            <Input 
+                              type="datetime-local" 
+                              {...field} 
+                            />
                           </FormControl>
-                          <FormDescription>
-                            Leave empty to post immediately
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     
                     <div className="flex justify-end">
-                      <Button type="submit" className="bg-accent-blue hover:bg-accent-blue/90">
-                        {socialForm.watch('scheduledAt') ? 'Schedule Post' : 'Post Now'}
+                      <Button 
+                        type="submit"
+                        className="bg-accent-blue hover:bg-accent-blue/90"
+                      >
+                        {socialForm.getValues('scheduledAt') ? 'Schedule Post' : 'Post Now'}
                       </Button>
                     </div>
                   </form>
@@ -808,103 +885,63 @@ export default function Marketing() {
               </DashboardCard>
             </div>
             
-            <DashboardCard title="Social Performance" className="h-full">
-              <div className="h-[300px] flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={socialPerformanceData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {socialPerformanceData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--bg-card)', 
-                        borderColor: 'var(--border-color)',
-                        color: 'var(--text-primary)'
-                      }}
-                      formatter={(value) => [`${value}%`, 'Engagement']}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="mt-4">
-                <h4 className="font-medium mb-2">Platform Engagement</h4>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm flex items-center">
-                        <Instagram className="h-4 w-4 mr-1 text-accent-purple" />
-                        Instagram
-                      </span>
-                      <span className="text-sm">45%</span>
-                    </div>
-                    <Progress value={45} className="h-1.5 bg-bg-chart" />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm flex items-center">
-                        <Facebook className="h-4 w-4 mr-1 text-accent-blue" />
-                        Facebook
-                      </span>
-                      <span className="text-sm">30%</span>
-                    </div>
-                    <Progress value={30} className="h-1.5 bg-bg-chart" />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm flex items-center">
-                        <Twitter className="h-4 w-4 mr-1 text-accent-blue" />
-                        Twitter
-                      </span>
-                      <span className="text-sm">25%</span>
-                    </div>
-                    <Progress value={25} className="h-1.5 bg-bg-chart" />
-                  </div>
+            <div className="md:col-span-2">
+              <DashboardCard title="Platform Performance" className="h-full">
+                <div className="py-4">
+                  <ResponsiveContainer width="100%" height={240}>
+                    <PieChart>
+                      <Pie
+                        data={socialPerformanceData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name}: ${Math.round(percent * 100)}%`}
+                      >
+                        {socialPerformanceData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
-              </div>
-            </DashboardCard>
+                
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Platform</TableHead>
+                        <TableHead>Engagement</TableHead>
+                        <TableHead>Growth</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">Instagram</TableCell>
+                        <TableCell>45%</TableCell>
+                        <TableCell className="text-accent-green">+5.2%</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Facebook</TableCell>
+                        <TableCell>30%</TableCell>
+                        <TableCell className="text-accent-green">+2.1%</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">Twitter</TableCell>
+                        <TableCell>25%</TableCell>
+                        <TableCell className="text-accent-red">-1.3%</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </DashboardCard>
+            </div>
           </div>
           
-          <DashboardCard title="Popular Hashtags" className="mt-6">
-            <div className="flex flex-wrap gap-2">
-              {[
-                { tag: '#fooddelivery', count: 245 },
-                { tag: '#localrestaurant', count: 187 },
-                { tag: '#homemade', count: 156 },
-                { tag: '#foodie', count: 342 },
-                { tag: '#tasty', count: 289 },
-                { tag: '#bestfood', count: 178 },
-                { tag: '#restaurantlife', count: 134 },
-                { tag: '#eatlocal', count: 221 },
-                { tag: '#cheflife', count: 167 },
-                { tag: '#foodstagram', count: 312 }
-              ].map((hashtag) => (
-                <Badge 
-                  key={hashtag.tag} 
-                  variant="secondary" 
-                  className="bg-bg-chart text-text-secondary px-3 py-1.5"
-                >
-                  {hashtag.tag} <span className="ml-1 text-xs text-accent-blue">{hashtag.count}</span>
-                </Badge>
-              ))}
-            </div>
-          </DashboardCard>
-          
           {/* Social Media Account Configuration */}
-          <DashboardCard 
+          <ExtendedDashboardCard 
             title="Connected Social Media Accounts" 
             className="mt-6"
             action={
@@ -1110,7 +1147,7 @@ export default function Marketing() {
                 </Form>
               </DialogContent>
             </Dialog>
-          </DashboardCard>
+          </ExtendedDashboardCard>
         </TabsContent>
         
         {/* Email Marketing Tab */}
@@ -1220,11 +1257,16 @@ export default function Marketing() {
                       />
                       
                       <Button 
-                        type="submit" 
+                        type="submit"
                         className="bg-accent-blue hover:bg-accent-blue/90"
                         disabled={addSubscriberMutation.isPending}
                       >
-                        {addSubscriberMutation.isPending ? "Adding..." : "Add Subscriber"}
+                        {addSubscriberMutation.isPending ? (
+                          <>
+                            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                            Adding...
+                          </>
+                        ) : 'Add Subscriber'}
                       </Button>
                     </form>
                   </Form>
@@ -1232,265 +1274,265 @@ export default function Marketing() {
               </DashboardCard>
             </div>
             
-            <DashboardCard title="Email Automations" className="h-full">
-              <div className="space-y-4">
-                <div className="p-4 border border-border-color rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Welcome Email</h3>
-                    <Switch defaultChecked />
+            <div>
+              <ExtendedDashboardCard 
+                title="Email Campaigns" 
+                className="h-full"
+                action={
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-accent-blue hover:bg-accent-blue/90">
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        New Campaign
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Create Email Campaign</DialogTitle>
+                        <DialogDescription>
+                          Set up a new email campaign to send to your subscribers.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Form {...emailCampaignForm}>
+                        <form onSubmit={emailCampaignForm.handleSubmit(onEmailCampaignSubmit)} className="space-y-4">
+                          <FormField
+                            control={emailCampaignForm.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Campaign Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Monthly Newsletter" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={emailCampaignForm.control}
+                            name="subject"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Subject</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="New specials this month!" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={emailCampaignForm.control}
+                            name="content"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Email Content</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Write your email content here..." 
+                                    className="min-h-[150px]" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={emailCampaignForm.control}
+                            name="scheduledFor"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Schedule (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="datetime-local" 
+                                    {...field} 
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Leave empty to save as draft
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <DialogFooter>
+                            <Button variant="outline" type="button" onClick={() => {}}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit"
+                              className="bg-accent-blue hover:bg-accent-blue/90"
+                            >
+                              Create Campaign
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
+                    </DialogContent>
+                  </Dialog>
+                }
+              >
+                {isLoadingCampaigns ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin w-8 h-8 border-4 border-accent-blue border-t-transparent rounded-full" />
                   </div>
-                  <p className="text-sm text-text-secondary">
-                    Automatically send a welcome email to new customers
-                  </p>
-                </div>
-                
-                <div className="p-4 border border-border-color rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Order Confirmation</h3>
-                    <Switch defaultChecked />
+                ) : emailCampaignsList.length === 0 ? (
+                  <div className="text-center py-4">
+                    <div className="mb-3 w-12 h-12 rounded-full bg-bg-chart flex items-center justify-center mx-auto">
+                      <Mail className="h-6 w-6 text-text-secondary" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">No Campaigns</h3>
+                    <p className="text-text-secondary mb-4">
+                      Create your first email campaign to start engaging with your audience.
+                    </p>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-accent-blue hover:bg-accent-blue/90">
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Create Campaign
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        {/* Dialog content as above */}
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  <p className="text-sm text-text-secondary">
-                    Send confirmation emails after every order
-                  </p>
-                </div>
-                
-                <div className="p-4 border border-border-color rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Abandoned Cart</h3>
-                    <Switch />
+                ) : (
+                  <div className="divide-y divide-border-color">
+                    {emailCampaigns.map((campaign) => (
+                      <div key={campaign.id} className="py-3 first:pt-0 last:pb-0">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center">
+                            <div>
+                              <p className="font-medium">{campaign.name}</p>
+                              <p className="text-sm text-text-secondary">
+                                {campaign.status === 'scheduled' ? (
+                                  <span className="flex items-center">
+                                    <Calendar className="h-3 w-3 mr-1" />
+                                    Scheduled: {campaign.sent}
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center">
+                                    <Mail className="h-3 w-3 mr-1" />
+                                    Sent: {campaign.sent}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {campaign.status === 'completed' ? (
+                              <Badge variant="outline" className="bg-accent-green/10 text-accent-green border-accent-green/30">
+                                Sent
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-accent-blue/10 text-accent-blue border-accent-blue/30">
+                                Scheduled
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        {campaign.status === 'completed' && (
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div className="text-sm">
+                              <span className="text-text-secondary">Opens:</span>{" "}
+                              <span className="font-medium">{campaign.opens}</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="text-text-secondary">Clicks:</span>{" "}
+                              <span className="font-medium">{campaign.clicks}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-sm text-text-secondary">
-                    Remind customers about items left in cart
-                  </p>
-                </div>
-                
-                <div className="p-4 border border-border-color rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium">Monthly Newsletter</h3>
-                    <Switch defaultChecked />
-                  </div>
-                  <p className="text-sm text-text-secondary">
-                    Send monthly updates and special offers
-                  </p>
-                </div>
-              </div>
-            </DashboardCard>
+                )}
+              </ExtendedDashboardCard>
+            </div>
           </div>
           
-          <DashboardCard title="Subscriber Management">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="relative w-full max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-text-secondary" />
-                <Input 
-                  type="search" 
-                  placeholder="Search subscribers..." 
-                  className="pl-9 bg-bg-chart border-border-color w-full"
-                />
-              </div>
-              
-              <Button variant="outline" className="ml-2">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                <span>Import Subscribers</span>
-              </Button>
-            </div>
-            
-            <div className="rounded-md border border-border-color">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead>Email</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date Added</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingSubscribers ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4">
-                        Loading subscribers...
-                      </TableCell>
-                    </TableRow>
-                  ) : emailSubscribers && emailSubscribers.length > 0 ? (
-                    emailSubscribers.map((subscriber: any, index: number) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{subscriber.email}</TableCell>
-                        <TableCell>{subscriber.name || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-600/20">
-                            Active
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(subscriber.created_at || Date.now()).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <span className="sr-only">Edit</span>
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+          <div className="grid grid-cols-1 gap-6">
+            <DashboardCard title="Recent Subscribers" className="h-full">
+              {isLoadingSubscribers ? (
+                <div className="flex justify-center py-4">
+                  <div className="animate-spin w-8 h-8 border-4 border-accent-blue border-t-transparent rounded-full" />
+                </div>
+              ) : emailSubscribers.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-text-secondary">No subscribers yet. Add your first subscriber using the form above.</p>
+                </div>
+              ) : (
+                <div className="relative overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Date Subscribed</TableHead>
+                        <TableHead>Status</TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center py-4">
-                        No subscribers found. Add your first subscriber above.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </DashboardCard>
-          
-          <DashboardCard title="Recent Email Campaigns" className="mt-6">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Campaign Name</TableHead>
-                  <TableHead>Sent Date</TableHead>
-                  <TableHead>Opens</TableHead>
-                  <TableHead>Clicks</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingCampaigns ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      Loading campaigns...
-                    </TableCell>
-                  </TableRow>
-                ) : emailCampaignsList && emailCampaignsList.length > 0 ? (
-                  emailCampaignsList.map((campaign: any) => (
-                    <TableRow key={campaign.id}>
-                      <TableCell className="font-medium">{campaign.name}</TableCell>
-                      <TableCell>{campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : 'N/A'}</TableCell>
-                      <TableCell>{campaign.opens || 0}</TableCell>
-                      <TableCell>{campaign.clicks || 0}</TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            campaign.status === 'completed' 
-                              ? 'bg-accent-green/20 text-accent-green' 
-                              : 'bg-accent-blue/20 text-accent-blue'
-                          }
-                        >
-                          {campaign.status === 'completed' ? 'Sent' : 'Scheduled'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
-                      No campaigns found. Create your first campaign.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            
-            <div className="flex justify-between items-center mt-6">
-              <Button variant="outline" className="gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Create New Campaign
-              </Button>
-              
-              <Button variant="link" className="text-accent-blue">
-                View All Campaigns
-              </Button>
-            </div>
-          </DashboardCard>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <DashboardCard title="Email Performance" className="h-full">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ReBarChart
-                    data={[
-                      { name: 'Jan', opens: 22.1, clicks: 4.3 },
-                      { name: 'Feb', opens: 21.8, clicks: 4.1 },
-                      { name: 'Mar', opens: 24.5, clicks: 4.8 },
-                      { name: 'Apr', opens: 23.9, clicks: 4.6 },
-                      { name: 'May', opens: 23.4, clicks: 4.7 },
-                      { name: 'Jun', opens: 24.2, clicks: 5.1 }
-                    ]}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={{ stroke: 'var(--border-color)' }} 
-                      tick={{ fill: 'var(--text-secondary)' }}
-                    />
-                    <YAxis 
-                      axisLine={{ stroke: 'var(--border-color)' }} 
-                      tick={{ fill: 'var(--text-secondary)' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--bg-card)', 
-                        borderColor: 'var(--border-color)',
-                        color: 'var(--text-primary)'
-                      }}
-                      itemStyle={{ color: 'var(--text-primary)' }}
-                      labelStyle={{ color: 'var(--text-primary)' }}
-                      formatter={(value) => [`${value}%`, '']}
-                    />
-                    <Bar dataKey="opens" fill="var(--accent-green)" name="Open Rate" />
-                    <Bar dataKey="clicks" fill="var(--accent-orange)" name="Click Rate" />
-                  </ReBarChart>
-                </ResponsiveContainer>
-              </div>
-            </DashboardCard>
-            
-            <DashboardCard title="Subscriber Growth" className="h-full">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={[
-                      { name: 'Jan', subscribers: 2650 },
-                      { name: 'Feb', subscribers: 2780 },
-                      { name: 'Mar', subscribers: 2920 },
-                      { name: 'Apr', subscribers: 3050 },
-                      { name: 'May', subscribers: 3180 },
-                      { name: 'Jun', subscribers: 3240 }
-                    ]}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
-                    <XAxis 
-                      dataKey="name" 
-                      axisLine={{ stroke: 'var(--border-color)' }} 
-                      tick={{ fill: 'var(--text-secondary)' }}
-                    />
-                    <YAxis 
-                      axisLine={{ stroke: 'var(--border-color)' }} 
-                      tick={{ fill: 'var(--text-secondary)' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'var(--bg-card)', 
-                        borderColor: 'var(--border-color)',
-                        color: 'var(--text-primary)'
-                      }}
-                      itemStyle={{ color: 'var(--text-primary)' }}
-                      labelStyle={{ color: 'var(--text-primary)' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="subscribers" 
-                      stroke="var(--accent-blue)" 
-                      strokeWidth={2}
-                      dot={{ fill: 'var(--accent-blue)', r: 4 }}
-                      activeDot={{ r: 6, fill: 'var(--accent-blue)' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {/* Loop through subscribers */}
+                      {emailSubscribers.slice(0, 5).map((subscriber: any, index: number) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{subscriber.email}</TableCell>
+                          <TableCell>{subscriber.name || '-'}</TableCell>
+                          <TableCell>{subscriber.created_at ? new Date(subscriber.created_at).toLocaleDateString() : 'N/A'}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="bg-accent-green/10 text-accent-green border-accent-green/30">
+                              Active
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {/* If emailSubscribers is empty, show demo data */}
+                      {emailSubscribers.length === 0 && (
+                        <>
+                          <TableRow>
+                            <TableCell className="font-medium">john@example.com</TableCell>
+                            <TableCell>John Doe</TableCell>
+                            <TableCell>2023-06-10</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-accent-green/10 text-accent-green border-accent-green/30">
+                                Active
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">sarah@example.com</TableCell>
+                            <TableCell>Sarah Johnson</TableCell>
+                            <TableCell>2023-06-08</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-accent-green/10 text-accent-green border-accent-green/30">
+                                Active
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="font-medium">mike@example.com</TableCell>
+                            <TableCell>Mike Smith</TableCell>
+                            <TableCell>2023-06-05</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="bg-accent-orange/10 text-accent-orange border-accent-orange/30">
+                                Bounced
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        </>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </DashboardCard>
           </div>
         </TabsContent>

@@ -78,6 +78,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       const userData = await response.json();
       setUser(userData);
+      
+      // After setting the user, verify the session is active with another call
+      try {
+        const sessionCheck = await apiRequest('GET', '/api/debug/session');
+        console.log("Session status after login:", await sessionCheck.json());
+      } catch (sessionError) {
+        console.warn("Session check failed but ignoring:", sessionError);
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw new Error('Login failed');

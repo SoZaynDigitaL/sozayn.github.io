@@ -23,15 +23,16 @@ app.use(
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || "sozayn-secret-key-DO-NOT-USE-IN-PRODUCTION",
-    resave: true, // Save the session even if unmodified to maintain the session
-    saveUninitialized: true, // Create session even if nothing is stored
+    resave: false, // Changed to false to prevent race conditions
+    saveUninitialized: false, // Changed to false for better security and to comply with laws requiring consent before setting cookies
     rolling: true, // Reset maxAge on every response
     cookie: { 
       secure: false, // Using false because Replit doesn't use HTTPS locally
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      sameSite: 'lax', // Changed from 'none' - 'none' only works with secure:true
-      path: '/' // Ensure cookie is valid for all paths
+      sameSite: 'none', // 'none' works with cross-site embedding
+      path: '/', // Ensure cookie is valid for all paths
+      domain: undefined // Let the browser set the domain automatically
     },
     name: 'sozayn.sid' // Custom name for the session cookie
   })

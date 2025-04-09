@@ -25,13 +25,24 @@ export async function apiRequest(
     headers['Content-Type'] = 'application/json';
   }
 
+  console.log(`API Request: ${method} ${url}`, { 
+    withCredentials: true,
+    documentCookie: document.cookie ? 'present' : 'missing'
+  });
+
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include", // Always include credentials (cookies) with requests
-    mode: "cors", // Allow CORS
+    mode: "same-origin", // Changed from "cors" to "same-origin" since we're on the same domain
     cache: "no-cache" // Don't cache requests
+  });
+
+  const cookies = document.cookie;
+  console.log(`API Response: ${res.status} for ${method} ${url}`, { 
+    hasCookies: cookies ? 'yes' : 'no',
+    cookieCount: cookies.split(';').filter(c => c.trim()).length
   });
 
   // Skip error throwing for 401 errors if specified in options
@@ -52,13 +63,18 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    console.log(`QueryFn: GET ${queryKey[0]}`, { 
+      withCredentials: true,
+      documentCookie: document.cookie ? 'present' : 'missing'
+    });
+    
     const res = await fetch(queryKey[0] as string, {
       method: 'GET',
       headers: {
         'Accept': 'application/json'
       },
       credentials: "include", // Always include credentials (cookies) with requests
-      mode: "cors", // Allow CORS
+      mode: "same-origin", // Changed from "cors" to "same-origin" since we're on the same domain
       cache: "no-cache" // Don't cache requests
     });
 

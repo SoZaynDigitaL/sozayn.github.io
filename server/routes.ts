@@ -44,7 +44,9 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
     userId: req.session?.userId,
     role: req.session?.role,
     sessionID: req.sessionID,
-    cookies: req.headers.cookie
+    cookies: req.headers.cookie,
+    cookieSummary: req.headers.cookie ? 'present' : 'missing',
+    sessionData: JSON.stringify(req.session)
   });
   
   // For specific API endpoints that need a user context, use a simpler approach
@@ -219,6 +221,41 @@ const hasRequiredPlan = (requiredPlans: string[]) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Manual auth approach - storing user ID in server memory as a fallback
+  const activeUsers = new Map<string, number>();
+  
+  // Debug endpoint for session troubleshooting
+  app.get("/api/debug/session", (req, res) => {
+    console.log("Debug session info:", {
+      sessionID: req.sessionID,
+      sessionData: req.session,
+      cookies: req.headers.cookie,
+      activeUserSessions: Array.from(activeUsers.entries()).map(([sessionId, userId]) => ({ sessionId, userId }))
+    });
+    res.json({
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      sessionData: req.session,
+      cookieHeader: req.headers.cookie ? "present" : "missing",
+      inMemoryAuth: activeUsers.has(req.sessionID) ? activeUsers.get(req.sessionID) : null
+    });
+  });
+  
+  // Middleware to check for an alternate authentication token
+  app.use((req, res, next) => {
+    // If we already have userId in session, don't do anything
+    if (req.session && req.session.userId) {
+      return next();
+    }
+    
+    // Check if this is a known session in our memory map
+    if (activeUsers.has(req.sessionID)) {
+      req.session.userId = activeUsers.get(req.sessionID);
+      console.log(`Recovered session from memory map: User ID ${req.session.userId} for session ${req.sessionID}`);
+    }
+    
+    next();
+  });
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -310,6 +347,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(500).json({ error: "Failed to save session" });
           }
           
+          // Store user ID in our memory map for recovery if cookie fails
+          activeUsers.set(req.sessionID, user.id);
+          console.log(`Saved user ID ${user.id} to memory map for session ${req.sessionID}`);
+          
           // Don't return password
           const { password: _, ...userWithoutPassword } = user;
           
@@ -340,6 +381,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error("Error saving session:", err);
           return res.status(500).json({ error: "Failed to save session" });
         }
+        
+        // Store user ID in our memory map for recovery if cookie fails
+        activeUsers.set(req.sessionID, user.id);
+        console.log(`Saved user ID ${user.id} to memory map for session ${req.sessionID}`);
         
         // Don't return password
         const { password: _, ...userWithoutPassword } = user;

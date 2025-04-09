@@ -18,10 +18,19 @@ export async function apiRequest(
   data?: unknown | undefined,
   options?: Partial<ApiRequestOptions>
 ): Promise<Response> {
+  // Check if we have an auth token in localStorage
+  const TOKEN_KEY = 'sozayn_auth_token';
+  const authToken = localStorage.getItem(TOKEN_KEY);
+  
   const headers: Record<string, string> = {
     'Accept': 'application/json',
     ...(options?.headers || {})
   };
+
+  // Add auth token to headers if available
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
 
   if (data) {
     headers['Content-Type'] = 'application/json';

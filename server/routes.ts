@@ -806,13 +806,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Mock endpoint to update integration
+  // Update/create integration endpoint
   app.patch("/api/integrations/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = req.session.userId as number;
       
-      // Check if integration exists and belongs to this user
+      // Check if this is updating a demo integration (ids 1-2)
+      const isDemoIntegration = (id === 1 || id === 2);
+      
+      if (isDemoIntegration) {
+        // For demo integrations, we'll create a new one instead of updating
+        console.log("Creating new integration from demo data:", req.body);
+        
+        // Create a new integration record with the provided data
+        const [newIntegration] = await db.insert(integrations)
+          .values({
+            ...req.body,
+            userId,
+            type: 'delivery',
+            // Make sure essential fields are present
+            provider: req.body.provider || (id === 1 ? 'DoorDash' : 'UberEats'),
+          })
+          .returning();
+        
+        return res.json(newIntegration);
+      }
+      
+      // For real integrations, check if it exists and belongs to this user
       const [integration] = await db.select().from(integrations)
         .where(and(
           eq(integrations.id, id),
@@ -823,7 +844,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Integration not found or access denied" });
       }
       
-      // Update the integration
+      // Update the real integration
       const [updatedIntegration] = await db.update(integrations)
         .set(req.body)
         .where(eq(integrations.id, id))

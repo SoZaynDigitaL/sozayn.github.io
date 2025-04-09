@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
+import TestEcommerce from "@/components/dashboard/TestEcommerce";
 
 export default function Ecommerce() {
   const { user } = useAuth();
@@ -38,6 +39,7 @@ export default function Ecommerce() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="test">Test Integration</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
           
@@ -243,6 +245,10 @@ export default function Ecommerce() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="test" className="space-y-4">
+            <TestEcommerce />
           </TabsContent>
           
           <TabsContent value="settings" className="space-y-4">

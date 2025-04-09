@@ -29,22 +29,24 @@ export const insertUserSchema = createInsertSchema(users).pick({
   subscriptionPlan: true,
 });
 
-// Integrations (delivery services, POS systems)
+// Integrations (delivery services, POS systems, e-commerce platforms)
 export const integrations = pgTable("integrations", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
-  type: text("type").notNull(), // delivery, pos
-  provider: text("provider").notNull(), // doordash, ubereats, toast, square, jetgo, etc.
+  type: text("type").notNull(), // delivery, pos, ecommerce
+  provider: text("provider").notNull(), // doordash, ubereats, toast, square, jetgo, shopify, woocommerce, etc.
   apiKey: text("api_key"),
   isActive: boolean("is_active").default(false),
   environment: text("environment").default("sandbox"), // sandbox, live
   developerId: text("developer_id"), // Customer ID for UberDirect
-  keyId: text("key_id"), // Client ID for UberDirect
-  signingSecret: text("signing_secret"), // Client secret for UberDirect
+  keyId: text("key_id"), // Client ID for UberDirect / API Key ID for e-commerce
+  signingSecret: text("signing_secret"), // Client secret for UberDirect / API Secret for e-commerce
   merchantId: text("merchant_id"), // Merchant ID for JetGo
-  webhookSecret: text("webhook_secret"), // Webhook secret for JetGo
-  webhookUrl: text("webhook_url"), // Webhook URL for delivery partners
+  webhookSecret: text("webhook_secret"), // Webhook secret for JetGo / E-commerce webhooks
+  webhookUrl: text("webhook_url"), // Webhook URL for delivery partners and e-commerce
   sendOrderStatus: boolean("send_order_status").default(true), // Whether to send order status updates
+  storeUrl: text("store_url"), // E-commerce store URL
+  storeApiVersion: text("store_api_version"), // E-commerce API version
   settings: json("settings"), // provider-specific settings
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -62,6 +64,8 @@ export const insertIntegrationSchema = createInsertSchema(integrations).pick({
   webhookSecret: true,
   webhookUrl: true,
   sendOrderStatus: true,
+  storeUrl: true,
+  storeApiVersion: true,
   settings: true,
 });
 

@@ -22,6 +22,7 @@ export interface IStorage {
   
   // Webhook methods
   getWebhooks(userId: number): Promise<Webhook[]>;
+  getAllWebhooks(): Promise<Webhook[]>;
   getWebhook(id: number): Promise<Webhook | undefined>;
   getWebhookBySecretKey(secretKey: string): Promise<Webhook | undefined>;
   createWebhook(webhook: InsertWebhook): Promise<Webhook>;
@@ -108,6 +109,10 @@ export class DatabaseStorage implements IStorage {
   // Webhook methods
   async getWebhooks(userId: number): Promise<Webhook[]> {
     return db.select().from(webhooks).where(eq(webhooks.userId, userId));
+  }
+  
+  async getAllWebhooks(): Promise<Webhook[]> {
+    return db.select().from(webhooks);
   }
   
   async getWebhook(id: number): Promise<Webhook | undefined> {

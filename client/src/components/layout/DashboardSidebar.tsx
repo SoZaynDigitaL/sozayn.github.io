@@ -113,6 +113,12 @@ export default function DashboardSidebar() {
       label: 'User Management', 
       requiredRoles: ['admin'] 
     });
+    baseNavigationItems.push({ 
+      href: '/dashboard/admin/webhooks', 
+      icon: LinkIcon, 
+      label: 'Webhook Management', 
+      requiredRoles: ['admin'] 
+    });
   }
   
   // Filter items based on user role and subscription plan

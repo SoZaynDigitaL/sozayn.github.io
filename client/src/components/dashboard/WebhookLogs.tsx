@@ -1,32 +1,37 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { DashboardCard } from "@/components/ui/dashboard-card";
-import { Loader2, ClipboardList, CheckCircle, AlertCircle, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Loader2 } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface WebhookLogsProps {
   webhookId: number;
 }
 
 export default function WebhookLogs({ webhookId }: WebhookLogsProps) {
-  const [isLogDetailOpen, setIsLogDetailOpen] = useState(false);
-  const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
   
-  // Query to fetch webhook logs
-  const { data: logs = [], isLoading } = useQuery({
-    queryKey: [`/api/webhooks/${webhookId}/logs`],
+  // Fetch webhook logs
+  const {
+    data: logs = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["/api/webhook-logs", webhookId],
     queryFn: async () => {
       const res = await apiRequest("GET", `/api/webhooks/${webhookId}/logs`);
       if (!res.ok) {
@@ -36,188 +41,179 @@ export default function WebhookLogs({ webhookId }: WebhookLogsProps) {
     },
   });
   
-  // View log details
-  const viewLogDetails = (log: any) => {
-    setSelectedLog(log);
-    setIsLogDetailOpen(true);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+      </div>
+    );
+  }
   
-  // Format date
+  if (isError) {
+    return (
+      <div className="flex justify-center py-6">
+        <p className="text-red-500">Failed to load webhook logs</p>
+      </div>
+    );
+  }
+  
+  if (logs.length === 0) {
+    return (
+      <div className="flex justify-center py-6">
+        <p className="text-gray-500">No logs found for this webhook</p>
+      </div>
+    );
+  }
+  
+  // Helper to format date
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "MMM dd, yyyy HH:mm:ss");
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hour12: true
+    }).format(date);
   };
   
-  // Get status badge
-  const getStatusBadge = (statusCode: number) => {
-    if (!statusCode) return null;
-    
-    if (statusCode >= 200 && statusCode < 300) {
-      return <Badge className="bg-green-500">Success</Badge>;
-    } else if (statusCode >= 400 && statusCode < 500) {
-      return <Badge className="bg-yellow-500">Client Error</Badge>;
-    } else if (statusCode >= 500) {
-      return <Badge className="bg-red-500">Server Error</Badge>;
-    }
-    
-    return <Badge>Unknown</Badge>;
-  };
-  
-  // Get event type label
-  const getEventTypeLabel = (eventType: string) => {
-    // Map of event types to more readable labels
-    const eventLabels: Record<string, string> = {
-      "order.created": "Order Created",
-      "order.updated": "Order Updated",
-      "order.cancelled": "Order Cancelled",
-      "delivery.assigned": "Delivery Assigned",
-      "delivery.pickup": "Delivery Pickup",
-      "delivery.completed": "Delivery Completed",
-      "payment.succeeded": "Payment Succeeded",
-      "payment.failed": "Payment Failed",
-    };
-    
-    return eventLabels[eventType] || eventType;
-  };
-  
-  // Format JSON for display
-  const formatJSON = (json: any) => {
+  // Helper to format JSON for display
+  const formatJson = (json: any) => {
     try {
       return JSON.stringify(json, null, 2);
-    } catch (error) {
-      return String(json);
+    } catch (e) {
+      return JSON.stringify(json);
     }
+  };
+  
+  // Get status badge color
+  const getStatusBadge = (status: number) => {
+    if (status >= 200 && status < 300) {
+      return <Badge className="bg-green-500">Success</Badge>;
+    } else if (status >= 400 && status < 500) {
+      return <Badge className="bg-yellow-500">Client Error</Badge>;
+    } else if (status >= 500) {
+      return <Badge className="bg-red-500">Server Error</Badge>;
+    } else {
+      return <Badge className="bg-gray-500">Unknown</Badge>;
+    }
+  };
+  
+  // Get event type badge
+  const getEventBadge = (eventType: string) => {
+    const typeColor = eventType.includes('delivery') ? 'blue' : 
+                      eventType.includes('order') ? 'purple' : 
+                      eventType.includes('payment') ? 'green' : 
+                      eventType.includes('subscription') ? 'orange' : 
+                      eventType.includes('courier') ? 'blue' : 'gray';
+    
+    return (
+      <Badge className={`bg-${typeColor}-100 text-${typeColor}-800 border-${typeColor}-200`} variant="outline">
+        {eventType}
+      </Badge>
+    );
+  };
+  
+  const toggleAccordion = (value: string) => {
+    setExpandedItem(expandedItem === value ? null : value);
   };
   
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Recent Webhook Logs</h2>
-      </div>
+    <div className="space-y-4">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle>Webhook Logs</CardTitle>
+        <CardDescription>
+          Recent webhook events and their processing status
+        </CardDescription>
+      </CardHeader>
       
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-        </div>
-      ) : logs.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <ClipboardList className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-          <p className="text-gray-500">No webhook logs yet</p>
-          <p className="text-sm text-gray-400">Logs will appear here once the webhook is triggered</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {logs.slice(0, 5).map((log: any) => (
-            <Card 
-              key={log.id} 
-              className="p-3 cursor-pointer hover:bg-gray-50"
-              onClick={() => viewLogDetails(log)}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{getEventTypeLabel(log.eventType)}</div>
-                  <div className="text-sm text-gray-500 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {formatDate(log.createdAt)}
+      <div className="space-y-4">
+        {logs.map((log: any, index: number) => (
+          <Card key={log.id} className="shadow-sm">
+            <CardHeader className="p-4 pb-0">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                      {log.eventType.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium flex flex-wrap gap-2 items-center">
+                      {getEventBadge(log.eventType)}
+                      <span className="text-xs text-gray-500">
+                        {formatDate(log.createdAt)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Processing time: {log.processingTimeMs}ms
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {log.statusCode && (
-                    <div className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                      {log.statusCode}
-                    </div>
-                  )}
-                  {getStatusBadge(log.statusCode)}
-                  {log.processingTimeMs && (
-                    <div className="text-xs text-gray-500">
-                      {log.processingTimeMs}ms
-                    </div>
+                  {log.statusCode && getStatusBadge(log.statusCode)}
+                  {log.errorMessage && (
+                    <Badge variant="outline" className="text-red-500 border-red-200">
+                      Error
+                    </Badge>
                   )}
                 </div>
               </div>
-            </Card>
-          ))}
-          
-          {logs.length > 5 && (
-            <div className="text-center pt-2">
-              <Button variant="link" className="text-blue-600">
-                View all {logs.length} logs
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {selectedLog && (
-        <Dialog open={isLogDetailOpen} onOpenChange={setIsLogDetailOpen}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>Webhook Log Details</DialogTitle>
-              <DialogDescription>
-                Log ID: {selectedLog.id} • {formatDate(selectedLog.createdAt)}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 pt-4">
-              <div className="flex justify-between">
-                <div>
-                  <h3 className="text-sm font-medium">Event Type</h3>
-                  <p>{getEventTypeLabel(selectedLog.eventType)}</p>
-                </div>
+            </CardHeader>
+            <CardContent className="p-4">
+              <Accordion type="single" collapsible value={expandedItem || ''}>
+                <AccordionItem value={`request-${log.id}`} className="border-0">
+                  <AccordionTrigger 
+                    onClick={() => toggleAccordion(`request-${log.id}`)}
+                    className="py-2 text-sm font-medium"
+                  >
+                    Request Payload
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <pre className="bg-slate-950 text-gray-200 p-3 rounded-md text-xs overflow-auto max-h-64">
+                      {formatJson(log.requestPayload)}
+                    </pre>
+                  </AccordionContent>
+                </AccordionItem>
                 
-                <div className="text-right">
-                  <h3 className="text-sm font-medium">Status</h3>
-                  <div className="flex items-center gap-2 justify-end">
-                    {selectedLog.statusCode && (
-                      <div className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
-                        {selectedLog.statusCode}
+                {log.responsePayload && (
+                  <AccordionItem value={`response-${log.id}`} className="border-0">
+                    <AccordionTrigger 
+                      onClick={() => toggleAccordion(`response-${log.id}`)}
+                      className="py-2 text-sm font-medium"
+                    >
+                      Response Payload
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <pre className="bg-slate-950 text-gray-200 p-3 rounded-md text-xs overflow-auto max-h-64">
+                        {formatJson(log.responsePayload)}
+                      </pre>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+                
+                {log.errorMessage && (
+                  <AccordionItem value={`error-${log.id}`} className="border-0">
+                    <AccordionTrigger 
+                      onClick={() => toggleAccordion(`error-${log.id}`)}
+                      className="py-2 text-sm font-medium text-red-500"
+                    >
+                      Error Details
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
+                        {log.errorMessage}
                       </div>
-                    )}
-                    {getStatusBadge(selectedLog.statusCode)}
-                  </div>
-                </div>
-              </div>
-              
-              {selectedLog.processingTimeMs && (
-                <div>
-                  <h3 className="text-sm font-medium">Processing Time</h3>
-                  <p>{selectedLog.processingTimeMs}ms</p>
-                </div>
-              )}
-              
-              {selectedLog.errorMessage && (
-                <div>
-                  <h3 className="text-sm font-medium text-red-600">Error</h3>
-                  <p className="text-red-600">{selectedLog.errorMessage}</p>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {selectedLog.requestPayload && (
-                  <div>
-                    <h3 className="text-sm font-medium">Request Payload</h3>
-                    <div className="mt-1 max-h-80 overflow-auto bg-gray-50 p-3 rounded-md">
-                      <pre className="text-xs font-mono">
-                        {formatJSON(selectedLog.requestPayload)}
-                      </pre>
-                    </div>
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 )}
-                
-                {selectedLog.responsePayload && (
-                  <div>
-                    <h3 className="text-sm font-medium">Response Payload</h3>
-                    <div className="mt-1 max-h-80 overflow-auto bg-gray-50 p-3 rounded-md">
-                      <pre className="text-xs font-mono">
-                        {formatJSON(selectedLog.responsePayload)}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+              </Accordion>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

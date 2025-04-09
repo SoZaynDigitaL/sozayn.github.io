@@ -25,6 +25,7 @@ async function getMailerLiteClient() {
 declare module 'express-session' {
   interface SessionData {
     userId?: number;
+    role?: string;
   }
 }
 
@@ -71,11 +72,20 @@ const hasRequiredRole = (requiredRoles: string[]) => {
     }
     
     try {
+      // First check if role is in the session
+      if (req.session.role && requiredRoles.includes(req.session.role)) {
+        return next();
+      }
+      
+      // If role is not in session or doesn't match, fetch from database as a fallback
       const user = await storage.getUser(req.session.userId as number);
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
+      
+      // Store the role in session for future requests
+      req.session.role = user.role;
       
       // Check if user's role is in the required roles list
       if (requiredRoles.includes(user.role)) {
@@ -208,8 +218,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hashedPassword = await bcrypt.hash(password, salt);
         await storage.updateUser(user.id, { password: hashedPassword });
         
-        // Set user ID in session
+        // Set user ID and role in session
         req.session.userId = user.id;
+        req.session.role = user.role;
         
         // Save the session explicitly to ensure it's stored before sending response
         req.session.save((err) => {
@@ -238,8 +249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      // Set user ID in session
+      // Set user ID and role in session
       req.session.userId = user.id;
+      req.session.role = user.role;
       
       // Save the session explicitly to ensure it's stored before sending response
       req.session.save((err) => {
@@ -322,8 +334,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }) || adminUser;
       }
       
-      // Set user in session
+      // Set user ID and role in session
       req.session.userId = adminUser.id;
+      req.session.role = adminUser.role;
       
       // Save session explicitly
       req.session.save((err) => {
@@ -596,6 +609,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // UberDirect Webhook Setup Helper
+  app.post("/api/webhooks/setup/uberdirect", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Check if webhook for UberDirect already exists
+      const existingWebhooks = await storage.getWebhooks(userId);
+      const uberDirectWebhook = existingWebhooks.find(wh => 
+        wh.sourceProvider.toLowerCase() === 'uberdirect' || 
+        wh.destinationProvider.toLowerCase() === 'uberdirect'
+      );
+      
+      if (uberDirectWebhook) {
+        // If webhook exists, just return it
+        return res.json({
+          message: "UberDirect webhook already exists", 
+          webhook: uberDirectWebhook
+        });
+      }
+      
+      // Create a new webhook for UberDirect
+      const newWebhook = await storage.createWebhook({
+        userId,
+        name: "UberDirect Delivery Webhook",
+        description: "Automatically created webhook for UberDirect delivery status updates and courier location tracking",
+        sourceType: "delivery",
+        sourceProvider: "UberDirect",
+        destinationType: "internal",
+        destinationProvider: "SoZayn",
+        eventTypes: ["delivery.status", "courier.update", "event.delivery_status", "event.courier_update"],
+        endpointUrl: `${req.protocol}://${req.get('host')}/api/webhooks/uberdirect`,
+        isActive: true
+      });
+      
+      res.status(201).json({
+        message: "UberDirect webhook created successfully",
+        webhook: newWebhook
+      });
+      
+    } catch (error: any) {
+      console.error("Error setting up UberDirect webhook:", error);
+      res.status(500).json({ 
+        error: "Error setting up UberDirect webhook", 
+        message: error.message 
+      });
+    }
+  });
+  
   // Uber Direct Webhook Handler
   app.post("/api/webhooks/uberdirect", async (req, res) => {
     try {
@@ -615,7 +676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let webhook;
       try {
         // Find the corresponding webhook in our database
-        const webhooks = await storage.getWebhooks(0); // Get all webhooks (improvement: add filter by provider)
+        const webhooks = await storage.getAllWebhooks(); // Get all webhooks 
         webhook = webhooks.find(wh => 
           wh.sourceProvider.toLowerCase() === 'uberdirect' || 
           wh.sourceProvider.toLowerCase() === 'uber'
@@ -722,6 +783,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching users:", error);
       res.status(500).json({ 
         error: "Error fetching users", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Admin Webhook Management API endpoints
+  app.get("/api/admin/webhooks", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      // Get all webhooks in the system
+      const allWebhooks = await storage.getAllWebhooks();
+      res.json(allWebhooks);
+    } catch (error: any) {
+      console.error("Error fetching webhooks:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhooks", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.post("/api/admin/webhooks", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Create webhook with admin credentials
+      const webhookData = insertWebhookSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const newWebhook = await storage.createWebhook(webhookData);
+      res.status(201).json(newWebhook);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error("Error creating webhook:", error);
+      res.status(500).json({ 
+        error: "Error creating webhook", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.get("/api/admin/webhooks/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      res.json(webhook);
+    } catch (error: any) {
+      console.error("Error fetching webhook:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.patch("/api/admin/webhooks/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Update webhook
+      const updatedWebhook = await storage.updateWebhook(id, req.body);
+      
+      if (!updatedWebhook) {
+        return res.status(500).json({ error: "Failed to update webhook" });
+      }
+      
+      res.json(updatedWebhook);
+    } catch (error: any) {
+      console.error("Error updating webhook:", error);
+      res.status(500).json({ 
+        error: "Error updating webhook", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.delete("/api/admin/webhooks/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Delete webhook
+      const success = await storage.deleteWebhook(id);
+      
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete webhook" });
+      }
+      
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Error deleting webhook:", error);
+      res.status(500).json({ 
+        error: "Error deleting webhook", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Webhook logs endpoint
+  app.get("/api/webhooks/:id/logs", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const webhook = await storage.getWebhook(id);
+      
+      if (!webhook) {
+        return res.status(404).json({ error: "Webhook not found" });
+      }
+      
+      // Check if the user is an admin or if they own the webhook
+      const userId = req.session.userId as number;
+      const userRole = req.session.role as string;
+      
+      if (webhook.userId !== userId && userRole !== 'admin') {
+        return res.status(403).json({ error: "Unauthorized access to webhook logs" });
+      }
+      
+      // Get logs for this webhook (limit to 100 most recent)
+      const logs = await storage.getWebhookLogs(id, 100);
+      
+      res.json(logs);
+    } catch (error: any) {
+      console.error("Error fetching webhook logs:", error);
+      res.status(500).json({ 
+        error: "Error fetching webhook logs", 
         message: error.message 
       });
     }

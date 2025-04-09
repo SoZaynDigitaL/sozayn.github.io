@@ -23,6 +23,38 @@ const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+// Middleware to enforce role-based access control
+const hasRequiredRole = (requiredRoles: string[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    try {
+      const user = await storage.getUser(req.session.userId as number);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if user's role is in the required roles list
+      if (requiredRoles.includes(user.role)) {
+        next();
+      } else {
+        res.status(403).json({ 
+          error: "Access denied", 
+          message: "You don't have permission to access this resource",
+          userRole: user.role,
+          requiredRoles
+        });
+      }
+    } catch (error) {
+      console.error("Error checking user role:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  };
+};
+
 // Middleware to check if user has required subscription plan
 const hasRequiredPlan = (requiredPlans: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -873,6 +905,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user subscription plan
       await storage.updateUserSubscription(userId, plan);
       
+      // For email segmentation or user welcome emails based on plan
+      try {
+        if (process.env.MAILERLITE_API_KEY && user.email) {
+          const mailerliteSDK = await import('@mailerlite/mailerlite-nodejs');
+          const mailerlite = new mailerliteSDK.default({
+            api_key: process.env.MAILERLITE_API_KEY,
+          });
+          
+          // Update subscriber with new plan information
+          await mailerlite.subscribers.createOrUpdate({
+            email: user.email,
+            fields: {
+              subscription_plan: plan,
+              subscription_date: new Date().toISOString().split('T')[0],
+            },
+          });
+          
+          console.log('User subscription updated in MailerLite:', user.email);
+        }
+      } catch (emailError) {
+        // Don't fail subscription update if email service fails
+        console.error('Error updating subscriber in MailerLite:', emailError);
+      }
+      
       res.json({ 
         success: true, 
         message: "Subscription processed successfully",
@@ -882,6 +938,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in subscription success callback:", error);
       res.status(500).json({ 
         error: "Error processing subscription success", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Admin-only routes
+  app.get("/api/admin/users", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      // This would typically fetch users from a database
+      // For now, just return a mock list
+      res.json([
+        { id: 1, username: "admin", email: "admin@example.com", role: "admin", subscriptionPlan: "enterprise" },
+        { id: 2, username: "client1", email: "client1@example.com", role: "client", subscriptionPlan: "professional" },
+        { id: 3, username: "client2", email: "client2@example.com", role: "client", subscriptionPlan: "starter" },
+      ]);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ 
+        error: "Error fetching users", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update user role (admin only)
+  app.patch("/api/admin/users/:id/role", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { role } = req.body;
+      
+      if (!role || !["admin", "client"].includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+      }
+      
+      const updatedUser = await storage.updateUserRole(id, role);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ 
+        error: "Error updating user role", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Update user subscription (admin only)
+  app.patch("/api/admin/users/:id/subscription", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { subscriptionPlan } = req.body;
+      
+      if (!subscriptionPlan || !["free", "starter", "professional", "enterprise"].includes(subscriptionPlan)) {
+        return res.status(400).json({ error: "Invalid subscription plan" });
+      }
+      
+      const updatedUser = await storage.updateUserSubscription(id, subscriptionPlan);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error updating user subscription:", error);
+      res.status(500).json({ 
+        error: "Error updating user subscription", 
         message: error.message 
       });
     }

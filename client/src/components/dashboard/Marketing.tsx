@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { StatsCard } from '@/components/ui/stats';
+import { useAuth } from '@/hooks/useAuth';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -103,6 +105,12 @@ export default function Marketing() {
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, hasRequiredPlan } = useAuth();
+  
+  // Check if user has access to advanced marketing features
+  const hasAdvancedSEO = hasRequiredPlan(['professional', 'enterprise']);
+  const hasSocialMediaIntegration = hasRequiredPlan(['growth', 'professional', 'enterprise']);
+  const hasEmailCampaigns = hasRequiredPlan(['growth', 'professional', 'enterprise']);
   
   // Social media account form
   const socialAccountForm = useForm<SocialAccountFormValues>({
@@ -379,6 +387,23 @@ export default function Marketing() {
         
         {/* SEO Tab */}
         <TabsContent value="seo">
+          {!hasAdvancedSEO && (
+            <div className="mb-6 p-4 border border-accent-orange/30 bg-accent-orange/10 rounded-lg">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-accent-orange mr-3 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-accent-orange mb-1">Limited SEO Features</h3>
+                  <p className="text-sm text-text-secondary mb-2">
+                    Your current plan includes basic SEO tools. Upgrade to Professional for advanced keyword tracking, competitor analysis, and automated SEO recommendations.
+                  </p>
+                  <Button asChild size="sm" className="bg-accent-orange hover:bg-accent-orange/90">
+                    <a href="/subscribe">Upgrade to Professional</a>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <StatsCard
               title="Search Rank"
@@ -597,6 +622,27 @@ export default function Marketing() {
         
         {/* Social Media Tab */}
         <TabsContent value="social">
+          {!hasSocialMediaIntegration ? (
+            <AlertDialog defaultOpen>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Upgrade Your Plan</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Social media integration requires a Growth plan or higher. Upgrade now to connect your social accounts and schedule posts automatically.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button asChild>
+                      <a href="/subscribe">Upgrade Now</a>
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
+          
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <StatsCard
               title="Followers"
@@ -1069,6 +1115,27 @@ export default function Marketing() {
         
         {/* Email Marketing Tab */}
         <TabsContent value="email">
+          {!hasEmailCampaigns ? (
+            <AlertDialog defaultOpen>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Upgrade Your Plan</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Email marketing campaigns require a Growth plan or higher. Upgrade now to send automated emails, track analytics, and grow your subscriber list.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Maybe Later</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button asChild>
+                      <a href="/subscribe">Upgrade Now</a>
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
+          
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
             <StatsCard
               title="Subscribers"

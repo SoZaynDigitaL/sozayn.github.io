@@ -21,13 +21,19 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
+  isAdmin: () => boolean;
+  hasRequiredPlan: (requiredPlans: string[]) => boolean;
+  updateSubscription: (plan: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   login: async () => {},
   logout: async () => {},
-  isLoading: true
+  isLoading: true,
+  isAdmin: () => false,
+  hasRequiredPlan: () => false,
+  updateSubscription: async () => {}
 });
 
 interface AuthProviderProps {
@@ -87,8 +93,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Check if user is an admin
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
+
+  // Check if user has the required subscription plan
+  const hasRequiredPlan = (requiredPlans: string[]) => {
+    if (!user) return false;
+    return requiredPlans.includes(user.subscriptionPlan);
+  };
+
+  // Update user subscription plan
+  const updateSubscription = async (plan: string) => {
+    try {
+      const response = await apiRequest('GET', `/api/subscription-success?plan=${plan}`);
+      if (!response.ok) {
+        throw new Error('Failed to update subscription');
+      }
+      const result = await response.json();
+      
+      if (result.success && user) {
+        // Update local user object with new plan
+        setUser({
+          ...user,
+          subscriptionPlan: plan
+        });
+      }
+    } catch (error) {
+      console.error('Subscription update failed', error);
+      throw new Error('Failed to update subscription');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      login, 
+      logout, 
+      isLoading,
+      isAdmin,
+      hasRequiredPlan,
+      updateSubscription
+    }}>
       {children}
     </AuthContext.Provider>
   );

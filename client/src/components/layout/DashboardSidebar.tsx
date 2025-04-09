@@ -11,16 +11,19 @@ import {
   Menu, 
   X,
   Link as LinkIcon,
-  ShoppingCart
+  ShoppingCart,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardSidebar() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const { user, isAdmin, hasRequiredPlan } = useAuth();
   
   const isActive = (path: string) => location === path;
   
@@ -45,16 +48,44 @@ export default function DashboardSidebar() {
     items: { href: string; label: string; }[];
   };
 
-  const navigationItems: (NavItemType | NavGroupType)[] = [
+  // Define navigation items with role and plan restrictions
+  type NavItemWithAccess = NavItemType & {
+    requiredRoles?: string[];
+    requiredPlans?: string[];
+  };
+
+  type NavGroupWithAccess = NavGroupType & {
+    requiredRoles?: string[];
+    requiredPlans?: string[];
+  };
+
+  const baseNavigationItems: (NavItemWithAccess | NavGroupWithAccess)[] = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders' },
-    { href: '/dashboard/integrations', icon: ExternalLink, label: 'Delivery Partners' },
-    { href: '/dashboard/pos', icon: Layers, label: 'POS Integration' },
-    { href: '/dashboard/webhooks', icon: LinkIcon, label: 'Webhooks' },
-    {
+    { 
+      href: '/dashboard/integrations', 
+      icon: ExternalLink, 
+      label: 'Delivery Partners', 
+      requiredPlans: ['growth', 'professional', 'enterprise'] 
+    },
+    { 
+      href: '/dashboard/pos', 
+      icon: Layers, 
+      label: 'POS Integration', 
+      requiredPlans: ['professional', 'enterprise'] 
+    },
+    { 
+      href: '/dashboard/webhooks', 
+      icon: LinkIcon, 
+      label: 'Webhooks', 
+      requiredPlans: ['professional', 'enterprise']
+    },
+    // Hide e-commerce for now as requested
+    /* {
       group: 'ecommerce',
       icon: ShoppingCart,
       label: 'E-commerce',
+      requiredPlans: ['professional', 'enterprise'],
       items: [
         { href: '/dashboard/ecommerce/shopify', label: 'Shopify' },
         { href: '/dashboard/ecommerce/woocommerce', label: 'WooCommerce' },
@@ -63,11 +94,41 @@ export default function DashboardSidebar() {
         { href: '/dashboard/ecommerce/squarespace', label: 'Squarespace' },
         { href: '/dashboard/ecommerce/wix', label: 'Wix' }
       ]
-    },
+    }, */
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
-    { href: '/dashboard/loyalty', icon: Gift, label: 'Loyalty & Rewards' },
+    { 
+      href: '/dashboard/loyalty', 
+      icon: Gift, 
+      label: 'Loyalty & Rewards', 
+      requiredPlans: ['professional', 'enterprise'] 
+    },
     { href: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
+  
+  // Admin-only items
+  if (isAdmin()) {
+    baseNavigationItems.push({ 
+      href: '/dashboard/admin/users', 
+      icon: Users, 
+      label: 'User Management', 
+      requiredRoles: ['admin'] 
+    });
+  }
+  
+  // Filter items based on user role and subscription plan
+  const navigationItems = baseNavigationItems.filter(item => {
+    // Check role restrictions
+    if (item.requiredRoles && !isAdmin() && !item.requiredRoles.includes(user?.role || '')) {
+      return false;
+    }
+    
+    // Check plan restrictions
+    if (item.requiredPlans && !hasRequiredPlan(item.requiredPlans)) {
+      return false;
+    }
+    
+    return true;
+  });
   
   const NavItem = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
     const active = isActive(href);
@@ -179,7 +240,47 @@ export default function DashboardSidebar() {
         </nav>
       </div>
       
-      <div className="px-4 py-6 border-t border-border-color">
+      <div className="px-4 py-6 border-t border-border-color space-y-4">
+        {/* Subscription plan info */}
+        {user && (
+          <div className="bg-bg-card rounded-lg p-4 shadow-lg border border-border-color">
+            <h4 className="font-medium text-sm mb-2">Current Plan</h4>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-semibold">
+                {user.subscriptionPlan.charAt(0).toUpperCase() + user.subscriptionPlan.slice(1)}
+              </span>
+              <span className={cn(
+                "text-xs px-2 py-0.5 rounded",
+                user.subscriptionPlan === 'professional' || user.subscriptionPlan === 'enterprise' 
+                  ? "bg-green-500/10 text-green-500" 
+                  : user.subscriptionPlan === 'growth' 
+                    ? "bg-blue-500/10 text-blue-500"
+                    : "bg-gray-500/10 text-gray-500"
+              )}>
+                {user.subscriptionPlan === 'free' && 'Limited'}
+                {user.subscriptionPlan === 'starter' && 'Basic'}
+                {user.subscriptionPlan === 'growth' && 'Standard'}
+                {user.subscriptionPlan === 'professional' && 'Premium'}
+                {user.subscriptionPlan === 'enterprise' && 'Complete'}
+              </span>
+            </div>
+            {user.subscriptionPlan !== 'enterprise' ? (
+              <Link href="/subscribe">
+                <Button variant="outline" className="w-full text-xs" size="sm">
+                  Upgrade Plan
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/dashboard/settings">
+                <Button variant="outline" className="w-full text-xs" size="sm">
+                  Manage Subscription
+                </Button>
+              </Link>
+            )}
+          </div>
+        )}
+        
+        {/* Help section */}
         <div className="bg-bg-card rounded-lg p-4 shadow-lg border border-border-color">
           <h4 className="font-medium text-sm mb-2">Need help?</h4>
           <p className="text-text-secondary text-xs mb-3">

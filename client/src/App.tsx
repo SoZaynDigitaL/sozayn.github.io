@@ -19,6 +19,7 @@ import TestOrder from "@/pages/dashboard/test-order";
 import DeliveryPartners from "@/pages/dashboard/delivery-partners";
 import Users from "@/pages/dashboard/admin/users";
 import AdminWebhooks from "@/pages/dashboard/admin/webhooks";
+import Ecommerce from "@/pages/dashboard/ecommerce";
 import ShopifyIntegration from "@/pages/dashboard/ecommerce/shopify";
 import WooCommerceIntegration from "@/pages/dashboard/ecommerce/woocommerce";
 import MagentoIntegration from "@/pages/dashboard/ecommerce/magento";
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/dashboard/admin/webhooks" component={AdminWebhooks} />
       
       {/* E-commerce platform routes */}
+      <Route path="/dashboard/ecommerce" component={Ecommerce} />
       <Route path="/dashboard/ecommerce/shopify" component={ShopifyIntegration} />
       <Route path="/dashboard/ecommerce/woocommerce" component={WooCommerceIntegration} />
       <Route path="/dashboard/ecommerce/magento" component={MagentoIntegration} />

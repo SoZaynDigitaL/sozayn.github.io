@@ -53,12 +53,12 @@ export const ORDER_STATUSES = [
 
 // Delivery partners
 export const DELIVERY_PARTNERS = [
-  { name: 'DoorDash', icon: 'DD', color: 'text-accent-orange' },
-  { name: 'UberEats', icon: 'UE', color: 'text-accent-blue' },
-  { name: 'Grubhub', icon: 'GH', color: 'text-accent-green' },
-  { name: 'Postmates', icon: 'PM', color: 'text-text-primary' },
-  { name: 'SkipDishes', icon: 'SD', color: 'text-accent-yellow' },
-  { name: 'Seamless', icon: 'SM', color: 'text-accent-purple' },
+  { label: 'DoorDash', value: 'doordash', icon: 'DD', color: 'text-accent-orange' },
+  { label: 'UberDirect', value: 'uberdirect', icon: 'UE', color: 'text-accent-blue' },
+  { label: 'Grubhub', value: 'grubhub', icon: 'GH', color: 'text-accent-green' },
+  { label: 'Postmates', value: 'postmates', icon: 'PM', color: 'text-text-primary' },
+  { label: 'SkipDishes', value: 'skipdishes', icon: 'SD', color: 'text-accent-yellow' },
+  { label: 'Seamless', value: 'seamless', icon: 'SM', color: 'text-accent-purple' },
 ];
 
 // POS systems

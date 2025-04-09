@@ -87,21 +87,12 @@ export default function DashboardSidebar() {
       label: 'Webhooks', 
       requiredPlans: ['professional', 'enterprise']
     },
-    // Hide e-commerce for now as requested
-    /* {
-      group: 'ecommerce',
-      icon: ShoppingCart,
+    { 
+      href: '/dashboard/ecommerce', 
+      icon: ShoppingCart, 
       label: 'E-commerce',
-      requiredPlans: ['professional', 'enterprise'],
-      items: [
-        { href: '/dashboard/ecommerce/shopify', label: 'Shopify' },
-        { href: '/dashboard/ecommerce/woocommerce', label: 'WooCommerce' },
-        { href: '/dashboard/ecommerce/magento', label: 'Magento' },
-        { href: '/dashboard/ecommerce/bigcommerce', label: 'BigCommerce' },
-        { href: '/dashboard/ecommerce/squarespace', label: 'Squarespace' },
-        { href: '/dashboard/ecommerce/wix', label: 'Wix' }
-      ]
-    }, */
+      requiredPlans: ['growth', 'professional', 'enterprise']
+    },
     { href: '/dashboard/marketing', icon: BarChart3, label: 'Marketing' },
     { 
       href: '/dashboard/loyalty', 

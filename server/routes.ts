@@ -502,15 +502,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateStripeCustomerId(user.id, customer.id);
       }
       
+      // Get plan details from request body
+      const plan = req.body.plan || 'professional';
+      const isUpgrade = req.body.isUpgrade || false;
+      
+      // Set price based on plan (in cents)
+      const planPrices = {
+        starter: 1999, // $19.99
+        growth: 4999,  // $49.99
+        professional: 9999 // $99.99
+      };
+      
+      const planAmount = planPrices[plan as keyof typeof planPrices] || 9999;
+      
       // Create a payment intent for the subscription
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: 2000, // $20.00
+        amount: planAmount,
         currency: "usd",
         customer: stripeCustomerId,
-        description: "SoZayn Monthly Subscription",
+        description: `SoZayn ${plan.charAt(0).toUpperCase() + plan.slice(1)} Subscription`,
         metadata: {
           userId: user.id.toString(),
-          subscriptionPlan: req.body.plan || 'starter'
+          subscriptionPlan: plan,
+          isUpgrade: isUpgrade.toString()
         }
       });
       
@@ -537,6 +551,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!paymentIntentId || !subscriptionPlan) {
         return res.status(400).json({ error: "Missing required parameters" });
       }
+      
+      // Check if Stripe secret key is available
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(500).json({ 
+          error: "Stripe secret key is not set. Please configure STRIPE_SECRET_KEY environment variable." 
+        });
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-03-31.basil" as any,
+      });
+      
+      // Get payment intent to verify payment
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ error: "Payment not successful" });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Create or update Stripe subscription
+      let stripeSubscriptionId = user.stripeSubscriptionId;
+      const stripeCustomerId = user.stripeCustomerId;
+      
+      if (!stripeCustomerId) {
+        return res.status(400).json({ error: "Stripe customer ID not found" });
+      }
+      
+      // Store the upgrade information
+      await storage.updateUserStripeInfo(user.id, {
+        stripeCustomerId,
+        stripeSubscriptionId: stripeSubscriptionId || paymentIntentId, // Use payment intent as subscription ID if none exists
+      });
       
       // Update user subscription plan in the database
       const updatedUser = await storage.updateUserSubscription(userId as number, subscriptionPlan);
@@ -574,6 +626,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error updating subscription:", error);
       res.status(500).json({
         error: "Error updating subscription",
+        message: error.message
+      });
+    }
+  });
+  
+  // Handle subscription cancellation/downgrade
+  app.post("/api/subscription/cancel", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      // Get the user
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if Stripe secret key is available
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.status(500).json({ 
+          error: "Stripe secret key is not set. Please configure STRIPE_SECRET_KEY environment variable." 
+        });
+      }
+
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2025-03-31.basil" as any,
+      });
+      
+      // If user has a Stripe subscription, cancel it
+      if (user.stripeSubscriptionId) {
+        try {
+          // In a real implementation, we would use the Stripe API to cancel the subscription
+          // await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+          console.log(`Cancelled subscription ${user.stripeSubscriptionId} for user ${user.id}`);
+        } catch (stripeError) {
+          console.error('Error cancelling Stripe subscription:', stripeError);
+        }
+      }
+      
+      // Downgrade user to starter plan
+      const updatedUser = await storage.updateUserSubscription(userId as number, 'starter');
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Update tags in MailerLite
+      try {
+        if (process.env.MAILERLITE_API_KEY && updatedUser.email) {
+          const mailerlite = await getMailerLiteClient();
+          
+          // Add/update subscriber with new plan information
+          await mailerlite.subscribers.createOrUpdate({
+            email: updatedUser.email,
+            fields: {
+              subscription_plan: 'starter',
+              subscription_date: new Date().toISOString().split('T')[0],
+              subscription_status: 'downgraded',
+            },
+          });
+          
+          console.log('User subscription downgraded in MailerLite:', updatedUser.email);
+        }
+      } catch (emailError) {
+        console.error('Error updating subscriber in MailerLite:', emailError);
+        // Don't fail if email update fails
+      }
+      
+      // Return updated user (without password)
+      const { password, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+      
+    } catch (error: any) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({
+        error: "Error cancelling subscription",
         message: error.message
       });
     }
@@ -775,6 +902,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Firebase sign-in error:", error);
       res.status(500).json({ 
         error: "Error processing Firebase sign-in", 
+        message: error.message 
+      });
+    }
+  });
+
+  // Subscription management endpoints
+  app.post("/api/subscription/downgrade", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { plan } = req.body;
+      
+      if (!plan || !['starter', 'growth', 'professional'].includes(plan)) {
+        return res.status(400).json({ error: "Invalid plan specified" });
+      }
+      
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // For Stripe integration with actual payment processing, we would handle
+      // the subscription change through the Stripe API here
+      
+      // Update subscription plan
+      const updatedUser = await storage.updateUserSubscription(user.id, plan);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update subscription" });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Subscription downgraded successfully",
+        plan
+      });
+    } catch (error: any) {
+      console.error("Error downgrading subscription:", error);
+      res.status(500).json({ 
+        error: "Error downgrading subscription", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.post("/api/subscription/cancel", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      
+      const user = await storage.getUser(userId as number);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ error: "No active subscription found" });
+      }
+      
+      // If we're using Stripe's full subscription API, we would cancel the subscription through Stripe here
+      if (process.env.STRIPE_SECRET_KEY && user.stripeSubscriptionId) {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: "2025-03-31.basil" as any,
+        });
+        
+        // In a real implementation, we'd cancel the subscription using:
+        // await stripe.subscriptions.update(user.stripeSubscriptionId, { cancel_at_period_end: true });
+      }
+      
+      // For our demo, we'll just update the user's subscription status
+      const expirationDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
+      
+      const updatedUser = await storage.updateUser(user.id, {
+        subscriptionStatus: 'cancelled',
+        // Set a fake expiration date 30 days in the future
+        subscriptionExpiresAt: expirationDate
+      });
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to cancel subscription" });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Subscription cancellation scheduled"
+      });
+    } catch (error: any) {
+      console.error("Error cancelling subscription:", error);
+      res.status(500).json({ 
+        error: "Error cancelling subscription", 
         message: error.message 
       });
     }

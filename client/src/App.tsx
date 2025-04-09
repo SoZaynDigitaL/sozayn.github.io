@@ -25,6 +25,7 @@ import Subscribe from "@/pages/subscribe";
 import Contact from "@/pages/contact";
 import PaymentSuccess from "@/pages/payment-success";
 import SubscriptionSuccess from "@/pages/subscription-success";
+import ManageSubscription from "@/pages/manage-subscription";
 
 function Router() {
   return (
@@ -56,6 +57,7 @@ function Router() {
       <Route path="/subscribe" component={Subscribe} />
       <Route path="/payment-success" component={PaymentSuccess} />
       <Route path="/subscription-success" component={SubscriptionSuccess} />
+      <Route path="/manage-subscription" component={ManageSubscription} />
       <Route path="/contact" component={Contact} />
       
       {/* Fallback to 404 */}

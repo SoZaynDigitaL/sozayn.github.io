@@ -107,19 +107,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Update user subscription plan
   const updateSubscription = async (plan: string) => {
     try {
-      const response = await apiRequest('GET', `/api/subscription-success?plan=${plan}`);
-      if (!response.ok) {
-        throw new Error('Failed to update subscription');
+      if (!user) {
+        throw new Error('User not logged in');
       }
-      const result = await response.json();
       
-      if (result.success && user) {
-        // Update local user object with new plan
-        setUser({
-          ...user,
-          subscriptionPlan: plan
-        });
+      // Fetch updated user data
+      const response = await apiRequest('GET', '/api/auth/me');
+      if (!response.ok) {
+        throw new Error('Failed to get user data');
       }
+      const userData = await response.json();
+      
+      // Update local user object with new plan
+      setUser({
+        ...userData,
+        subscriptionPlan: plan
+      });
+      
+      return userData;
     } catch (error) {
       console.error('Subscription update failed', error);
       throw new Error('Failed to update subscription');

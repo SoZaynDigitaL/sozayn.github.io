@@ -37,10 +37,15 @@ const SubscribeForm = () => {
 
     setIsSubmitting(true);
 
+    // Get the plan from the URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const plan = searchParams.get('plan') || 'professional';
+    const isUpgrade = searchParams.get('upgrade') === 'true';
+    
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/subscription-success`,
+        return_url: `${window.location.origin}/subscription-success?plan=${plan}&upgraded=${isUpgrade}`,
       },
     });
 
@@ -73,6 +78,8 @@ const SubscribeForm = () => {
 export default function Subscribe() {
   const [clientSecret, setClientSecret] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState("professional"); // Default to professional plan
+  const [isUpgrade, setIsUpgrade] = useState(false);
   const { toast } = useToast();
   const { user, isLoading: isAuthLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -93,13 +100,30 @@ export default function Subscribe() {
       return;
     }
 
+    // Parse query parameters
+    const queryParams = new URLSearchParams(window.location.search);
+    const planParam = queryParams.get('plan');
+    const upgradeParam = queryParams.get('upgrade');
+    
+    if (planParam && ['starter', 'growth', 'professional'].includes(planParam)) {
+      setSelectedPlan(planParam);
+    }
+    
+    if (upgradeParam === 'true') {
+      setIsUpgrade(true);
+    }
+
     // Create subscription as soon as the page loads
     const createSubscription = async () => {
       try {
         setIsLoading(true);
         const response = await apiRequest(
           "POST", 
-          "/api/get-or-create-subscription"
+          "/api/get-or-create-subscription",
+          {
+            plan: selectedPlan,
+            isUpgrade: isUpgrade
+          }
         );
         
         const data = await response.json();
@@ -128,7 +152,7 @@ export default function Subscribe() {
     if (user) {
       createSubscription();
     }
-  }, [user, isAuthLoading, setLocation, toast]);
+  }, [user, isAuthLoading, setLocation, toast, selectedPlan, isUpgrade]);
 
   if (isAuthLoading) {
     return (

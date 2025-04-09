@@ -34,6 +34,7 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
   console.log('Checking authentication:', {
     hasSession: !!req.session,
     userId: req.session?.userId,
+    role: req.session?.role,
     sessionID: req.sessionID,
     cookies: req.headers.cookie
   });
@@ -50,8 +51,24 @@ const isAuthenticated = async (req: Request, res: Response, next: NextFunction) 
         return res.status(401).json({ error: "User not found" });
       }
       
+      // Always ensure the role is set in the session
+      if (!req.session.role || req.session.role !== user.role) {
+        req.session.role = user.role;
+        // Save session explicitly to ensure role is persisted
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error saving session with role:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
+      
       // Log success
-      console.log(`Authentication successful for user: ${user.username} (${user.id})`);
+      console.log(`Authentication successful for user: ${user.username} (${user.id}), role: ${user.role}`);
       
       // Call next middleware
       next();
@@ -87,6 +104,18 @@ const hasRequiredRole = (requiredRoles: string[]) => {
       // Store the role in session for future requests
       req.session.role = user.role;
       
+      // Save session explicitly to ensure role is persisted
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) {
+            console.error("Error saving session with role:", err);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
+      });
+      
       // Check if user's role is in the required roles list
       if (requiredRoles.includes(user.role)) {
         next();
@@ -117,6 +146,22 @@ const hasRequiredPlan = (requiredPlans: string[]) => {
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Always ensure the role is set in the session
+      if (!req.session.role || req.session.role !== user.role) {
+        req.session.role = user.role;
+        // Save session explicitly to ensure role is persisted
+        await new Promise<void>((resolve, reject) => {
+          req.session.save((err) => {
+            if (err) {
+              console.error("Error saving session with role:", err);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
       }
       
       // Check if user's plan is in the required plans list

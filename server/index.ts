@@ -21,8 +21,8 @@ app.use(
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || "sozayn-secret-key-DO-NOT-USE-IN-PRODUCTION",
-    resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't create session until something stored
+    resave: true, // Save the session even if unmodified to maintain the session
+    saveUninitialized: true, // Create session even if nothing is stored
     rolling: true, // Reset maxAge on every response
     cookie: { 
       secure: false, // Set to true in production with HTTPS
@@ -30,7 +30,8 @@ app.use(
       httpOnly: true,
       sameSite: 'lax',
       path: '/' // Ensure cookie is valid for all paths
-    }
+    },
+    name: 'sozayn.sid' // Custom name for the session cookie
   })
 );
 

@@ -88,7 +88,7 @@ export default function JetGo({
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  const hasIntegration = integration && Object.keys(integration).length > 0;
+  const hasIntegration = integration !== null;
   
   // Initialize form
   const form = useForm<JetGoFormValues>({

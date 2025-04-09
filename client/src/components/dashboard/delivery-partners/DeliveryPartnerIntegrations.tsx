@@ -34,10 +34,10 @@ export default function DeliveryPartnerIntegrations() {
 
   // Group integrations by provider
   const integrations = {
-    uberDirect: allIntegrations?.find((i: any) => i.provider === 'UberDirect') || {},
-    doordash: allIntegrations?.find((i: any) => i.provider === 'DoorDash') || {},
-    grubhub: allIntegrations?.find((i: any) => i.provider === 'Grubhub') || {},
-    jetgo: allIntegrations?.find((i: any) => i.provider === 'JetGo') || {}
+    uberDirect: allIntegrations?.find((i: any) => i.provider === 'UberDirect') || null,
+    doordash: allIntegrations?.find((i: any) => i.provider === 'DoorDash') || null,
+    grubhub: allIntegrations?.find((i: any) => i.provider === 'Grubhub') || null,
+    jetgo: allIntegrations?.find((i: any) => i.provider === 'JetGo') || null
   };
 
   // Update integration mutation

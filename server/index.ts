@@ -21,11 +21,13 @@ app.use(
       createTableIfMissing: true,
     }),
     secret: "sozayn-secret-key",
-    resave: false,
+    resave: true, // Force the session to be saved back to the store
     saveUninitialized: false,
     cookie: { 
       secure: false, // Set to true in production with HTTPS
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      sameSite: 'lax'
     }
   })
 );

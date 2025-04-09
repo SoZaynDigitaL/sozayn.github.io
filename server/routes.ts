@@ -30,6 +30,11 @@ declare module 'express-session' {
 
 // Helper function to authenticate requests
 const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  console.log('Checking authentication:', {
+    hasSession: !!req.session,
+    userId: req.session?.userId
+  });
+  
   if (req.session && req.session.userId) {
     next();
   } else {
@@ -179,10 +184,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set user ID in session
       req.session.userId = user.id;
       
-      // Don't return password
-      const { password: _, ...userWithoutPassword } = user;
-      
-      res.json(userWithoutPassword);
+      // Save the session explicitly to ensure it's stored before sending response
+      req.session.save((err) => {
+        if (err) {
+          console.error("Error saving session:", err);
+          return res.status(500).json({ error: "Failed to save session" });
+        }
+        
+        // Don't return password
+        const { password: _, ...userWithoutPassword } = user;
+        
+        res.json(userWithoutPassword);
+      });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });

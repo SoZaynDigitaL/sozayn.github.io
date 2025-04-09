@@ -1491,6 +1491,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // JetGo specific test endpoints
+  
+  // Test endpoint for JetGo delivery quotes
+  app.post("/api/jetgo/test-quote", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== JETGO TEST QUOTE REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      // Create a simulated JetGo quote response
+      const quoteId = `jetgo_quote_${Math.random().toString(36).substring(2, 10)}`;
+      const randomFee = Math.floor(Math.random() * 1000) / 100 + 5.50; // Random fee between $5.50 and $15.50
+      const randomEta = Math.floor(Math.random() * 30) + 20; // Random ETA between 20 and 50 minutes
+      
+      // Return a successful quote response
+      const quoteResponse = {
+        id: quoteId,
+        fee: randomFee,
+        eta: randomEta,
+        currency: "USD",
+        expires_at: new Date(Date.now() + 15 * 60000).toISOString(), // Expires in 15 minutes
+        provider: "JetGo"
+      };
+      
+      // Delay the response by 1 second to simulate network latency
+      setTimeout(() => {
+        res.json(quoteResponse);
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in JetGo test quote:", error);
+      res.status(500).json({ 
+        error: "JetGo test quote error", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Test endpoint for JetGo delivery creation
+  app.post("/api/jetgo/test-create", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== JETGO TEST DELIVERY CREATE REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      // Create a simulated JetGo delivery response
+      const deliveryId = `jetgo_del_${Math.random().toString(36).substring(2, 10)}`;
+      const randomFee = req.body.quoteId ? 
+        parseFloat(req.body.quoteId.split('_')[2]) + 5 : 
+        Math.floor(Math.random() * 1000) / 100 + 5.50;
+      
+      // Current time plus 20-40 minutes
+      const pickupEta = new Date(Date.now() + (Math.floor(Math.random() * 20) + 20) * 60000).toISOString();
+      // Pickup ETA plus 15-30 minutes
+      const dropoffEta = new Date(new Date(pickupEta).getTime() + (Math.floor(Math.random() * 15) + 15) * 60000).toISOString();
+      
+      // Return a successful delivery creation response
+      const deliveryResponse = {
+        id: deliveryId,
+        status: "created",
+        tracking_url: `https://track.jetgo-delivery.com/${deliveryId}`,
+        fee: randomFee,
+        currency: "USD",
+        created_at: new Date().toISOString(),
+        pickup_eta: pickupEta,
+        dropoff_eta: dropoffEta,
+        provider: "JetGo"
+      };
+      
+      // Delay the response by 1 second to simulate network latency
+      setTimeout(() => {
+        res.json(deliveryResponse);
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in JetGo test delivery creation:", error);
+      res.status(500).json({ 
+        error: "JetGo test delivery creation error", 
+        message: error.message 
+      });
+    }
+  });
+  
   // UberDirect Webhook Setup Helper
   app.post("/api/webhooks/setup/uberdirect", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
     try {

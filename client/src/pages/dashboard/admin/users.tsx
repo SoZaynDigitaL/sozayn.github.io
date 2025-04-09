@@ -93,12 +93,22 @@ export default function UserManagement() {
   const [users, setUsers] = useState(mockUsers);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({
     email: '',
     businessName: '',
     role: '',
     subscriptionPlan: ''
+  });
+  const [addFormData, setAddFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    businessName: '',
+    businessType: 'restaurant',
+    role: 'client',
+    subscriptionPlan: 'starter'
   });
 
   // Pagination settings
@@ -194,6 +204,59 @@ export default function UserManagement() {
       [name]: value
     });
   };
+  
+  // Add user related handlers
+  const handleAddUserClick = () => {
+    setIsAddDialogOpen(true);
+  };
+  
+  const handleAddInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setAddFormData({
+      ...addFormData,
+      [name]: value
+    });
+  };
+  
+  const handleAddSelectChange = (name: string, value: string) => {
+    setAddFormData({
+      ...addFormData,
+      [name]: value
+    });
+  };
+  
+  const handleAddUser = () => {
+    // In a real app, we would call an API to create the user
+    const newUser = {
+      id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+      username: addFormData.username,
+      email: addFormData.email,
+      businessName: addFormData.businessName,
+      businessType: addFormData.businessType,
+      role: addFormData.role,
+      subscriptionPlan: addFormData.subscriptionPlan,
+      createdAt: new Date().toISOString()
+    };
+    
+    setUsers([...users, newUser]);
+    toast({
+      title: 'User Created',
+      description: `${addFormData.username} has been created successfully.`,
+    });
+    
+    // Reset form data
+    setAddFormData({
+      username: '',
+      email: '',
+      password: '',
+      businessName: '',
+      businessType: 'restaurant',
+      role: 'client',
+      subscriptionPlan: 'starter'
+    });
+    
+    setIsAddDialogOpen(false);
+  };
 
   const handleUpdateUser = () => {
     if (selectedUser) {
@@ -230,7 +293,10 @@ export default function UserManagement() {
               Manage all users and their account permissions
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={handleAddUserClick}
+          >
             <UserPlus className="h-4 w-4" />
             <span>Add User</span>
           </Button>
@@ -481,6 +547,134 @@ export default function UserManagement() {
             </Button>
             <Button onClick={handleUpdateUser}>
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add User Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Create a new user account with the following details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                name="username"
+                value={addFormData.username}
+                onChange={handleAddInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={addFormData.email}
+                onChange={handleAddInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={addFormData.password}
+                onChange={handleAddInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="businessName" className="text-right">
+                Business Name
+              </Label>
+              <Input
+                id="businessName"
+                name="businessName"
+                value={addFormData.businessName}
+                onChange={handleAddInputChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="businessType" className="text-right">
+                Business Type
+              </Label>
+              <Select
+                value={addFormData.businessType}
+                onValueChange={(value) => handleAddSelectChange('businessType', value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select business type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="cafe">Cafe</SelectItem>
+                  <SelectItem value="grocery">Grocery</SelectItem>
+                  <SelectItem value="bakery">Bakery</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">
+                Role
+              </Label>
+              <Select
+                value={addFormData.role}
+                onValueChange={(value) => handleAddSelectChange('role', value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="subscriptionPlan" className="text-right">
+                Subscription
+              </Label>
+              <Select
+                value={addFormData.subscriptionPlan}
+                onValueChange={(value) => handleAddSelectChange('subscriptionPlan', value)}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="starter">Starter</SelectItem>
+                  <SelectItem value="growth">Growth</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="enterprise">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddUser}>
+              Create User
             </Button>
           </DialogFooter>
         </DialogContent>

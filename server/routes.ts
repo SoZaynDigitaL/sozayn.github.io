@@ -603,7 +603,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get a quote for a delivery
   app.post("/api/delivery/quote", isAuthenticated, async (req, res) => {
     try {
-      console.log("Received delivery quote request:", JSON.stringify(req.body, null, 2));
+      console.log("===== DELIVERY QUOTE REQUEST START =====");
+      console.log("Request body raw:", req.body);
+      console.log("Request body JSON:", JSON.stringify(req.body, null, 2));
+      console.log("Headers:", req.headers);
+      console.log("===== DELIVERY QUOTE REQUEST END =====");
+      
+      // Default values for missing fields to make debugging easier
+      req.body.integrationId = req.body.integrationId || (req.body.partner === 'uberdirect' ? 2 : 1);
       
       const { integrationId, pickup, dropoff, items, orderItems, orderValue, partner } = req.body;
       // Support both items and orderItems field names

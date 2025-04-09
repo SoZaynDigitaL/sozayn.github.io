@@ -182,23 +182,27 @@ export default function TestDelivery() {
         };
       });
       
+      // Convert the address into the correct format
+      const pickupAddress = `${data.pickupAddress}, ${data.pickupCity}, ${data.pickupState} ${data.pickupZip}`;
+      const dropoffAddress = `${data.dropoffAddress}, ${data.dropoffCity}, ${data.dropoffState} ${data.dropoffZip}`;
+      
       // Add default coordinates
       const quoteRequest = {
         partner: data.deliveryPartner,
         integrationId: integrationId,
         pickup: {
-          name: data.pickupName,
-          address: `${data.pickupAddress}, ${data.pickupCity}, ${data.pickupState} ${data.pickupZip}`,
+          name: data.pickupName || "Restaurant",
+          address: pickupAddress,
           phoneNumber: data.pickupPhone,
-          instructions: data.pickupInstructions,
+          instructions: data.pickupInstructions || "",
           latitude: 37.7749,
           longitude: -122.4194
         },
         dropoff: {
-          name: data.dropoffName,
-          address: `${data.dropoffAddress}, ${data.dropoffCity}, ${data.dropoffState} ${data.dropoffZip}`,
+          name: data.dropoffName || "Customer",
+          address: dropoffAddress,
           phoneNumber: data.dropoffPhone,
-          instructions: data.dropoffInstructions,
+          instructions: data.dropoffInstructions || "",
           latitude: 37.7833,
           longitude: -122.4167
         },
@@ -208,6 +212,9 @@ export default function TestDelivery() {
         orderItems: orderItemsArray,
         notes: data.orderNotes
       };
+      
+      // Log request for debugging
+      console.log("Sending quote request for partner:", data.deliveryPartner);
       
       // Log the quote request for debugging
       console.log("Sending delivery quote request:", JSON.stringify(quoteRequest, null, 2));

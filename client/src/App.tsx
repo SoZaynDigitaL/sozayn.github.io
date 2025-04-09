@@ -15,7 +15,7 @@ import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
 import Settings from "@/pages/dashboard/settings";
-import TestOrder from "@/pages/dashboard/test-order";
+
 import DeliveryPartners from "@/pages/dashboard/delivery-partners-new";
 import Users from "@/pages/dashboard/admin/users";
 import AdminWebhooks from "@/pages/dashboard/admin/webhooks";
@@ -48,7 +48,13 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
-      <Route path="/dashboard/test-order" component={TestOrder} />
+      {/* Redirect old test-order route to delivery-partners with tab parameter */}
+      <Route path="/dashboard/test-order">
+        {() => {
+          window.location.href = '/dashboard/delivery-partners?tab=test-order';
+          return null;
+        }}
+      </Route>
       <Route path="/dashboard/delivery-partners" component={DeliveryPartners} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
       <Route path="/dashboard/settings" component={Settings} />

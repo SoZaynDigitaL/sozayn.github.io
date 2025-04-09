@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,11 +14,23 @@ import { ExternalLink } from "lucide-react";
 
 // Import our delivery partner components
 import DeliveryPartnerIntegrations from "@/components/dashboard/delivery-partners/DeliveryPartnerIntegrations";
+import TestDelivery from "@/components/dashboard/TestDelivery";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function DeliveryPartners() {
   const { hasRequiredPlan } = useAuth();
   const { toast } = useToast();
+  const [location] = useLocation();
+  const [defaultTab, setDefaultTab] = useState("integrations");
+  
+  // Set default tab based on URL parameters (for redirects from old test-order page)
+  useEffect(() => {
+    // Check if we were redirected from the test-order page
+    if (location.includes('test-order') || new URLSearchParams(window.location.search).get('tab') === 'test-order') {
+      setDefaultTab("test-order");
+    }
+  }, [location]);
   
   // Check if user has required plan
   const canAddIntegration = hasRequiredPlan(['Growth', 'Pro']);
@@ -47,15 +59,30 @@ export default function DeliveryPartners() {
         </Alert>
       )}
 
-      <Tabs defaultValue="integrations">
+      <Tabs defaultValue={defaultTab}>
         <TabsList>
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
+          <TabsTrigger value="test-order">Test Order Flow</TabsTrigger>
           <TabsTrigger value="documentation">Documentation</TabsTrigger>
           <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="integrations" className="mt-6">
           <DeliveryPartnerIntegrations />
+        </TabsContent>
+        
+        <TabsContent value="test-order" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Order Flow</CardTitle>
+              <CardDescription>
+                Create test deliveries to verify your delivery integrations are working correctly
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TestDelivery />
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="documentation" className="mt-6">

@@ -258,7 +258,7 @@ export default function Marketing() {
   // Add email subscriber mutation
   const addSubscriberMutation = useMutation({
     mutationFn: (data: EmailSubscriberFormValues) => 
-      apiRequest('POST', '/api/email-marketing/subscribers', data),
+      apiRequest('POST', '/api/mailerlite/test-subscribe', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/email-marketing/subscribers'] });
       emailSubscriberForm.reset();

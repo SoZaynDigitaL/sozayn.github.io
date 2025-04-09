@@ -102,27 +102,26 @@ export default function ManageSubscription() {
 
     setIsProcessing(true);
     try {
-      // For downgrades, we process them immediately through the backend
-      if (
-        (currentPlan === 'professional' && (plan === 'growth' || plan === 'starter')) ||
-        (currentPlan === 'growth' && plan === 'starter')
-      ) {
-        const response = await apiRequest('POST', '/api/subscription/downgrade', { plan });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            await updateSubscription(plan);
-            toast({
-              title: "Downgrade Successful",
-              description: `Your subscription has been downgraded to ${planDetails[plan as keyof typeof planDetails].name}.`,
-            });
-          }
-        } else {
-          throw new Error('Failed to downgrade subscription');
+      // Use our new unified subscription API for both upgrades and downgrades
+      const response = await apiRequest('POST', '/api/subscriptions/upgrade', { plan });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.sessionUrl) {
+          // For new subscriptions or upgrades requiring payment changes, redirect to Stripe
+          window.location.href = data.sessionUrl;
+        } else if (data.user) {
+          // For plan changes that don't require new payment methods
+          await updateSubscription(plan);
+          toast({
+            title: "Subscription Updated",
+            description: `Your subscription has been updated to ${planDetails[plan as keyof typeof planDetails].name}.`,
+          });
         }
       } else {
-        // For upgrades, we redirect to the subscribe page with the plan parameter
-        navigate(`/subscribe?plan=${plan}&upgrade=true`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update subscription');
       }
     } catch (error) {
       console.error('Error changing subscription:', error);
@@ -139,21 +138,25 @@ export default function ManageSubscription() {
   const handleCancelSubscription = async () => {
     setIsProcessing(true);
     try {
-      const response = await apiRequest('POST', '/api/subscription/cancel');
+      const response = await apiRequest('POST', '/api/subscriptions/cancel');
+      
       if (response.ok) {
         const data = await response.json();
-        if (data.success) {
-          toast({
-            title: "Subscription Cancelled",
-            description: "Your subscription has been cancelled. You'll still have access until the end of your billing period.",
-          });
-          // Update local user state
-          await updateSubscription('cancelled');
+        
+        toast({
+          title: "Subscription Cancelled",
+          description: "Your subscription has been cancelled. You'll still have access until the end of your billing period.",
+        });
+        
+        // Update local user state
+        if (data.user && data.user.subscriptionPlan) {
+          await updateSubscription(data.user.subscriptionPlan);
         } else {
-          throw new Error(data.message || 'Failed to cancel subscription');
+          await updateSubscription('starter');
         }
       } else {
-        throw new Error('Failed to cancel subscription');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to cancel subscription');
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);

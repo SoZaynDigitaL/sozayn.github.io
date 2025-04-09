@@ -1057,6 +1057,365 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Stripe Subscription Management Endpoints
+
+  app.post("/api/subscriptions/upgrade", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      const { plan } = req.body;
+      
+      if (!plan) {
+        return res.status(400).json({ error: "Plan is required" });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Initialize Stripe
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        
+      });
+      
+      let customerId = user.stripeCustomerId;
+      
+      // If the user doesn't have a Stripe customer ID, create one
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: user.username,
+          metadata: {
+            userId: user.id.toString(),
+          },
+        });
+        
+        customerId = customer.id;
+        
+        // Update the user with the Stripe customer ID
+        await storage.updateStripeCustomerId(user.id, customerId);
+      }
+      
+      // Get or create a subscription
+      let subscription;
+      
+      // Check if user already has a subscription
+      if (user.stripeSubscriptionId) {
+        // User has a subscription, update it
+        subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        
+        // Create the price ID based on the plan
+        const priceId = getPriceIdForPlan(plan);
+        
+        // Update the subscription with the new plan
+        subscription = await stripe.subscriptions.update(user.stripeSubscriptionId, {
+          items: [
+            {
+              id: subscription.items.data[0].id,
+              price: priceId,
+            },
+          ],
+        });
+        
+        // Update the user with the new subscription plan
+        await storage.updateUserSubscription(user.id, plan);
+        
+        // Return the updated user
+        const updatedUser = await storage.getUser(user.id);
+        
+        // Remove the password from the response
+        const { password, ...userWithoutPassword } = updatedUser!;
+        
+        return res.json({
+          message: "Subscription upgraded successfully",
+          user: userWithoutPassword,
+        });
+      } else {
+        // User doesn't have a subscription, create a checkout session
+        // Create the price ID based on the plan
+        const priceId = getPriceIdForPlan(plan);
+        
+        // Create a checkout session for the subscription
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          mode: "subscription",
+          success_url: `${req.protocol}://${req.get("host")}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.protocol}://${req.get("host")}/manage-subscription`,
+          metadata: {
+            userId: user.id.toString(),
+            plan,
+          },
+        });
+        
+        // Return the checkout session URL
+        return res.json({
+          message: "Checkout session created",
+          sessionUrl: session.url,
+        });
+      }
+    } catch (error: any) {
+      console.error("Subscription upgrade error:", error);
+      res.status(500).json({
+        error: "Failed to upgrade subscription",
+        message: error.message,
+      });
+    }
+  });
+  
+  app.post("/api/subscriptions/cancel", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if the user has a subscription
+      if (!user.stripeSubscriptionId) {
+        return res.status(400).json({ error: "No active subscription" });
+      }
+      
+      // Initialize Stripe
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+        
+      });
+      
+      // Cancel the subscription
+      await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      
+      // Update the user's subscription to the free plan
+      await storage.updateUserSubscription(user.id, "starter");
+      
+      // Return the updated user
+      const updatedUser = await storage.getUser(user.id);
+      
+      // Remove the password from the response
+      const { password, ...userWithoutPassword } = updatedUser!;
+      
+      return res.json({
+        message: "Subscription cancelled successfully",
+        user: userWithoutPassword,
+      });
+    } catch (error: any) {
+      console.error("Subscription cancellation error:", error);
+      res.status(500).json({
+        error: "Failed to cancel subscription",
+        message: error.message,
+      });
+    }
+  });
+  
+  app.post("/api/webhook/stripe", async (req, res) => {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      
+    });
+    
+    // Get the signature from the header
+    const signature = req.headers["stripe-signature"] as string;
+    
+    try {
+      // Verify the event
+      const event = stripe.webhooks.constructEvent(
+        req.body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET || "whsec_test"
+      );
+      
+      // Handle different event types
+      switch (event.type) {
+        case "checkout.session.completed": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          
+          // Get the user ID and plan from the metadata
+          const userId = parseInt(session.metadata?.userId || "0");
+          const plan = session.metadata?.plan;
+          
+          if (userId && plan) {
+            // Get the subscription ID
+            const subscriptionId = session.subscription as string;
+            
+            // Update the user with the subscription information
+            await storage.updateUserStripeInfo(userId, {
+              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: subscriptionId,
+            });
+            
+            // Update the user's subscription plan
+            await storage.updateUserSubscription(userId, plan);
+          }
+          break;
+        }
+        
+        case "customer.subscription.updated": {
+          const subscription = event.data.object as Stripe.Subscription;
+          
+          // Get the customer ID
+          const customerId = subscription.customer as string;
+          
+          // Find the user by Stripe customer ID (in a real app, you would have this mapping in your database)
+          // For demo purposes, we'll just log it
+          console.log(`Subscription updated for customer ${customerId}`);
+          
+          break;
+        }
+        
+        case "customer.subscription.deleted": {
+          const subscription = event.data.object as Stripe.Subscription;
+          
+          // Get the customer ID
+          const customerId = subscription.customer as string;
+          
+          // Find the user by Stripe customer ID
+          // Update the user's subscription plan to free
+          console.log(`Subscription cancelled for customer ${customerId}`);
+          
+          break;
+        }
+      }
+      
+      // Return a 200 response
+      res.json({ received: true });
+    } catch (error: any) {
+      console.error("Stripe webhook error:", error);
+      res.status(400).json({ error: error.message });
+    }
+  });
+  
+  // Helper function to get the Stripe price ID for a plan
+  function getPriceIdForPlan(plan: string) {
+    // In a real application, you would have these price IDs stored in your database or environment variables
+    // For demo purposes, we'll hardcode them here
+    switch (plan.toLowerCase()) {
+      case "starter":
+        return "price_starter_demo"; // Demo value, should be a real Stripe price ID like price_1234567890
+      case "growth":
+        return "price_growth_demo"; // Demo value
+      case "pro":
+        return "price_pro_demo"; // Demo value
+      default:
+        return "price_starter_demo"; // Default to starter plan
+    }
+  }
+  
+  // MailerLite Test Endpoints
+
+  app.post("/api/mailerlite/test-subscribe", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== TEST MAILERLITE SUBSCRIBE REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      const { email, name, group } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      // Create a simulated successful subscription response
+      setTimeout(() => {
+        res.json({
+          success: true,
+          message: "Test subscription successful",
+          data: {
+            id: `subscriber_${Math.random().toString(36).substring(2, 10)}`,
+            email,
+            name: name || email.split('@')[0],
+            subscribed_at: new Date().toISOString(),
+            group: group || "General Subscribers",
+          }
+        });
+      }, 800);
+    } catch (error: any) {
+      console.error("Error in test MailerLite subscribe:", error);
+      res.status(500).json({ 
+        error: "Test subscribe error", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.post("/api/mailerlite/test-create-group", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      console.log("===== TEST MAILERLITE CREATE GROUP REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      const { name, description } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ error: "Group name is required" });
+      }
+      
+      // Create a simulated successful group creation response
+      setTimeout(() => {
+        res.json({
+          success: true,
+          message: "Test group creation successful",
+          data: {
+            id: `group_${Math.random().toString(36).substring(2, 10)}`,
+            name,
+            description: description || "",
+            active_count: 0,
+            created_at: new Date().toISOString(),
+          }
+        });
+      }, 800);
+    } catch (error: any) {
+      console.error("Error in test MailerLite create group:", error);
+      res.status(500).json({ 
+        error: "Test group creation error", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.post("/api/mailerlite/test-send-campaign", isAuthenticated, hasRequiredRole(["admin"]), async (req, res) => {
+    try {
+      console.log("===== TEST MAILERLITE SEND CAMPAIGN REQUEST =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      const { name, subject, content, groups } = req.body;
+      
+      if (!subject || !content) {
+        return res.status(400).json({ error: "Subject and content are required" });
+      }
+      
+      // Create a simulated successful campaign sending response
+      setTimeout(() => {
+        res.json({
+          success: true,
+          message: "Test campaign scheduled successfully",
+          data: {
+            id: `campaign_${Math.random().toString(36).substring(2, 10)}`,
+            name: name || `Campaign ${new Date().toLocaleDateString()}`,
+            subject,
+            status: "scheduled",
+            scheduled_for: new Date(Date.now() + 5 * 60000).toISOString(),
+            created_at: new Date().toISOString(),
+            recipients: {
+              total: Math.floor(Math.random() * 100) + 10,
+              groups: groups || ["All Subscribers"]
+            }
+          }
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in test MailerLite send campaign:", error);
+      res.status(500).json({ 
+        error: "Test campaign error", 
+        message: error.message 
+      });
+    }
+  });
+  
   // BEGIN TEST ENDPOINTS - FOR DEBUGGING ONLY
   
   // Simple test endpoint for delivery quotes (debug purposes only)

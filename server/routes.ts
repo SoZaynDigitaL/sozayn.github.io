@@ -1,8 +1,15 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertWebhookSchema, insertSocialMediaAccountSchema } from "../shared/schema";
+import { db } from "./db";
+import { 
+  insertUserSchema, 
+  insertWebhookSchema, 
+  insertSocialMediaAccountSchema,
+  integrations
+} from "../shared/schema";
 import { z } from "zod";
+import { eq, and } from "drizzle-orm";
 import session from "express-session";
 import Stripe from "stripe";
 import crypto from "crypto";
@@ -495,62 +502,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json([]);
   });
 
-  app.get("/api/integrations", isAuthenticated, (req, res) => {
-    // Return demo data for delivery integrations
-    res.json([
-      {
-        id: 1,
-        provider: "DoorDash",
-        type: "delivery",
-        apiKey: "demo_api_key",
-        isActive: true,
-        environment: "sandbox",
-        developerId: "demo_developer_id",
-        keyId: "demo_key_id",
-        signingSecret: "demo_signing_secret",
-        webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/doordash",
-        sendOrderStatus: true,
-        settings: {}
-      },
-      {
-        id: 2,
-        provider: "UberEats",
-        type: "delivery",
-        apiKey: "demo_api_key",
-        isActive: false,
-        environment: "sandbox",
-        developerId: "demo_developer_id",
-        keyId: "demo_key_id",
-        signingSecret: "demo_signing_secret",
-        webhookUrl: "https://delivery.apps.hyperzod.com/api/v1/4404/webhook/order/ubereats",
-        sendOrderStatus: true,
-        settings: {}
+  app.get("/api/integrations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Get integrations from database
+      const integrationsList = await db.select().from(integrations)
+        .where(eq(integrations.userId, userId))
+        .orderBy(integrations.id);
+      
+      // If no integrations found, return sample data for demonstration
+      if (integrationsList.length === 0 || !integrationsList || integrationsList.length < 1) {
+        return res.json([
+          {
+            id: 1,
+            provider: "DoorDash",
+            type: "delivery",
+            apiKey: "demo_api_key",
+            isActive: true,
+            environment: "sandbox",
+            developerId: "",
+            keyId: "",
+            signingSecret: "",
+            webhookUrl: "",
+            sendOrderStatus: true,
+            settings: {}
+          },
+          {
+            id: 2,
+            provider: "UberEats",
+            type: "delivery",
+            apiKey: "demo_api_key",
+            isActive: false,
+            environment: "sandbox",
+            developerId: "",
+            keyId: "",
+            signingSecret: "",
+            webhookUrl: "",
+            sendOrderStatus: true,
+            settings: {}
+          }
+        ]);
       }
-    ]);
+      
+      res.json(integrationsList);
+    } catch (error: any) {
+      console.error("Error fetching integrations:", error);
+      res.status(500).json({ 
+        error: "Failed to fetch integrations", 
+        message: error.message 
+      });
+    }
   });
   
   // Mock endpoint to add new integration
-  app.post("/api/integrations", isAuthenticated, (req, res) => {
-    // For demo purposes, just return the data that was sent
-    const newIntegration = {
-      id: Math.floor(Math.random() * 1000) + 10, // Random ID
-      ...req.body,
-      createdAt: new Date().toISOString()
-    };
-    
-    res.status(201).json(newIntegration);
+  app.post("/api/integrations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session.userId as number;
+      
+      // Insert integration into database
+      const [newIntegration] = await db.insert(integrations)
+        .values({
+          ...req.body,
+          userId
+        })
+        .returning();
+      
+      res.status(201).json(newIntegration);
+    } catch (error: any) {
+      console.error("Error creating integration:", error);
+      res.status(500).json({ 
+        error: "Failed to create integration", 
+        message: error.message 
+      });
+    }
   });
   
   // Mock endpoint to update integration
-  app.patch("/api/integrations/:id", isAuthenticated, (req, res) => {
-    const id = parseInt(req.params.id);
-    
-    // Return the updated integration object
-    res.json({
-      id,
-      ...req.body,
-      updatedAt: new Date().toISOString()
-    });
+  app.patch("/api/integrations/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Check if integration exists and belongs to this user
+      const [integration] = await db.select().from(integrations)
+        .where(and(
+          eq(integrations.id, id),
+          eq(integrations.userId, userId)
+        ));
+      
+      if (!integration) {
+        return res.status(404).json({ error: "Integration not found or access denied" });
+      }
+      
+      // Update the integration
+      const [updatedIntegration] = await db.update(integrations)
+        .set(req.body)
+        .where(eq(integrations.id, id))
+        .returning();
+      
+      if (!updatedIntegration) {
+        return res.status(500).json({ error: "Failed to update integration" });
+      }
+      
+      res.json(updatedIntegration);
+    } catch (error: any) {
+      console.error("Error updating integration:", error);
+      res.status(500).json({ 
+        error: "Failed to update integration", 
+        message: error.message 
+      });
+    }
   });
 
   app.get("/api/customers", isAuthenticated, (req, res) => {

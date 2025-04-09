@@ -37,6 +37,12 @@ export const integrations = pgTable("integrations", {
   provider: text("provider").notNull(), // doordash, ubereats, toast, square, etc.
   apiKey: text("api_key"),
   isActive: boolean("is_active").default(false),
+  environment: text("environment").default("sandbox"), // sandbox, live
+  developerId: text("developer_id"), // Customer ID for delivery partners
+  keyId: text("key_id"), // Client ID for delivery partners
+  signingSecret: text("signing_secret"), // Client secret for delivery partners
+  webhookUrl: text("webhook_url"), // Webhook URL for delivery partners
+  sendOrderStatus: boolean("send_order_status").default(true), // Whether to send order status updates
   settings: json("settings"), // provider-specific settings
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -46,6 +52,12 @@ export const insertIntegrationSchema = createInsertSchema(integrations).pick({
   type: true,
   provider: true,
   apiKey: true,
+  environment: true,
+  developerId: true,
+  keyId: true,
+  signingSecret: true,
+  webhookUrl: true,
+  sendOrderStatus: true,
   settings: true,
 });
 

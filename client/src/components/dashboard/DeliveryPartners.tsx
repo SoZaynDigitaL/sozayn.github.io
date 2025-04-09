@@ -451,7 +451,7 @@ export default function DeliveryPartners() {
               <Form {...configForm}>
                 <form onSubmit={configForm.handleSubmit(onConfigSubmit)}>
                   <div className="mt-4">
-                    <h3 className="text-base font-medium text-gray-500">Select Environments</h3>
+                    <h3 className="text-base font-bold text-gray-700">Select Environments</h3>
                     
                     <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                       <FormField
@@ -470,7 +470,7 @@ export default function DeliveryPartners() {
                                     onChange={() => field.onChange("sandbox")}
                                     className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
                                   />
-                                  <label htmlFor="config-sandbox" className="text-sm cursor-pointer">Sandbox</label>
+                                  <label htmlFor="config-sandbox" className="text-sm font-bold cursor-pointer">Sandbox</label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <input
@@ -481,7 +481,7 @@ export default function DeliveryPartners() {
                                     onChange={() => field.onChange("live")}
                                     className="w-5 h-5 border-gray-300 text-blue-600 focus:ring-blue-500"
                                   />
-                                  <label htmlFor="config-live" className="text-sm cursor-pointer">live</label>
+                                  <label htmlFor="config-live" className="text-sm font-bold cursor-pointer">Live</label>
                                 </div>
                               </div>
                             </FormControl>

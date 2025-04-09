@@ -95,6 +95,7 @@ export default function UserManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isSubscriptionDialogOpen, setIsSubscriptionDialogOpen] = useState(false);
   const [editFormData, setEditFormData] = useState({
     email: '',
     businessName: '',
@@ -282,6 +283,34 @@ export default function UserManagement() {
       setIsEditDialogOpen(false);
     }
   };
+  
+  // Subscription management handlers
+  const handleSubscriptionClick = (user: any) => {
+    setSelectedUser(user);
+    setIsSubscriptionDialogOpen(true);
+  };
+  
+  const handleUpgradeSubscription = (plan: string) => {
+    if (selectedUser) {
+      // In a real app, we would call an API to update the subscription
+      const updatedUsers = users.map(user => {
+        if (user.id === selectedUser.id) {
+          return {
+            ...user,
+            subscriptionPlan: plan
+          };
+        }
+        return user;
+      });
+      
+      setUsers(updatedUsers);
+      toast({
+        title: 'Subscription Updated',
+        description: `${selectedUser.username}'s subscription has been upgraded to ${plan}.`,
+      });
+      setIsSubscriptionDialogOpen(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -351,6 +380,7 @@ export default function UserManagement() {
                       Plan <ArrowUpDown className="ml-1 h-4 w-4" />
                     </div>
                   </TableHead>
+                  <TableHead>Subscription</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -382,6 +412,34 @@ export default function UserManagement() {
                         >
                           {user.subscriptionPlan}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="flex items-center gap-1"
+                          onClick={() => handleSubscriptionClick(user)}
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"></path>
+                            <path d="M16.5 9.4 7.55 4.24"></path>
+                            <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                            <line x1="12" y1="22" x2="12" y2="12"></line>
+                            <circle cx="18.5" cy="15.5" r="2.5"></circle>
+                            <path d="M20.27 17.27 22 19"></path>
+                          </svg>
+                          Manage
+                        </Button>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -675,6 +733,137 @@ export default function UserManagement() {
             </Button>
             <Button onClick={handleAddUser}>
               Create User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription Management Dialog */}
+      <Dialog open={isSubscriptionDialogOpen} onOpenChange={setIsSubscriptionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Subscription</DialogTitle>
+            <DialogDescription>
+              Update subscription for {selectedUser?.username} ({selectedUser?.businessName})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="text-sm text-text-secondary mb-2">
+                Current Plan: <span className="font-semibold">{selectedUser?.subscriptionPlan}</span>
+              </div>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'starter' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Starter Plan</CardTitle>
+                  <CardDescription>Basic dashboard with limited features</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$49<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Basic dashboard access</li>
+                    <li>• Limited orders (50/month)</li>
+                    <li>• Email support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'starter' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'starter'}
+                    onClick={() => handleUpgradeSubscription('starter')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'starter' ? 'Current Plan' : 'Switch to Starter'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'growth' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Growth Plan</CardTitle>
+                  <CardDescription>Full dashboard with limited integrations</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$99<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Full dashboard access</li>
+                    <li>• Unlimited orders</li>
+                    <li>• UberDirect integration</li>
+                    <li>• Priority email support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'growth' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'growth'}
+                    onClick={() => handleUpgradeSubscription('growth')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'growth' ? 'Current Plan' : 'Switch to Growth'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'professional' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Professional Plan</CardTitle>
+                  <CardDescription>Complete dashboard with all integrations</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$199<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Complete dashboard access</li>
+                    <li>• All delivery integrations</li>
+                    <li>• Advanced analytics</li>
+                    <li>• Priority phone support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'professional' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'professional'}
+                    onClick={() => handleUpgradeSubscription('professional')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'professional' ? 'Current Plan' : 'Switch to Professional'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'enterprise' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Enterprise Plan</CardTitle>
+                  <CardDescription>Custom solutions for large businesses</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$499<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Custom dashboard setup</li>
+                    <li>• White-label solution</li>
+                    <li>• Dedicated account manager</li>
+                    <li>• 24/7 support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'enterprise' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'enterprise'}
+                    onClick={() => handleUpgradeSubscription('enterprise')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'enterprise' ? 'Current Plan' : 'Switch to Enterprise'}
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSubscriptionDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

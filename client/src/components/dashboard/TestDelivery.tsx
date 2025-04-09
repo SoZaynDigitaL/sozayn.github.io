@@ -140,9 +140,40 @@ export default function TestDelivery() {
       // First, get a delivery quote
       setDeliveryStatus({ status: 'fetching_quote' });
       
+      // For UberDirect we need to get the integration ID of the configured integration
+      // For UberEats, we need to look up the integrationId
+      let integrationId: number | undefined;
+      
+      try {
+        // Fetch the integrations to get the ID
+        const integrationsResponse = await apiRequest('GET', '/api/integrations');
+        if (integrationsResponse.ok) {
+          const integrations = await integrationsResponse.json();
+          
+          // Based on selected partner, find the appropriate integration
+          if (data.deliveryPartner === 'uberdirect') {
+            const uberDirectIntegration = integrations.find((i: any) => 
+              i.provider === 'UberDirect' || 
+              (i.provider === 'UberEats' && i.developerId && i.keyId && i.signingSecret)
+            );
+            
+            if (uberDirectIntegration) {
+              integrationId = uberDirectIntegration.id;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch integrations:", error);
+      }
+      
+      if (!integrationId) {
+        throw new Error(`Could not find a configured integration for ${data.deliveryPartner}`);
+      }
+      
       // Convert form data to API format
       const quoteRequest = {
         partner: data.deliveryPartner,
+        integrationId: integrationId,
         pickup: {
           name: data.pickupName,
           address: `${data.pickupAddress}, ${data.pickupCity}, ${data.pickupState} ${data.pickupZip}`,
@@ -225,9 +256,40 @@ export default function TestDelivery() {
       
       const formData = form.getValues();
       
+      // For UberDirect we need to get the integration ID of the configured integration
+      // For UberEats, we need to look up the integrationId
+      let integrationId: number | undefined;
+      
+      try {
+        // Fetch the integrations to get the ID
+        const integrationsResponse = await apiRequest('GET', '/api/integrations');
+        if (integrationsResponse.ok) {
+          const integrations = await integrationsResponse.json();
+          
+          // Based on selected partner, find the appropriate integration
+          if (formData.deliveryPartner === 'uberdirect') {
+            const uberDirectIntegration = integrations.find((i: any) => 
+              i.provider === 'UberDirect' || 
+              (i.provider === 'UberEats' && i.developerId && i.keyId && i.signingSecret)
+            );
+            
+            if (uberDirectIntegration) {
+              integrationId = uberDirectIntegration.id;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch integrations:", error);
+      }
+      
+      if (!integrationId) {
+        throw new Error(`Could not find a configured integration for ${formData.deliveryPartner}`);
+      }
+      
       // Convert form data to API format
       const deliveryRequest = {
         partner: formData.deliveryPartner,
+        integrationId: integrationId,
         quoteId: deliveryStatus.quote.id,
         pickup: {
           name: formData.pickupName,
@@ -630,18 +692,8 @@ export default function TestDelivery() {
                       onClick={createDelivery}
                       disabled={deliveryStatus.status !== 'quoted'}
                     >
-                      {deliveryStatus.status === 'creating' && (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating Delivery...
-                        </>
-                      )}
-                      {deliveryStatus.status !== 'creating' && (
-                        <>
-                          <TruckIcon className="mr-2 h-4 w-4" />
-                          Create Delivery
-                        </>
-                      )}
+                      <TruckIcon className="mr-2 h-4 w-4" />
+                      Create Delivery
                     </Button>
                   ) : (
                     <Button 

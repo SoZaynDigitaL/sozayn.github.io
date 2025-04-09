@@ -6,6 +6,7 @@ import { z } from "zod";
 import session from "express-session";
 import Stripe from "stripe";
 import crypto from "crypto";
+import bcrypt from "bcrypt";
 
 // Helper function for MailerLite initialization
 async function getMailerLiteClient() {
@@ -113,8 +114,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Username already exists" });
       }
       
-      // Create user
-      const newUser = await storage.createUser(userData);
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(userData.password, salt);
+      
+      // Create user with hashed password
+      const newUser = await storage.createUser({
+        ...userData,
+        password: hashedPassword
+      });
       
       // Send welcome email via MailerLite if API key is available
       try {
@@ -162,8 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
-      // Check password (simplified for demo)
-      if (user.password !== password) {
+      // Check password with bcrypt
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
@@ -175,6 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(userWithoutPassword);
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });
@@ -404,6 +414,178 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error deleting social media account:", error);
       res.status(500).json({ 
         error: "Error deleting social media account", 
+        message: error.message 
+      });
+    }
+  });
+  
+  // Admin User Management API endpoints
+  app.get("/api/users", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Don't return passwords
+      const usersWithoutPasswords = users.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      res.json(usersWithoutPasswords);
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ 
+        error: "Error fetching users", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.post("/api/users", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      // Validate request body
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      
+      // Hash the password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(userData.password, salt);
+      
+      // Create user with hashed password
+      const newUser = await storage.createUser({
+        ...userData,
+        password: hashedPassword
+      });
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = newUser;
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: error.errors });
+      }
+      console.error('User creation error:', error);
+      res.status(500).json({ error: "Internal server error", message: error.message });
+    }
+  });
+
+  app.get("/api/users/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = user;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ 
+        error: "Error fetching user", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.patch("/api/users/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Update user
+      const updatedUser = await storage.updateUser(id, req.body);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update user" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ 
+        error: "Error updating user", 
+        message: error.message 
+      });
+    }
+  });
+  
+  app.patch("/api/users/:id/subscription", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { subscriptionPlan } = req.body;
+      
+      if (!subscriptionPlan) {
+        return res.status(400).json({ error: "Subscription plan is required" });
+      }
+      
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Update user subscription
+      const updatedUser = await storage.updateUserSubscription(id, subscriptionPlan);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ error: "Failed to update user subscription" });
+      }
+      
+      // Don't return password
+      const { password, ...userWithoutPassword } = updatedUser;
+      
+      res.json(userWithoutPassword);
+    } catch (error: any) {
+      console.error("Error updating user subscription:", error);
+      res.status(500).json({ 
+        error: "Error updating user subscription", 
+        message: error.message 
+      });
+    }
+  });
+
+  app.delete("/api/users/:id", isAuthenticated, hasRequiredRole(['admin']), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.session.userId as number;
+      
+      // Prevent self-deletion
+      if (id === userId) {
+        return res.status(400).json({ error: "Cannot delete your own account" });
+      }
+      
+      const user = await storage.getUser(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Delete user
+      const success = await storage.deleteUser(id);
+      
+      if (!success) {
+        return res.status(500).json({ error: "Failed to delete user" });
+      }
+      
+      res.status(204).end();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ 
+        error: "Error deleting user", 
         message: error.message 
       });
     }

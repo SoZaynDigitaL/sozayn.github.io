@@ -1,20 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Search, UserPlus, Edit, Trash, ArrowUpDown, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useLocation } from 'wouter';
-import { useToast } from '@/hooks/use-toast';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -22,24 +15,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  ArrowUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Edit,
-  Search,
-  Trash,
-  UserPlus,
-} from 'lucide-react';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -102,6 +88,25 @@ export default function UserManagement() {
     queryFn: () => apiRequest('GET', '/api/users').then(res => res.json()),
   });
 
+  // Pagination settings
+  const usersPerPage = 10;
+  const totalPages = Math.ceil(users.length / usersPerPage);
+
+  // Store admin status
+  const adminStatus = isAdmin();
+  
+  // Check for admin access
+  React.useEffect(() => {
+    if (!adminStatus) {
+      navigate('/dashboard');
+      toast({
+        title: 'Access Denied',
+        description: 'You do not have permission to access this page.',
+        variant: 'destructive'
+      });
+    }
+  }, [adminStatus, navigate, toast]);
+
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) => apiRequest('DELETE', `/api/users/${userId}`),
@@ -146,7 +151,7 @@ export default function UserManagement() {
   // Add user mutation
   const addUserMutation = useMutation({
     mutationFn: (userData: any) => apiRequest('POST', '/api/users', userData),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       toast({
         title: 'User Created',
@@ -215,30 +220,19 @@ export default function UserManagement() {
     const aValue = a[sortField as keyof User];
     const bValue = b[sortField as keyof User];
     
-    if (aValue === undefined || bValue === undefined) return 0;
-    
-    // Handle string or number comparison
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
     } else {
-      // For numbers or other types
-      if (sortDirection === 'asc') {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      } else {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
-      }
+      return aValue < bValue ? 1 : -1;
     }
   });
 
   // Get current users for pagination
-  const indexOfLastUser = currentPage * 10;
-  const indexOfFirstUser = indexOfLastUser - 10;
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
-  const totalPages = Math.ceil(sortedUsers.length / 10);
 
-  // Pagination handler
+  // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   // Change sort
@@ -250,18 +244,6 @@ export default function UserManagement() {
       setSortDirection('asc');
     }
   };
-
-  // Check for admin access
-  React.useEffect(() => {
-    if (!isAdmin()) {
-      navigate('/dashboard');
-      toast({
-        title: 'Access Denied',
-        description: 'You do not have permission to access this page.',
-        variant: 'destructive'
-      });
-    }
-  }, [isAdmin, navigate, toast]);
 
   // Handle user deletion
   const handleDeleteClick = (user: User) => {
@@ -395,7 +377,7 @@ export default function UserManagement() {
               </div>
             ) : isError ? (
               <div className="py-10 text-center text-destructive">
-                <p>Error loading users: {(error as Error)?.message || 'An unexpected error occurred'}</p>
+                <p>Error loading users: {error?.message || 'An unexpected error occurred'}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4" 
@@ -747,6 +729,7 @@ export default function UserManagement() {
                   <SelectItem value="restaurant">Restaurant</SelectItem>
                   <SelectItem value="cafe">Cafe</SelectItem>
                   <SelectItem value="grocery">Grocery</SelectItem>
+                  <SelectItem value="bakery">Bakery</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -801,82 +784,130 @@ export default function UserManagement() {
 
       {/* Subscription Management Dialog */}
       <Dialog open={isSubscriptionDialogOpen} onOpenChange={setIsSubscriptionDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Manage Subscription</DialogTitle>
             <DialogDescription>
-              Update subscription plan for {selectedUser?.username}
+              Update subscription for {selectedUser?.username} ({selectedUser?.businessName})
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Current Plan</h3>
-              <div className="flex items-center">
-                <Badge
-                  className={`${
-                    selectedUser?.subscriptionPlan === 'enterprise'
-                      ? 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/20'
-                      : selectedUser?.subscriptionPlan === 'professional'
-                      ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20'
-                      : selectedUser?.subscriptionPlan === 'growth'
-                      ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20'
-                      : 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20'
-                  }`}
-                  variant="outline"
-                >
-                  {selectedUser?.subscriptionPlan}
-                </Badge>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="text-sm text-text-secondary mb-2">
+                Current Plan: <span className="font-semibold">{selectedUser?.subscriptionPlan}</span>
               </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium">Change Plan</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => handleUpgradeSubscription('starter')}
-                >
-                  <div className="flex flex-col items-start">
-                    <span>Starter</span>
-                    <span className="text-xs text-muted-foreground">Basic features</span>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => handleUpgradeSubscription('growth')}
-                >
-                  <div className="flex flex-col items-start">
-                    <span>Growth</span>
-                    <span className="text-xs text-muted-foreground">Standard features</span>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => handleUpgradeSubscription('professional')}
-                >
-                  <div className="flex flex-col items-start">
-                    <span>Professional</span>
-                    <span className="text-xs text-muted-foreground">Advanced features</span>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="justify-start"
-                  onClick={() => handleUpgradeSubscription('enterprise')}
-                >
-                  <div className="flex flex-col items-start">
-                    <span>Enterprise</span>
-                    <span className="text-xs text-muted-foreground">All features</span>
-                  </div>
-                </Button>
-              </div>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'starter' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Starter Plan</CardTitle>
+                  <CardDescription>Basic dashboard with limited features</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$49<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Basic dashboard access</li>
+                    <li>• Limited orders (50/month)</li>
+                    <li>• Email support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'starter' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'starter'}
+                    onClick={() => handleUpgradeSubscription('starter')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'starter' ? 'Current Plan' : 'Switch to Starter'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'growth' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Growth Plan</CardTitle>
+                  <CardDescription>Full dashboard with limited integrations</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$99<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Full dashboard access</li>
+                    <li>• Unlimited orders</li>
+                    <li>• UberDirect integration</li>
+                    <li>• Priority email support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'growth' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'growth'}
+                    onClick={() => handleUpgradeSubscription('growth')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'growth' ? 'Current Plan' : 'Switch to Growth'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'professional' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Professional Plan</CardTitle>
+                  <CardDescription>Complete dashboard with all integrations</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$199<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Complete dashboard access</li>
+                    <li>• All delivery integrations</li>
+                    <li>• Advanced analytics</li>
+                    <li>• Priority phone support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'professional' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'professional'}
+                    onClick={() => handleUpgradeSubscription('professional')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'professional' ? 'Current Plan' : 'Switch to Professional'}
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card className={`border-2 ${selectedUser?.subscriptionPlan === 'enterprise' ? 'border-primary' : 'border-border'}`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Enterprise Plan</CardTitle>
+                  <CardDescription>Custom solutions for large businesses</CardDescription>
+                </CardHeader>
+                <CardContent className="pb-2">
+                  <div className="text-2xl font-bold">$499<span className="text-sm font-normal">/mo</span></div>
+                  <ul className="text-sm mt-2 space-y-1 text-text-secondary">
+                    <li>• Custom dashboard setup</li>
+                    <li>• White-label solution</li>
+                    <li>• Dedicated account manager</li>
+                    <li>• 24/7 support</li>
+                  </ul>
+                </CardContent>
+                <CardFooter className="pt-0">
+                  <Button 
+                    size="sm" 
+                    variant={selectedUser?.subscriptionPlan === 'enterprise' ? 'outline' : 'default'}
+                    disabled={selectedUser?.subscriptionPlan === 'enterprise'}
+                    onClick={() => handleUpgradeSubscription('enterprise')}
+                    className="w-full"
+                  >
+                    {selectedUser?.subscriptionPlan === 'enterprise' ? 'Current Plan' : 'Switch to Enterprise'}
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsSubscriptionDialogOpen(false)}>
-              Cancel
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

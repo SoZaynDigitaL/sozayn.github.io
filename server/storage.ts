@@ -11,12 +11,14 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
   updateUserRole(id: number, role: string): Promise<User | undefined>;
   updateUserSubscription(id: number, subscriptionPlan: string): Promise<User | undefined>;
   updateStripeCustomerId(id: number, stripeCustomerId: string): Promise<User | undefined>;
   updateUserStripeInfo(id: number, stripeInfo: { stripeCustomerId: string, stripeSubscriptionId: string }): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   
   // Webhook methods
   getWebhooks(userId: number): Promise<Webhook[]>;
@@ -90,6 +92,17 @@ export class DatabaseStorage implements IStorage {
       stripeSubscriptionId: stripeInfo.stripeSubscriptionId,
       subscriptionStatus: 'active'
     });
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
+  }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db
+      .delete(users)
+      .where(eq(users.id, id));
+    return !!result;
   }
   
   // Webhook methods

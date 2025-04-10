@@ -48,10 +48,10 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
-      {/* Redirect old test-order route to delivery-partners with tab parameter */}
+      {/* Redirect old test-order route to delivery-partners with test tab */}
       <Route path="/dashboard/test-order">
         {() => {
-          window.location.href = '/dashboard/delivery-partners?tab=test-order';
+          window.location.href = '/dashboard/delivery-partners?tab=test';
           return null;
         }}
       </Route>

@@ -1,0 +1,62 @@
+/* Make sure that we include the Leaflet CSS styles properly */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Custom styling for map icons */
+.restaurant-icon {
+  background-color: #4361ee;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.customer-icon {
+  background-color: #8957e5;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation for vehicle icons */
+.vehicle-icon {
+  transition: transform 0.3s ease;
+}
+
+/* Popup styling */
+.leaflet-popup-content {
+  margin: 8px 12px;
+  font-family: var(--font-sans);
+}
+
+.leaflet-popup-content h3 {
+  margin: 0 0 5px 0;
+  font-weight: 600;
+  color: #0a0e17;
+}
+
+.leaflet-popup-content p {
+  margin: 3px 0;
+  color: #4c5767;
+  font-size: 0.85rem;
+}
+
+/* Path styling */
+.delivery-path {
+  stroke: #4361ee;
+  stroke-width: 3;
+  stroke-dasharray: 5, 5;
+  animation: dash 15s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: 100;
+  }
+}

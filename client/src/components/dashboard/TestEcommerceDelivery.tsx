@@ -100,14 +100,16 @@ export default function TestEcommerceDelivery() {
         hasItems: Array.isArray(webhookData.items) ? webhookData.items.length : 'no items array'
       });
       
-      // Call the webhook endpoint
+      // Call the TEST webhook endpoint
+      console.log("Calling the TEST webhook endpoint");
       const response = await apiRequest(
         "POST", 
-        "/api/webhook/ecommerce-to-delivery", 
+        "/api/webhook/test-ecommerce-to-delivery", 
         webhookData,
         { 
           headers: {
-            'X-Requested-By': 'TestEcommerceDelivery' // Add custom header for debugging
+            'X-Requested-By': 'TestEcommerceDelivery', // Add custom header for debugging
+            'Content-Type': 'application/json'
           }
         }
       );

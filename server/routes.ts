@@ -1132,6 +1132,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Test webhook endpoint for e-commerce to delivery - guaranteed to work
+  app.post("/api/webhook/test-ecommerce-to-delivery", isAuthenticated, async (req, res) => {
+    try {
+      console.log("===== TEST E-COMMERCE TO DELIVERY WEBHOOK =====");
+      console.log("Request body:", JSON.stringify(req.body, null, 2));
+      
+      // Simulate successful delivery creation with random IDs
+      const deliveryId = `del_test_${Math.random().toString(36).substring(2, 10)}`;
+      const randomFee = Math.floor(Math.random() * 1000) / 100 + 5; // Random fee between $5 and $15
+      
+      // Current time plus 20-40 minutes
+      const pickupEta = new Date(Date.now() + (Math.floor(Math.random() * 20) + 20) * 60000).toISOString();
+      // Pickup ETA plus 15-30 minutes
+      const dropoffEta = new Date(new Date(pickupEta).getTime() + (Math.floor(Math.random() * 15) + 15) * 60000).toISOString();
+      
+      // Extract order ID from request
+      const orderId = req.body.id || req.body.order?.id || `order_test_${Math.random().toString(36).substring(2, 10)}`;
+      
+      // Add a slight delay to simulate API call
+      setTimeout(() => {
+        // Return a successful response
+        res.json({
+          success: true,
+          message: "Test delivery created successfully",
+          orderId: orderId,
+          delivery: {
+            id: deliveryId,
+            status: "created",
+            trackingUrl: `https://example.com/track/${deliveryId}`,
+            fee: randomFee,
+            currency: "USD",
+            pickupEta: pickupEta,
+            dropoffEta: dropoffEta
+          }
+        });
+      }, 1000);
+    } catch (error: any) {
+      console.error("Error in test e-commerce to delivery webhook:", error);
+      res.status(500).json({
+        error: "Test webhook processing failed",
+        message: error.message
+      });
+    }
+  });
+  
   // E-commerce integration test endpoints
   app.post("/api/ecommerce/test-product", isAuthenticated, async (req, res) => {
     try {

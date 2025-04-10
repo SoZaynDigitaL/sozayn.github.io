@@ -51,7 +51,7 @@ function Router() {
       {/* Redirect old test-order route to delivery-partners with test tab */}
       <Route path="/dashboard/test-order">
         {() => {
-          window.location.href = '/dashboard/delivery-partners?tab=test';
+          window.location.href = '/dashboard/delivery-partners?tab=test&subtab=direct';
           return null;
         }}
       </Route>

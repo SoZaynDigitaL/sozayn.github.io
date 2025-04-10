@@ -7,6 +7,7 @@ import { Truck, Package, BarChart, Webhook as WebhookIcon, Settings, TestTube2 }
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import TestDelivery from "@/components/dashboard/TestDelivery";
+import TestEcommerceDelivery from "@/components/dashboard/TestEcommerceDelivery";
 import DeliveryPartnerIntegrations from "@/components/dashboard/delivery-partners/DeliveryPartnerIntegrations";
 import { WebhookManager } from "@/components/dashboard/delivery-partners/WebhookManager";
 import { useState, useEffect } from "react";
@@ -16,13 +17,30 @@ export default function DeliveryPartnersPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [location] = useLocation();
   
+  // State for nested test tab
+  const [testSubTab, setTestSubTab] = useState("direct");
+  
   // Check for tab query parameter on load
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      
+      // Handle main tabs
       if (tabParam && ["overview", "integrations", "webhooks", "test", "settings"].includes(tabParam)) {
         setActiveTab(tabParam);
+        
+        // If there's a test subtab parameter
+        const subtabParam = params.get("subtab");
+        if (tabParam === "test" && subtabParam && ["direct", "ecommerce"].includes(subtabParam)) {
+          setTestSubTab(subtabParam);
+        }
+      }
+      
+      // Handle old 'test-order' redirect
+      if (tabParam === "test-order") {
+        setActiveTab("test");
+        setTestSubTab("direct");
       }
     }
   }, [location]);
@@ -262,7 +280,10 @@ export default function DeliveryPartnersPage() {
                     <Button 
                       variant="outline" 
                       className="justify-start"
-                      onClick={() => setActiveTab("test")}
+                      onClick={() => {
+                        setActiveTab("test");
+                        setTestSubTab("direct");
+                      }}
                     >
                       <TestTube2 className="h-4 w-4 mr-2" />
                       Test Delivery
@@ -314,17 +335,46 @@ export default function DeliveryPartnersPage() {
           </TabsContent>
           
           <TabsContent value="test" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Test Delivery</CardTitle>
-                <CardDescription>
-                  Test your delivery partner integrations with a sample order
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TestDelivery />
-              </CardContent>
-            </Card>
+            <div className="flex flex-col gap-6">
+              <Tabs 
+                value={testSubTab} 
+                onValueChange={setTestSubTab} 
+                className="w-full"
+              >
+                <TabsList className="mb-4">
+                  <TabsTrigger value="direct">Direct Delivery Test</TabsTrigger>
+                  <TabsTrigger value="ecommerce">E-commerce Integration</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="direct">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Test Direct Delivery</CardTitle>
+                      <CardDescription>
+                        Test your delivery partner integrations with a sample order
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <TestDelivery />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="ecommerce">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Test E-commerce to Delivery Integration</CardTitle>
+                      <CardDescription>
+                        Test the webhook integration between your e-commerce platform and delivery partners
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <TestEcommerceDelivery />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           </TabsContent>
           
           <TabsContent value="settings" className="space-y-6">

@@ -953,14 +953,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { 
         ecommerceIntegrationId, 
-        deliveryIntegrationId, 
-        order 
+        deliveryIntegrationId
       } = req.body;
       
-      if (!ecommerceIntegrationId || !deliveryIntegrationId || !order) {
+      // Extract order data either from nested 'order' field or from request body directly
+      let order = req.body.order || req.body;
+      
+      if (!ecommerceIntegrationId || !deliveryIntegrationId) {
         return res.status(400).json({ 
           error: "Missing required fields", 
-          message: "ecommerceIntegrationId, deliveryIntegrationId, and order are required" 
+          message: "ecommerceIntegrationId and deliveryIntegrationId are required" 
+        });
+      }
+      
+      // Make sure we have minimal order data needed for delivery
+      if (!order.id && !order.customer) {
+        console.error("Invalid order data in webhook payload:", order);
+        return res.status(400).json({
+          error: "Invalid order data",
+          message: "Order must have an ID and customer information"
         });
       }
       
@@ -1016,11 +1027,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Fallback for testing - create direct client based on provider
           if (deliveryProvider === 'UberDirect' || deliveryProvider === 'UberEats') {
+            console.log("Creating fallback UberDirect client");
             deliveryService = await getDeliveryServiceClient(0, 'UberDirect', {
+              customerId: "demo_customer_id",
+              clientId: "demo_client_id",
+              clientSecret: "demo_client_secret",
               environment: 'sandbox'
             });
           } else if (deliveryProvider === 'JetGo') {
+            console.log("Creating fallback JetGo client");
             deliveryService = await getDeliveryServiceClient(0, 'JetGo', {
+              apiKey: "demo_api_key",
+              merchantId: "demo_merchant_id",
+              webhookSecret: "demo_webhook_secret",
               environment: 'sandbox'
             });
           }
@@ -1028,7 +1047,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error("Error initializing delivery service:", error);
         // Create a default UberDirect client for testing
+        console.log("Creating emergency fallback UberDirect client");
         deliveryService = await getDeliveryServiceClient(0, 'UberDirect', {
+          customerId: "demo_customer_id",
+          clientId: "demo_client_id",
+          clientSecret: "demo_client_secret",
           environment: 'sandbox'
         });
       }

@@ -24,35 +24,33 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Default webhook payload template
 const DEFAULT_WEBHOOK_PAYLOAD = {
-  order: {
-    id: `order_${Date.now()}`,
-    customer: {
-      name: "Jane Doe",
-      email: "jane@example.com",
-      address: "123 Main St, San Francisco, CA 94105",
-      phone: "555-987-6543"
+  id: `order_${Date.now()}`,
+  customer: {
+    name: "Jane Doe",
+    email: "jane@example.com",
+    address: "123 Main St, San Francisco, CA 94105",
+    phone: "555-987-6543"
+  },
+  restaurant: {
+    name: "Turkish Kebab Grill",
+    address: "456 Restaurant Ave, San Francisco, CA 94105",
+    phone: "555-123-4567"
+  },
+  items: [
+    {
+      name: "Lamb Kebab",
+      quantity: 2,
+      price: 1599
     },
-    restaurant: {
-      name: "Turkish Kebab Grill",
-      address: "456 Restaurant Ave, San Francisco, CA 94105",
-      phone: "555-123-4567"
-    },
-    items: [
-      {
-        name: "Lamb Kebab",
-        quantity: 2,
-        price: 1599
-      },
-      {
-        name: "Falafel Wrap",
-        quantity: 1,
-        price: 999
-      }
-    ],
-    totalAmount: 4197,
-    currency: "USD",
-    notes: "Please add extra sauce"
-  }
+    {
+      name: "Falafel Wrap",
+      quantity: 1,
+      price: 999
+    }
+  ],
+  totalAmount: 4197,
+  currency: "USD",
+  notes: "Please add extra sauce"
 };
 
 export default function TestEcommerceDelivery() {
@@ -74,11 +72,15 @@ export default function TestEcommerceDelivery() {
       setError(null);
       setResult(null);
       
+      console.log("Starting webhook test with delivery provider:", deliveryProvider);
+      
       // Parse the webhook payload
       let payload;
       try {
         payload = JSON.parse(webhookPayload);
+        console.log("Successfully parsed webhook payload");
       } catch (parseError) {
+        console.error("JSON parse error:", parseError);
         throw new Error("Invalid JSON in webhook payload");
       }
       
@@ -90,19 +92,45 @@ export default function TestEcommerceDelivery() {
         ...payload
       };
       
+      console.log("Sending webhook data:", {
+        ecommerceIntegrationId: webhookData.ecommerceIntegrationId,
+        deliveryIntegrationId: webhookData.deliveryIntegrationId,
+        deliveryProvider: webhookData.deliveryProvider,
+        hasCustomer: !!webhookData.customer,
+        hasItems: Array.isArray(webhookData.items) ? webhookData.items.length : 'no items array'
+      });
+      
       // Call the webhook endpoint
       const response = await apiRequest(
         "POST", 
         "/api/webhook/ecommerce-to-delivery", 
-        webhookData
+        webhookData,
+        { 
+          headers: {
+            'X-Requested-By': 'TestEcommerceDelivery' // Add custom header for debugging
+          }
+        }
       );
       
+      console.log("Webhook response status:", response.status);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process webhook");
+        const errorText = await response.text();
+        let errorMessage = "Failed to process webhook";
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+          console.error("Webhook error response:", errorData);
+        } catch (e) {
+          console.error("Non-JSON error response:", errorText);
+        }
+        
+        throw new Error(errorMessage);
       }
       
       const result = await response.json();
+      console.log("Webhook success result:", result);
       setResult(result);
       
       toast({
@@ -111,10 +139,12 @@ export default function TestEcommerceDelivery() {
         variant: "default",
       });
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Unknown error occurred");
+      console.error("TestEcommerceDelivery error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      setError(errorMessage);
       toast({
         title: "Webhook Test Failed",
-        description: error instanceof Error ? error.message : "Unknown error occurred",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

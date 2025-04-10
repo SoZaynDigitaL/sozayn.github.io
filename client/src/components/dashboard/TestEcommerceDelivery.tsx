@@ -63,6 +63,7 @@ export default function TestEcommerceDelivery() {
   
   const [ecommerceIntegrationId, setEcommerceIntegrationId] = useState("1");
   const [deliveryIntegrationId, setDeliveryIntegrationId] = useState("3");
+  const [deliveryProvider, setDeliveryProvider] = useState("uberdirect");
   const [webhookPayload, setWebhookPayload] = useState(
     JSON.stringify(DEFAULT_WEBHOOK_PAYLOAD, null, 2)
   );
@@ -81,10 +82,11 @@ export default function TestEcommerceDelivery() {
         throw new Error("Invalid JSON in webhook payload");
       }
       
-      // Add the integration IDs
+      // Add the integration IDs and delivery provider
       const webhookData = {
         ecommerceIntegrationId: parseInt(ecommerceIntegrationId),
         deliveryIntegrationId: parseInt(deliveryIntegrationId),
+        deliveryProvider: deliveryProvider,
         ...payload
       };
       
@@ -162,7 +164,16 @@ export default function TestEcommerceDelivery() {
               <div className="col-span-3">
                 <Select 
                   value={deliveryIntegrationId} 
-                  onValueChange={setDeliveryIntegrationId}
+                  onValueChange={(value) => {
+                    setDeliveryIntegrationId(value);
+                    // Also update the provider based on the selection
+                    const selectedPartner = DELIVERY_PARTNERS.find(
+                      partner => (partner.value === 'uberdirect' ? '3' : '4') === value
+                    );
+                    if (selectedPartner) {
+                      setDeliveryProvider(selectedPartner.value);
+                    }
+                  }}
                 >
                   <SelectTrigger id="deliveryIntegrationId">
                     <SelectValue placeholder="Select a delivery partner" />

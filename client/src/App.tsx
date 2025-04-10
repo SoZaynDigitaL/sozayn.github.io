@@ -16,7 +16,7 @@ import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
 import Settings from "@/pages/dashboard/settings";
 
-import DeliveryPartners from "@/pages/dashboard/delivery-partners";
+import DeliveryPartnersPage from "@/pages/dashboard/delivery-partners";
 import Users from "@/pages/dashboard/admin/users";
 import AdminWebhooks from "@/pages/dashboard/admin/webhooks";
 import Ecommerce from "@/pages/dashboard/ecommerce";
@@ -52,10 +52,10 @@ function Router() {
       <Route path="/dashboard/test-order">
         {() => {
           console.log("Route hit: /dashboard/test-order");
-          return <DeliveryPartners />;
+          return <DeliveryPartnersPage />;
         }}
       </Route>
-      <Route path="/dashboard/delivery-partners" component={DeliveryPartners} />
+      <Route path="/dashboard/delivery-partners" component={DeliveryPartnersPage} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
       <Route path="/dashboard/settings" component={Settings} />
       <Route path="/dashboard/admin/users" component={Users} />

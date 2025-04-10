@@ -22,17 +22,21 @@ export default function DeliveryPartnersPage() {
   
   // Check if we're on the test-order route or have query parameters
   useEffect(() => {
+    console.log("Current location:", location);
+    
+    // Check if we're on the test-order route
+    if (location.includes("/test-order")) {
+      console.log("Setting active tab to test (from test-order route)");
+      setActiveTab("test");
+      setTestSubTab("direct");
+      return;
+    }
+    
+    // Otherwise check for query parameters
     if (typeof window !== "undefined") {
-      // Check if we're on the test-order route
-      if (location.includes("/test-order")) {
-        setActiveTab("test");
-        setTestSubTab("direct");
-        return;
-      }
-      
-      // Otherwise check for query parameters
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
+      console.log("Tab param from URL:", tabParam);
       
       // Handle main tabs
       if (tabParam && ["overview", "integrations", "webhooks", "test", "settings"].includes(tabParam)) {
@@ -40,6 +44,8 @@ export default function DeliveryPartnersPage() {
         
         // If there's a test subtab parameter
         const subtabParam = params.get("subtab");
+        console.log("Subtab param from URL:", subtabParam);
+        
         if (tabParam === "test" && subtabParam && ["direct", "ecommerce"].includes(subtabParam)) {
           setTestSubTab(subtabParam);
         }

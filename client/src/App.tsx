@@ -48,8 +48,13 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
-      {/* We have the dedicated test-order page and a tab in delivery-partners */}
-      <Route path="/dashboard/test-order" component={DeliveryPartners} />
+      {/* Use the dedicated TestOrderPage component for full functionality */}
+      <Route path="/dashboard/test-order">
+        {() => {
+          console.log("Route hit: /dashboard/test-order");
+          return <DeliveryPartners />;
+        }}
+      </Route>
       <Route path="/dashboard/delivery-partners" component={DeliveryPartners} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
       <Route path="/dashboard/settings" component={Settings} />

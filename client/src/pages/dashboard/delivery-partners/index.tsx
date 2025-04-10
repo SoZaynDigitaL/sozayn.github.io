@@ -9,10 +9,23 @@ import { apiRequest } from "@/lib/queryClient";
 import TestDelivery from "@/components/dashboard/TestDelivery";
 import DeliveryPartnerIntegrations from "@/components/dashboard/delivery-partners/DeliveryPartnerIntegrations";
 import { WebhookManager } from "@/components/dashboard/delivery-partners/WebhookManager";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 export default function DeliveryPartnersPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [location] = useLocation();
+  
+  // Check for tab query parameter on load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["overview", "integrations", "webhooks", "test", "settings"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, [location]);
   
   // Fetch delivery stats
   const { data: stats, isLoading: isLoadingStats } = useQuery({

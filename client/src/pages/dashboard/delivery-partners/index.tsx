@@ -20,9 +20,17 @@ export default function DeliveryPartnersPage() {
   // State for nested test tab
   const [testSubTab, setTestSubTab] = useState("direct");
   
-  // Check for tab query parameter on load
+  // Check if we're on the test-order route or have query parameters
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Check if we're on the test-order route
+      if (location.includes("/test-order")) {
+        setActiveTab("test");
+        setTestSubTab("direct");
+        return;
+      }
+      
+      // Otherwise check for query parameters
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
       
@@ -35,12 +43,6 @@ export default function DeliveryPartnersPage() {
         if (tabParam === "test" && subtabParam && ["direct", "ecommerce"].includes(subtabParam)) {
           setTestSubTab(subtabParam);
         }
-      }
-      
-      // Handle old 'test-order' redirect
-      if (tabParam === "test-order") {
-        setActiveTab("test");
-        setTestSubTab("direct");
       }
     }
   }, [location]);

@@ -48,13 +48,8 @@ function Router() {
       <Route path="/dashboard/loyalty" component={Loyalty} />
       <Route path="/dashboard/marketing" component={Marketing} />
       <Route path="/dashboard/pos" component={POS} />
-      {/* Redirect old test-order route to delivery-partners with test tab */}
-      <Route path="/dashboard/test-order">
-        {() => {
-          window.location.href = '/dashboard/delivery-partners?tab=test&subtab=direct';
-          return null;
-        }}
-      </Route>
+      {/* We have the dedicated test-order page and a tab in delivery-partners */}
+      <Route path="/dashboard/test-order" component={DeliveryPartners} />
       <Route path="/dashboard/delivery-partners" component={DeliveryPartners} />
       <Route path="/dashboard/webhooks" component={Webhooks} />
       <Route path="/dashboard/settings" component={Settings} />

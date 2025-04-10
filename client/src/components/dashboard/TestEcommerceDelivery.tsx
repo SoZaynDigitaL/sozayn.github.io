@@ -167,11 +167,11 @@ export default function TestEcommerceDelivery() {
                   onValueChange={(value) => {
                     setDeliveryIntegrationId(value);
                     // Also update the provider based on the selection
-                    const selectedPartner = DELIVERY_PARTNERS.find(
-                      partner => (partner.value === 'uberdirect' ? '3' : '4') === value
-                    );
-                    if (selectedPartner) {
-                      setDeliveryProvider(selectedPartner.value);
+                    // Hardcoding the mapping for now because we only support two specific providers
+                    if (value === '3') {
+                      setDeliveryProvider('uberdirect');
+                    } else if (value === '4') {
+                      setDeliveryProvider('jetgo');
                     }
                   }}
                 >
@@ -179,14 +179,8 @@ export default function TestEcommerceDelivery() {
                     <SelectValue placeholder="Select a delivery partner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DELIVERY_PARTNERS.map(partner => (
-                      <SelectItem 
-                        key={partner.value} 
-                        value={partner.value === 'uberdirect' ? '3' : '4'}
-                      >
-                        {partner.label}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="3">UberDirect</SelectItem>
+                    <SelectItem value="4">JetGo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

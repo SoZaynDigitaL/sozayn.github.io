@@ -135,6 +135,7 @@ export default function DeliveryPartnersPage() {
           <TabsList className="mb-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="tracking"><MapPin className="h-4 w-4 mr-1" /> Track Orders</TabsTrigger>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="test">Test Delivery</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -297,6 +298,15 @@ export default function DeliveryPartnersPage() {
                     <Button 
                       variant="outline" 
                       className="justify-start"
+                      onClick={() => setActiveTab("tracking")}
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Track Orders
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="justify-start"
                       onClick={() => {
                         setActiveTab("test");
                         setTestSubTab("direct");
@@ -333,6 +343,87 @@ export default function DeliveryPartnersPage() {
               </CardHeader>
               <CardContent>
                 <DeliveryPartnerIntegrations />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="tracking" className="space-y-6">
+            <DeliveryTrackingMap />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Deliveries</CardTitle>
+                <CardDescription>
+                  Select a delivery to view its live tracking information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {isLoadingStats ? (
+                    <div className="flex justify-center py-6">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="bg-accent/50 p-4 rounded-lg flex items-start gap-4 cursor-pointer hover:bg-accent">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <Truck className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">Order #12345</h3>
+                              <p className="text-sm text-muted-foreground">Delivery via JetGo</p>
+                            </div>
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">In Transit</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <MapPin className="h-3 w-3" /> Turkish Kebab Grill House → 723 Broadway
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">ETA: 15 minutes</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg flex items-start gap-4 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <Truck className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">Order #12344</h3>
+                              <p className="text-sm text-muted-foreground">Delivery via UberDirect</p>
+                            </div>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completed</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <MapPin className="h-3 w-3" /> Turkish Kebab Grill House → 512 E 12th St
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">Delivered: Today, 3:15 PM</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg flex items-start gap-4 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <Truck className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">Order #12340</h3>
+                              <p className="text-sm text-muted-foreground">Delivery via JetGo</p>
+                            </div>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Completed</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 text-sm">
+                            <MapPin className="h-3 w-3" /> Turkish Kebab Grill House → 142 W 4th St
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">Delivered: Today, 1:32 PM</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

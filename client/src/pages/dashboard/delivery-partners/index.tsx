@@ -3,13 +3,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Truck, Package, BarChart, Webhook as WebhookIcon, Settings, TestTube2 } from "lucide-react";
+import { 
+  Truck, 
+  Package, 
+  BarChart, 
+  Webhook as WebhookIcon, 
+  Settings, 
+  TestTube2,
+  MapPin
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import TestDelivery from "@/components/dashboard/TestDelivery";
 import TestEcommerceDelivery from "@/components/dashboard/TestEcommerceDelivery";
 import DeliveryPartnerIntegrations from "@/components/dashboard/delivery-partners/DeliveryPartnerIntegrations";
 import { WebhookManager } from "@/components/dashboard/delivery-partners/WebhookManager";
+import DeliveryTrackingMap from "@/components/dashboard/delivery-partners/DeliveryTrackingMap";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 

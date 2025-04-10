@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Fix for default marker icon issue in react-leaflet
 // This is needed because the CSS imports don't work properly with bundlers
-delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
@@ -110,12 +109,12 @@ const AnimatedDeliveryMarker = ({
     };
   }, [delivery.id, path.waypoints, updatePosition]);
   
+  // We'll use a regular Marker since rotationAngle isn't directly supported
+  // In a real implementation, we'd use a plugin or handle rotation with CSS
   return (
     <Marker 
       position={[delivery.lat, delivery.lng]} 
       icon={vehicleIcon}
-      rotationAngle={delivery.bearing || 0}
-      rotationOrigin="center"
     >
       <Popup>
         <div>

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DeliveryTrackingMap from "@/components/dashboard/delivery-partners/DeliveryTrackingMap";
 
 export default function TestOrderPage() {
   const { user, isLoading } = useAuth();
@@ -51,9 +52,10 @@ export default function TestOrderPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
             <TabsTrigger value="delivery">Direct Delivery Test</TabsTrigger>
             <TabsTrigger value="integration">E-commerce Integration</TabsTrigger>
+            <TabsTrigger value="tracking">Live Tracking</TabsTrigger>
           </TabsList>
           
           <TabsContent value="delivery" className="space-y-6">
@@ -62,6 +64,10 @@ export default function TestOrderPage() {
           
           <TabsContent value="integration" className="space-y-6">
             <TestEcommerceDelivery />
+          </TabsContent>
+          
+          <TabsContent value="tracking" className="space-y-6">
+            <DeliveryTrackingMap />
           </TabsContent>
         </Tabs>
       </div>

@@ -691,7 +691,7 @@ export default function EcommerceIntegrationManager() {
                         />
                         
                         <Alert>
-                          <AlertCircle className="h-4 w-4" />
+                          <WebhookIcon className="h-4 w-4" />
                           <AlertTitle>Webhook Setup Instructions</AlertTitle>
                           <AlertDescription>
                             After saving, you'll need to add this webhook URL to your e-commerce platform.

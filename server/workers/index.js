@@ -3,10 +3,24 @@ import swaggerDocsJson from './swagger.js';
 
 // Initialize Supabase client
 const supabaseClient = (env) => {
-  return createClient(
-    env.SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  // Make sure the environment variables are available
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Missing Supabase configuration: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+    // Return a disabled client that won't throw errors
+    return createClient('https://placeholder-url.supabase.co', 'placeholder-key', {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  }
+  
+  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
 };
 
 // CORS headers

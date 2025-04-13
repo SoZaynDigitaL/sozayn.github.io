@@ -23,6 +23,48 @@ const handleOptions = () => {
   });
 };
 
+// Error logging function
+const logError = async (error, request, env, ctx) => {
+  // Get request details for context
+  const url = new URL(request.url);
+  const method = request.method;
+  const path = url.pathname;
+  const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  const userAgent = request.headers.get('User-Agent') || 'unknown';
+  
+  // Format error message
+  const errorObj = {
+    timestamp: new Date().toISOString(),
+    path,
+    method,
+    clientIP,
+    userAgent,
+    errorMessage: error.message || 'Unknown error',
+    stack: error.stack || '',
+    environment: env.ENVIRONMENT || 'development'
+  };
+  
+  // In development, log to console
+  console.error('API Error:', JSON.stringify(errorObj, null, 2));
+  
+  // In production, you could send this to a logging service
+  // For example, using Cloudflare Analytics Engine or a third-party service
+  if (env.SENTRY_DSN) {
+    // Example of how to send to Sentry (would require Sentry SDK)
+    // ctx.waitUntil(sendToSentry(errorObj, env.SENTRY_DSN));
+  }
+  
+  // Could also write to KV for later analysis
+  if (env.ERROR_LOGS_KV) {
+    try {
+      const key = `error:${Date.now()}:${Math.random().toString(36).substring(2, 7)}`;
+      ctx.waitUntil(env.ERROR_LOGS_KV.put(key, JSON.stringify(errorObj)));
+    } catch (e) {
+      console.error('Failed to write error log to KV:', e);
+    }
+  }
+};
+
 // Helper to handle API responses
 const jsonResponse = (data, status = 200) => {
   return new Response(JSON.stringify(data), {
@@ -248,21 +290,106 @@ const handleDeliveryPartnerRequest = async (request, env) => {
   return jsonResponse({ error: 'Not Found' }, 404);
 };
 
+// Health check handler
+const handleHealthCheck = (request, env) => {
+  const healthInfo = {
+    status: 'ok',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: env.ENVIRONMENT || 'development'
+  };
+  
+  return jsonResponse(healthInfo);
+};
+
+// Simple rate limiting using Cloudflare's cache API
+// This will be a basic implementation since we don't have KV storage enabled yet
+const checkRateLimit = async (request, env, ctx) => {
+  // Skip rate limiting for OPTIONS and health check
+  const url = new URL(request.url);
+  if (request.method === 'OPTIONS' || url.pathname === '/health' || url.pathname === '/api/health') {
+    return false;
+  }
+  
+  // Get client IP
+  const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+  
+  // Use cache API for basic rate limiting
+  // In production, use KV or Durable Objects for more robust rate limiting
+  const cacheKey = `ratelimit:${clientIP}`;
+  
+  // Try to get current count from cache
+  const cache = caches.default;
+  let count = 1;
+  
+  try {
+    const cacheResponse = await cache.match(cacheKey);
+    if (cacheResponse) {
+      const data = await cacheResponse.json();
+      count = data.count + 1;
+    }
+    
+    // Store updated count in cache with 1 minute expiry
+    const newResponse = new Response(JSON.stringify({ count, timestamp: Date.now() }));
+    newResponse.headers.set('Cache-Control', 'public, max-age=60');
+    ctx.waitUntil(cache.put(cacheKey, newResponse));
+    
+    // Simple rate limit: 60 requests per minute
+    // Adjust as needed for your application
+    if (count > 60) {
+      return true; // Rate limited
+    }
+  } catch (error) {
+    // If cache fails, let the request through
+    console.error('Rate limiting error:', error);
+  }
+  
+  return false; // Not rate limited
+};
+
 // Main handler
 export default {
   async fetch(request, env, ctx) {
-    // Handle CORS preflight requests
-    if (request.method === 'OPTIONS') {
-      return handleOptions();
+    try {
+      // Handle CORS preflight requests
+      if (request.method === 'OPTIONS') {
+        return handleOptions();
+      }
+      
+      // Check rate limiting
+      const isRateLimited = await checkRateLimit(request, env, ctx);
+      if (isRateLimited) {
+        return jsonResponse({ error: 'Too many requests' }, 429);
+      }
+      
+      const url = new URL(request.url);
+      
+      // Health check endpoint
+      if (url.pathname === '/health' || url.pathname === '/api/health') {
+        return handleHealthCheck(request, env);
+      }
+      
+      // API routes
+      if (url.pathname.startsWith('/api/')) {
+        return await handleDeliveryPartnerRequest(request, env);
+      }
+      
+      return jsonResponse({ error: 'Not Found' }, 404);
+    } catch (error) {
+      // Log any unhandled errors
+      ctx.waitUntil(logError(error, request, env, ctx));
+      
+      // Return appropriate error response to client
+      console.error('Unhandled error:', error);
+      
+      // Don't expose internal error details in production
+      const isProd = env.ENVIRONMENT === 'production';
+      const errorMessage = isProd ? 'Internal Server Error' : error.message;
+      
+      return jsonResponse({ 
+        error: errorMessage,
+        requestId: crypto.randomUUID(), // For correlation with logs
+      }, 500);
     }
-    
-    const url = new URL(request.url);
-    
-    // API routes
-    if (url.pathname.startsWith('/api/')) {
-      return handleDeliveryPartnerRequest(request, env);
-    }
-    
-    return jsonResponse({ error: 'Not Found' }, 404);
   },
 };

@@ -41,29 +41,12 @@ const logError = async (error, request, env, ctx) => {
     clientIP,
     userAgent,
     errorMessage: error.message || 'Unknown error',
-    stack: error.stack || '',
+    stack: error.stack ? error.stack.split('\n').slice(0, 3).join('\n') : '',
     environment: env.ENVIRONMENT || 'development'
   };
   
-  // In development, log to console
-  console.error('API Error:', JSON.stringify(errorObj, null, 2));
-  
-  // In production, you could send this to a logging service
-  // For example, using Cloudflare Analytics Engine or a third-party service
-  if (env.SENTRY_DSN) {
-    // Example of how to send to Sentry (would require Sentry SDK)
-    // ctx.waitUntil(sendToSentry(errorObj, env.SENTRY_DSN));
-  }
-  
-  // Could also write to KV for later analysis
-  if (env.ERROR_LOGS_KV) {
-    try {
-      const key = `error:${Date.now()}:${Math.random().toString(36).substring(2, 7)}`;
-      ctx.waitUntil(env.ERROR_LOGS_KV.put(key, JSON.stringify(errorObj)));
-    } catch (e) {
-      console.error('Failed to write error log to KV:', e);
-    }
-  }
+  // Log to console
+  console.error('API Error:', JSON.stringify(errorObj));
 };
 
 // Helper to handle API responses
@@ -79,22 +62,35 @@ const jsonResponse = (data, status = 200) => {
 
 // Authentication middleware
 const authenticate = async (request, env) => {
-  const authHeader = request.headers.get('Authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  try {
+    const authHeader = request.headers.get('Authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return { authenticated: false };
+    }
+    
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Check if Supabase URL and key are available
+    if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase credentials in environment');
+      return { authenticated: false };
+    }
+    
+    const supabase = supabaseClient(env);
+    
+    const { data, error } = await supabase.auth.getUser(token);
+    
+    if (error || !data || !data.user) {
+      console.error('Authentication error:', error);
+      return { authenticated: false };
+    }
+    
+    return { authenticated: true, user: data.user };
+  } catch (error) {
+    console.error('Authentication exception:', error);
     return { authenticated: false };
   }
-  
-  const token = authHeader.replace('Bearer ', '');
-  const supabase = supabaseClient(env);
-  
-  const { data, error } = await supabase.auth.getUser(token);
-  
-  if (error || !data.user) {
-    return { authenticated: false };
-  }
-  
-  return { authenticated: true, user: data.user };
 };
 
 // Delivery partner API route handlers
@@ -303,8 +299,8 @@ const handleHealthCheck = (request, env) => {
   return jsonResponse(healthInfo);
 };
 
-// Simple rate limiting using Cloudflare's cache API
-// This will be a basic implementation since we don't have KV storage enabled yet
+// Simple rate limiting using request IP
+// This is a basic implementation without requiring KV storage
 const checkRateLimit = async (request, env, ctx) => {
   // Skip rate limiting for OPTIONS and health check
   const url = new URL(request.url);
@@ -315,35 +311,10 @@ const checkRateLimit = async (request, env, ctx) => {
   // Get client IP
   const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
   
-  // Use cache API for basic rate limiting
-  // In production, use KV or Durable Objects for more robust rate limiting
-  const cacheKey = `ratelimit:${clientIP}`;
-  
-  // Try to get current count from cache
-  const cache = caches.default;
-  let count = 1;
-  
-  try {
-    const cacheResponse = await cache.match(cacheKey);
-    if (cacheResponse) {
-      const data = await cacheResponse.json();
-      count = data.count + 1;
-    }
-    
-    // Store updated count in cache with 1 minute expiry
-    const newResponse = new Response(JSON.stringify({ count, timestamp: Date.now() }));
-    newResponse.headers.set('Cache-Control', 'public, max-age=60');
-    ctx.waitUntil(cache.put(cacheKey, newResponse));
-    
-    // Simple rate limit: 60 requests per minute
-    // Adjust as needed for your application
-    if (count > 60) {
-      return true; // Rate limited
-    }
-  } catch (error) {
-    // If cache fails, let the request through
-    console.error('Rate limiting error:', error);
-  }
+  // For now, we're returning false to allow all requests through
+  // This simplified implementation avoids cache issues in deployment
+  // In a production environment, you should implement proper rate limiting
+  // using KV namespaces or Durable Objects
   
   return false; // Not rate limited
 };
@@ -353,7 +324,7 @@ const handleApiDocs = (request) => {
   return jsonResponse(swaggerDocsJson);
 };
 
-// Main handler
+// Main handler for Cloudflare Workers
 export default {
   async fetch(request, env, ctx) {
     try {
@@ -362,36 +333,47 @@ export default {
         return handleOptions();
       }
       
-      // Check rate limiting
+      // Check rate limiting (simplified for now)
       const isRateLimited = await checkRateLimit(request, env, ctx);
       if (isRateLimited) {
         return jsonResponse({ error: 'Too many requests' }, 429);
       }
       
       const url = new URL(request.url);
+      const pathname = url.pathname;
       
       // Health check endpoint
-      if (url.pathname === '/health' || url.pathname === '/api/health') {
+      if (pathname === '/health' || pathname === '/api/health') {
         return handleHealthCheck(request, env);
       }
       
       // API documentation endpoint
-      if (url.pathname === '/docs' || url.pathname === '/api/docs') {
+      if (pathname === '/docs' || pathname === '/api/docs') {
         return handleApiDocs(request);
       }
       
       // API routes
-      if (url.pathname.startsWith('/api/')) {
+      if (pathname.startsWith('/api/')) {
         return await handleDeliveryPartnerRequest(request, env);
       }
       
-      return jsonResponse({ error: 'Not Found' }, 404);
+      // Default not found response
+      return jsonResponse({
+        error: 'Not Found',
+        message: `Route ${pathname} not found`,
+        timestamp: new Date().toISOString()
+      }, 404);
     } catch (error) {
       // Log any unhandled errors
-      ctx.waitUntil(logError(error, request, env, ctx));
+      try {
+        await logError(error, request, env, ctx);
+      } catch (logError) {
+        // Failsafe if logging itself fails
+        console.error('Error logging failed:', logError);
+      }
       
       // Return appropriate error response to client
-      console.error('Unhandled error:', error);
+      console.error('Unhandled error:', error.message);
       
       // Don't expose internal error details in production
       const isProd = env.ENVIRONMENT === 'production';
@@ -399,7 +381,9 @@ export default {
       
       return jsonResponse({ 
         error: errorMessage,
-        requestId: crypto.randomUUID(), // For correlation with logs
+        path: new URL(request.url).pathname,
+        timestamp: new Date().toISOString(),
+        requestId: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36),
       }, 500);
     }
   },

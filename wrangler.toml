@@ -1,6 +1,8 @@
 name = "sozayn-api"
 main = "server/workers/index.js"
 compatibility_date = "2023-03-01"
+compatibility_flags = ["nodejs_compat"]
+node_compat = true
 
 # Configure route with zone_name
 routes = [
@@ -27,10 +29,6 @@ workers_dev = true
 command = ""
 cwd = "."
 watch_dir = "server/workers"
-
-# Module format configuration
-compatibility_date = "2023-03-01"
-compatibility_flags = ["nodejs_compat"]
 
 # KV Namespace bindings
 # [[kv_namespaces]]

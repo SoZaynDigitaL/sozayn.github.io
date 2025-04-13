@@ -1,10 +1,13 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { apiRequest } from '../lib/queryClient';
+import { supabase } from '@/lib/supabase';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
+// Define combined user type with auth and profile data
 interface User {
-  id: number;
-  username: string;
+  id: string;
   email: string;
+  username: string;
   businessName: string;
   businessType: string;
   role: string;
@@ -14,27 +17,12 @@ interface User {
   subscriptionStatus?: string;
   subscriptionExpiresAt?: string;
   createdAt: string;
-  token?: string;
 }
-
-// Token storage helper functions
-const TOKEN_KEY = 'sozayn_auth_token';
-
-const saveToken = (token: string) => {
-  localStorage.setItem(TOKEN_KEY, token);
-};
-
-const getToken = () => {
-  return localStorage.getItem(TOKEN_KEY);
-};
-
-const removeToken = () => {
-  localStorage.removeItem(TOKEN_KEY);
-};
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, userData: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   isAdmin: () => boolean;
@@ -45,6 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   login: async () => {},
+  signup: async () => {},
   logout: async () => {},
   isLoading: true,
   isAdmin: () => false,
@@ -56,108 +45,152 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Helper to transform Supabase user and profile data to our User type
+const transformUserData = (
+  supabaseUser: SupabaseUser | null, 
+  profile: Database['public']['Tables']['profiles']['Row'] | null
+): User | null => {
+  if (!supabaseUser || !profile) return null;
+  
+  return {
+    id: supabaseUser.id,
+    email: supabaseUser.email || '',
+    username: profile.username,
+    businessName: profile.business_name,
+    businessType: profile.business_type,
+    role: profile.role,
+    subscriptionPlan: profile.subscription_plan,
+    stripeCustomerId: profile.stripe_customer_id || undefined,
+    stripeSubscriptionId: profile.stripe_subscription_id || undefined,
+    subscriptionStatus: profile.subscription_status || undefined,
+    subscriptionExpiresAt: profile.subscription_expires_at || undefined,
+    createdAt: profile.created_at
+  };
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Set up auth state listener
   useEffect(() => {
-    // Check if user is already logged in
-    const checkAuthStatus = async () => {
+    const fetchUserData = async () => {
       try {
-        // Check if we have a token in localStorage
-        const token = getToken();
+        setIsLoading(true);
         
-        if (!token) {
+        // Get current session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
           setUser(null);
-          setIsLoading(false);
           return;
         }
         
-        // Attach the token to the request
-        const headers = {
-          Authorization: `Bearer ${token}`
-        };
+        // Get user profile data
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
         
-        // Handle 401 errors gracefully by returning null instead of throwing
-        const response = await apiRequest(
-          'GET', 
-          '/api/auth/me', 
-          undefined, 
-          { 
-            on401: "returnNull",
-            headers
-          }
-        );
-        
-        if (response.ok) {
-          const userData = await response.json();
-          setUser({
-            ...userData,
-            token
-          });
-        } else {
-          // Token might be invalid, remove it
-          removeToken();
-          setUser(null);
-        }
+        // Transform and set user data
+        setUser(transformUserData(session.user, profile));
       } catch (error) {
-        // Other errors
-        console.error("Auth check error:", error);
+        console.error('Error fetching user data:', error);
         setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuthStatus();
+    // Initial fetch
+    fetchUserData();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          if (!session?.user) return;
+          
+          // Get user profile data
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          // Transform and set user data
+          setUser(transformUserData(session.user, profile));
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null);
+        }
+      }
+    );
+    
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('POST', '/api/auth/login', { username, password });
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
-      const userData = await response.json();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Check if we received a token from the server
-      if (userData.token) {
-        // Save the token to localStorage
-        saveToken(userData.token);
-        
-        // Set the user data
-        setUser(userData);
-        
-        // Log the success
-        console.log("Login successful with token authentication");
-      } else {
-        console.error("No token received from server");
-        throw new Error('Authentication failed');
+      if (error) {
+        throw error;
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error('Login error:', error);
       throw new Error('Login failed');
+    }
+  };
+  
+  const signup = async (email: string, password: string, userData: Partial<User>) => {
+    try {
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (authError || !authData.user) {
+        throw authError || new Error('Failed to create user');
+      }
+      
+      // Create profile
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        username: userData.username || email,
+        email: email,
+        business_name: userData.businessName || '',
+        business_type: userData.businessType || 'restaurant',
+        role: userData.role || 'client',
+        subscription_plan: userData.subscriptionPlan || 'free'
+      });
+      
+      if (profileError) {
+        // If profile creation fails, we should delete the auth user or mark it for cleanup
+        throw profileError;
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw new Error('Registration failed');
     }
   };
 
   const logout = async () => {
     try {
-      // Call the logout endpoint (this will destroy the session on the server)
-      await apiRequest('POST', '/api/auth/logout');
-      
-      // Remove the token from localStorage
-      removeToken();
-      
-      // Clear the user state
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       setUser(null);
-      
-      console.log("Logged out successfully");
     } catch (error) {
-      console.error('Logout failed', error);
-      
-      // Even if the server call fails, we should still remove the token and user data
-      removeToken();
-      setUser(null);
+      console.error('Logout failed:', error);
     }
   };
 
@@ -179,33 +212,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('User not logged in');
       }
       
-      const token = getToken();
-      if (!token) {
-        throw new Error('Authentication token missing');
-      }
+      // Update profile in Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ subscription_plan: plan })
+        .eq('id', user.id);
       
-      // Include the token in the request
-      const headers = {
-        Authorization: `Bearer ${token}`
-      };
+      if (error) throw error;
       
-      // Fetch updated user data
-      const response = await apiRequest('GET', '/api/auth/me', undefined, { headers });
-      if (!response.ok) {
-        throw new Error('Failed to get user data');
-      }
-      const userData = await response.json();
-      
-      // Update local user object with new plan
-      setUser({
-        ...userData,
-        token,
-        subscriptionPlan: plan
-      });
-      
-      return userData;
+      // Update local state
+      setUser(prev => prev ? { ...prev, subscriptionPlan: plan } : null);
     } catch (error) {
-      console.error('Subscription update failed', error);
+      console.error('Subscription update failed:', error);
       throw new Error('Failed to update subscription');
     }
   };
@@ -214,6 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     <AuthContext.Provider value={{ 
       user, 
       login, 
+      signup,
       logout, 
       isLoading,
       isAdmin,

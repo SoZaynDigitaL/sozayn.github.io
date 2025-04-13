@@ -1,19 +1,8 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  Clipboard,
-  HelpCircle,
-  Loader2,
-  XCircle,
-} from "lucide-react";
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,15 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -41,518 +21,354 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, Trash2, TestTube2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import UberDirectIntegration from './UberDirectIntegration';
 
-// Form schema for UberDirect configuration
-const uberDirectSchema = z.object({
-  environment: z.enum(["sandbox", "live"]),
-  customerId: z.string().min(1, "Customer ID is required"),
+const schema = z.object({
   clientId: z.string().min(1, "Client ID is required"),
   clientSecret: z.string().min(1, "Client Secret is required"),
-  isActive: z.boolean().default(false),
-  description: z.string().optional(),
+  environment: z.enum(["sandbox", "production"]).default("sandbox"),
+  merchantId: z.string().min(1, "Merchant ID is required"),
+  isActive: z.boolean().default(true),
 });
 
-type UberDirectFormValues = z.infer<typeof uberDirectSchema>;
+type UberDirectProps = {
+  integration: any;
+  isSubmitting: boolean;
+  onUpdate: (id: number, data: any) => void;
+  onToggleActive: (id: number, isActive: boolean) => void;
+  onTest: (id: number) => void;
+  onDelete: (id: number) => void;
+};
 
-interface UberDirectProps {
-  integration?: any;
-  isSubmitting?: boolean;
-  onUpdate?: (id: number, data: any) => void;
-  onToggleActive?: (id: number, isActive: boolean) => void;
-  onTest?: (id: number) => void;
-  onDelete?: (id: number) => void;
-}
-
-export default function UberDirect({
+export default function UberDirect({ 
   integration,
-  isSubmitting = false,
+  isSubmitting,
   onUpdate,
   onToggleActive,
   onTest,
-  onDelete,
+  onDelete
 }: UberDirectProps) {
-  const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   
-  const hasIntegration = integration !== null;
-  
+  // If we're using Supabase directly now, we can skip this component and use UberDirectIntegration
+  return <UberDirectIntegration />;
+
   // Initialize form
-  const form = useForm<UberDirectFormValues>({
-    resolver: zodResolver(uberDirectSchema),
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
     defaultValues: {
-      environment: (integration?.environment as "sandbox" | "live") || "sandbox",
-      customerId: integration?.customerId || "",
-      clientId: integration?.clientId || "",
-      clientSecret: integration?.clientSecret || "",
-      isActive: integration?.isActive || false,
-      description: integration?.description || "",
-    },
-  });
-  
-  // Create UberDirect integration
-  const createIntegrationMutation = useMutation({
-    mutationFn: async (data: UberDirectFormValues) => {
-      const response = await apiRequest('POST', '/api/integrations', {
-        provider: 'UberDirect',
-        type: 'delivery',
-        environment: data.environment,
-        customerId: data.customerId,
-        clientId: data.clientId,
-        clientSecret: data.clientSecret,
-        isActive: data.isActive,
-        description: data.description || 'UberDirect delivery integration',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create UberDirect integration');
-      }
-      
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Integration created",
-        description: "UberDirect integration has been created successfully.",
-      });
-      
-      // Invalidate the query cache to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/integrations'] });
-      
-      setIsDialogOpen(false);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create UberDirect integration",
-        variant: "destructive",
-      });
+      clientId: integration?.credentials?.clientId || "",
+      clientSecret: integration?.credentials?.clientSecret || "",
+      environment: integration?.settings?.environment || "sandbox",
+      merchantId: integration?.credentials?.merchantId || "",
+      isActive: integration?.isActive ?? true,
     },
   });
   
   // Form submission handler
-  function onSubmit(data: UberDirectFormValues) {
-    if (hasIntegration && onUpdate) {
-      onUpdate(integration.id, data);
-    } else {
-      createIntegrationMutation.mutate(data);
-    }
-  }
+  const onSubmit = (values: z.infer<typeof schema>) => {
+    if (!integration) return;
+    
+    const data = {
+      credentials: {
+        clientId: values.clientId,
+        clientSecret: values.clientSecret,
+        merchantId: values.merchantId,
+      },
+      settings: {
+        environment: values.environment,
+      },
+      isActive: values.isActive,
+    };
+    
+    onUpdate(integration.id, data);
+    setIsEditing(false);
+  };
   
-  // Helper to copy text to clipboard
-  const copyToClipboard = (text: string, message: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copied",
-      description: message,
-    });
+  // Function to test connection
+  const testConnection = () => {
+    if (!integration) return;
+    onTest(integration.id);
+  };
+  
+  // Function to delete integration
+  const deleteIntegration = () => {
+    if (!integration) return;
+    onDelete(integration.id);
+  };
+  
+  // Function to toggle active status
+  const toggleActive = () => {
+    if (!integration) return;
+    const newStatus = !integration.isActive;
+    onToggleActive(integration.id, newStatus);
   };
   
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="bg-blue-100 text-blue-700 font-bold h-10 w-10 rounded flex items-center justify-center">
-                UE
+    <Card className="w-full">
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div>
+          <CardTitle className="text-xl font-bold flex items-center">
+            <img 
+              src="https://d1a3f4spazzrp4.cloudfront.net/uber-com/1.3.8/d1a3f4spazzrp4.cloudfront.net/illustrations/direct_logo.svg" 
+              alt="UberDirect Logo" 
+              className="h-8 mr-3" 
+            />
+            UberDirect
+          </CardTitle>
+          <CardDescription>Direct integration with Uber delivery API</CardDescription>
+        </div>
+        {integration && (
+          <Badge variant={integration.isActive ? "default" : "outline"}>
+            {integration.isActive ? "Active" : "Inactive"}
+          </Badge>
+        )}
+      </CardHeader>
+      <CardContent>
+        {integration && !isEditing ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-text-secondary">Status</h4>
+                <p className="font-medium">
+                  {integration.isActive ? "Active" : "Inactive"}
+                </p>
               </div>
               <div>
-                <CardTitle>UberDirect</CardTitle>
-                <CardDescription>On-demand delivery service by Uber</CardDescription>
+                <h4 className="text-sm font-medium text-text-secondary">Environment</h4>
+                <p className="font-medium uppercase">
+                  {integration.settings?.environment || "Sandbox"}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-text-secondary">Merchant ID</h4>
+                <p className="font-medium">
+                  {integration.credentials?.merchantId || "Not configured"}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-text-secondary">Last Updated</h4>
+                <p className="font-medium">
+                  {new Date(integration.updatedAt).toLocaleDateString()}
+                </p>
               </div>
             </div>
             
-            {hasIntegration && (
-              <Badge variant={integration.isActive ? "default" : "outline"}>
-                {integration.isActive ? "Active" : "Inactive"}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {hasIntegration ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Environment</p>
-                  <p className="text-sm font-semibold">
-                    {integration.environment === 'live' ? 'Live' : 'Sandbox'} 
-                    {integration.environment === 'sandbox' && (
-                      <span className="ml-1 text-xs text-yellow-600">(Testing)</span>
-                    )}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={integration.isActive}
-                      onCheckedChange={(checked) => {
-                        if (onToggleActive) onToggleActive(integration.id, checked);
-                      }}
-                      disabled={isSubmitting}
-                    />
-                    <span className="text-sm font-semibold">{integration.isActive ? 'Active' : 'Inactive'}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="pt-2">
-                <p className="text-sm font-medium text-muted-foreground mb-1">API Credentials</p>
-                <div className="bg-muted rounded-md p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Customer ID</span>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs font-mono bg-background px-2 py-1 rounded">
-                        {integration.customerId ? '••••••••••' : 'Not set'}
-                      </span>
-                      {integration.customerId && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(integration.customerId, "Customer ID copied to clipboard")}
-                        >
-                          <Clipboard className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Client ID</span>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs font-mono bg-background px-2 py-1 rounded">
-                        {integration.clientId ? '••••••••••' : 'Not set'}
-                      </span>
-                      {integration.clientId && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(integration.clientId, "Client ID copied to clipboard")}
-                        >
-                          <Clipboard className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Client Secret</span>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs font-mono bg-background px-2 py-1 rounded">
-                        {integration.clientSecret ? '••••••••••••••' : 'Not set'}
-                      </span>
-                      {integration.clientSecret && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-6 w-6"
-                          onClick={() => copyToClipboard(integration.clientSecret, "Client Secret copied to clipboard")}
-                        >
-                          <Clipboard className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center text-center p-6">
-              <div className="rounded-full bg-blue-100 p-3 mb-4">
-                <div className="rounded-full bg-blue-200 p-3">
-                  <div className="text-blue-700 font-bold h-10 w-10 rounded-full flex items-center justify-center">
-                    UE
-                  </div>
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold">Set up UberDirect</h3>
-              <p className="text-sm text-muted-foreground mt-1 mb-4 max-w-xs">
-                Connect with UberDirect to offer on-demand delivery through Uber's delivery network.
-              </p>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex justify-between border-t pt-4 px-6">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <a 
-              href="https://developer.uber.com/docs/deliveries" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center hover:text-foreground"
-            >
-              Documentation <ArrowUpRight className="h-3 w-3 ml-1" />
-            </a>
-          </div>
-          
-          <div className="flex space-x-2">
-            {hasIntegration ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setIsDialogOpen(true)}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => onTest && onTest(integration.id)}
-                  disabled={isSubmitting}
-                >
-                  Test
-                </Button>
-              </>
-            ) : (
-              <Button 
-                onClick={() => setIsDialogOpen(true)}
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsEditing(true)}
+                disabled={isSubmitting}
               >
-                Configure
+                Edit Configuration
               </Button>
-            )}
+              
+              <Button
+                size="sm"
+                variant={integration.isActive ? "destructive" : "default"}
+                onClick={toggleActive}
+                disabled={isSubmitting}
+              >
+                {integration.isActive ? "Deactivate" : "Activate"}
+              </Button>
+              
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testConnection}
+                disabled={isSubmitting}
+              >
+                <TestTube2 className="mr-2 h-4 w-4" />
+                Test Connection
+              </Button>
+              
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive"
+                    disabled={isSubmitting}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the UberDirect integration and all associated settings.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteIntegration}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           </div>
-        </CardFooter>
-      </Card>
-      
-      {/* UberDirect Configuration Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{hasIntegration ? "Edit UberDirect Integration" : "Configure UberDirect"}</DialogTitle>
-            <DialogDescription>
-              {hasIntegration 
-                ? "Update your UberDirect delivery integration settings."
-                : "Connect to UberDirect to offer on-demand delivery services."}
-            </DialogDescription>
-          </DialogHeader>
-          
+        ) : integration && isEditing ? (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="environment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Environment</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                        disabled={isSubmitting}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select environment" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="sandbox">Sandbox (Testing)</SelectItem>
-                          <SelectItem value="live">Live (Production)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Use Sandbox for testing before going live.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="customerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1">
-                        Customer ID
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">Developer ID provided by UberDirect</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter customer ID" {...field} disabled={isSubmitting} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="clientId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1">
-                        Client ID
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">API key provided by UberDirect</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter client ID" {...field} disabled={isSubmitting} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="clientSecret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-1">
-                        Client Secret
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="max-w-xs">Secret key for authentication</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter client secret" 
-                          type="password"
-                          {...field} 
-                          disabled={isSubmitting} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Optional description for this integration" 
-                          {...field} 
-                          disabled={isSubmitting} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                {hasIntegration && (
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Activate Integration</FormLabel>
-                          <FormDescription>
-                            Enable this integration to start processing deliveries.
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter UberDirect Client ID" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The client ID from your UberDirect developer account
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </div>
+              />
               
-              <Alert>
-                <AlertTitle className="flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  Get Your API Keys
-                </AlertTitle>
-                <AlertDescription>
-                  <p className="text-sm">
-                    To get your UberDirect API keys, you need to register as a developer at{" "}
-                    <a 
-                      href="https://developer.uber.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      developer.uber.com
-                    </a>
-                  </p>
-                </AlertDescription>
-              </Alert>
+              <FormField
+                control={form.control}
+                name="clientSecret"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Secret</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="password" 
+                        placeholder="Enter UberDirect Client Secret" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      The client secret from your UberDirect developer account
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => setIsDialogOpen(false)}
-                  disabled={isSubmitting}
+              <FormField
+                control={form.control}
+                name="merchantId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Merchant ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter UberDirect Merchant ID" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Your UberDirect merchant or store identifier
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="environment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Environment</FormLabel>
+                    <div className="rounded-md border p-2 bg-accent/20">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          type="button"
+                          variant={field.value === "sandbox" ? "default" : "outline"}
+                          onClick={() => field.onChange("sandbox")}
+                          className="w-full"
+                        >
+                          Sandbox
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={field.value === "production" ? "default" : "outline"}
+                          onClick={() => field.onChange("production")}
+                          className="w-full"
+                        >
+                          Production
+                        </Button>
+                      </div>
+                    </div>
+                    <FormDescription>
+                      Choose the environment for this integration
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Activate Integration</FormLabel>
+                      <FormDescription>
+                        Enable or disable this integration
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit"
-                  disabled={isSubmitting}
-                >
+                
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {hasIntegration ? 'Updating...' : 'Creating...'}
+                      Saving...
                     </>
                   ) : (
-                    hasIntegration ? 'Update Integration' : 'Create Integration'
+                    "Save Changes"
                   )}
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </Form>
-        </DialogContent>
-      </Dialog>
-    </>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6">
+            <p className="text-text-secondary mb-4">
+              No UberDirect integration configured yet.
+            </p>
+            <Button onClick={() => setIsEditing(true)}>
+              Set Up UberDirect Integration
+            </Button>
+          </div>
+        )}
+      </CardContent>
+      {integration && (
+        <CardFooter className="bg-background/50 border-t px-6 py-3">
+          <p className="text-xs text-text-secondary">
+            Connected on {new Date(integration.createdAt).toLocaleDateString()}
+          </p>
+        </CardFooter>
+      )}
+    </Card>
   );
 }

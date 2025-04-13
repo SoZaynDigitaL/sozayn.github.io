@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -27,8 +27,8 @@ import {
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { Loader2 } from 'lucide-react';
-import { apiRequest } from '../lib/queryClient';
+import { Loader2, AlertTriangle } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 // Schema for registration validation
 const registerSchema = z.object({
@@ -41,7 +41,7 @@ const registerSchema = z.object({
 
 export default function Register() {
   const [location, navigate] = useLocation();
-  const { user, isLoading } = useAuth();
+  const { signup, user, isLoading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -68,16 +68,23 @@ export default function Register() {
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     setIsSubmitting(true);
     try {
-      await apiRequest('POST', '/api/auth/register', values);
+      await signup(values.email, values.password, {
+        username: values.username,
+        businessName: values.businessName,
+        businessType: values.businessType,
+      });
+      
       toast({
         title: 'Registration successful',
-        description: 'Your account has been created. You can now log in.',
+        description: 'Your account has been created. You will be redirected to the dashboard.',
       });
-      navigate('/login');
-    } catch (error) {
+      
+      // Navigation will happen automatically once the auth state changes
+    } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: 'Registration failed',
-        description: 'This username or email may already be in use. Please try again.',
+        description: error.message || 'This email may already be in use. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -110,6 +117,14 @@ export default function Register() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Alert className="mb-6 bg-amber-950/20 text-amber-300 border-amber-800">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Email Verification Required</AlertTitle>
+              <AlertDescription>
+                After registration, you'll need to verify your email address before accessing all features.
+              </AlertDescription>
+            </Alert>
+            
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField

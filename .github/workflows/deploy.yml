@@ -24,21 +24,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Prepare Worker
+      - name: Prepare Worker Directory
         run: |
-          echo "import { createClient } from '@supabase/supabase-js';" > server/workers/index.tmp.js
-          cat server/workers/index.js >> server/workers/index.tmp.js
-          mv server/workers/index.tmp.js server/workers/index.js
+          mkdir -p .wrangler/tmp
+          cp -r server/workers/* .wrangler/tmp/
       
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy server/workers/index.js --name=sozayn-api
+          command: deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ENVIRONMENT: production
 
   deploy-pages:
     name: Deploy Cloudflare Pages Frontend

@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import swaggerDocsJson from './swagger.json';
 
 // Initialize Supabase client
 const supabaseClient = (env) => {
@@ -347,6 +348,14 @@ const checkRateLimit = async (request, env, ctx) => {
   return false; // Not rate limited
 };
 
+// Load Swagger docs
+import swaggerDocsJson from './swagger.json';
+
+// Handler for API documentation
+const handleApiDocs = (request) => {
+  return jsonResponse(swaggerDocsJson);
+};
+
 // Main handler
 export default {
   async fetch(request, env, ctx) {
@@ -367,6 +376,11 @@ export default {
       // Health check endpoint
       if (url.pathname === '/health' || url.pathname === '/api/health') {
         return handleHealthCheck(request, env);
+      }
+      
+      // API documentation endpoint
+      if (url.pathname === '/docs' || url.pathname === '/api/docs') {
+        return handleApiDocs(request);
       }
       
       // API routes

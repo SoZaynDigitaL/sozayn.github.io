@@ -1,56 +1,74 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 
-// These environment variables will need to be set in your Replit environment
-// and in your production Cloudflare Pages deployment
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Authentication will not work.');
+// Check if the required environment variables are defined
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+  console.error("Supabase credentials missing: Check environment variables");
 }
 
-// Create a single supabase client for interacting with your database
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+// Create a single supabase client for the browser session
+export const supabase = createClient<Database>(
+  import.meta.env.VITE_SUPABASE_URL || '', 
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+);
 
-// Helper function to check if a user is authenticated
-export const isAuthenticated = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  return !!session;
+// Authentication helper functions
+export const signUp = async ({ email, password, metadata = {} }: { 
+  email: string; 
+  password: string; 
+  metadata?: Record<string, any>;
+}) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: metadata,
+    }
+  });
+  
+  if (error) throw error;
+  return data;
 };
 
-// Helper function to get the current user
+export const signIn = async ({ email, password }: { email: string; password: string }) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+  
+  if (error) throw error;
+  return data;
+};
+
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+};
+
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+  
   return user;
 };
 
-// Helper to get user session
 export const getSession = async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabase.auth.getSession();
+  
+  if (error) {
+    console.error("Error fetching session:", error);
+    return null;
+  }
+  
   return session;
 };
 
-// Helper to get user session and profile data
-export const getUserWithProfile = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) return null;
-  
-  // Fetch user profile data from our profiles table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-    
-  return {
-    ...user,
-    profile
-  };
+export const onAuthStateChange = (callback: (event: string, session: any) => void) => {
+  return supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session);
+  });
 };

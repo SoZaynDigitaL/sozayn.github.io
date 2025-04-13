@@ -9,393 +9,425 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          id: string
-          created_at: string
-          username: string
-          email: string
-          business_name: string
-          business_type: string
-          role: string
-          subscription_plan: string
-          stripe_customer_id: string | null
-          stripe_subscription_id: string | null
-          subscription_status: string | null
-          subscription_expires_at: string | null
-        }
-        Insert: {
-          id: string
-          created_at?: string
-          username: string
-          email: string
-          business_name: string
-          business_type: string
-          role?: string
-          subscription_plan?: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_status?: string | null
-          subscription_expires_at?: string | null
-        }
-        Update: {
-          id?: string
-          created_at?: string
-          username?: string
-          email?: string
-          business_name?: string
-          business_type?: string
-          role?: string
-          subscription_plan?: string
-          stripe_customer_id?: string | null
-          stripe_subscription_id?: string | null
-          subscription_status?: string | null
-          subscription_expires_at?: string | null
-        }
-      }
-      integrations: {
-        Row: {
-          id: number
-          created_at: string
-          user_id: string
-          type: string
-          provider: string
-          name: string
-          api_key: string | null
-          api_secret: string | null
-          access_token: string | null
-          refresh_token: string | null
-          token_expires_at: string | null
-          webhook_url: string | null
-          store_url: string | null
-          merchant_id: string | null
-          status: string
-          settings: Json | null
-        }
-        Insert: {
-          id?: number
-          created_at?: string
-          user_id: string
-          type: string
-          provider: string
-          name: string
-          api_key?: string | null
-          api_secret?: string | null
-          access_token?: string | null
-          refresh_token?: string | null
-          token_expires_at?: string | null
-          webhook_url?: string | null
-          store_url?: string | null
-          merchant_id?: string | null
-          status?: string
-          settings?: Json | null
-        }
-        Update: {
-          id?: number
-          created_at?: string
-          user_id?: string
-          type?: string
-          provider?: string
-          name?: string
-          api_key?: string | null
-          api_secret?: string | null
-          access_token?: string | null
-          refresh_token?: string | null
-          token_expires_at?: string | null
-          webhook_url?: string | null
-          store_url?: string | null
-          merchant_id?: string | null
-          status?: string
-          settings?: Json | null
-        }
-      }
-      webhooks: {
-        Row: {
-          id: number
-          created_at: string
-          user_id: string
-          type: string
-          name: string
-          url: string
-          secret_key: string
-          status: string
-          events: string[]
-          description: string | null
-        }
-        Insert: {
-          id?: number
-          created_at?: string
-          user_id: string
-          type: string
-          name: string
-          url: string
-          secret_key: string
-          status?: string
-          events: string[]
-          description?: string | null
-        }
-        Update: {
-          id?: number
-          created_at?: string
-          user_id?: string
-          type?: string
-          name?: string
-          url?: string
-          secret_key?: string
-          status?: string
-          events?: string[]
-          description?: string | null
-        }
-      }
-      webhook_logs: {
-        Row: {
-          id: number
-          created_at: string
-          webhook_id: number
-          status: string
-          request_body: Json
-          response_body: Json | null
-          response_status: number | null
-          error_message: string | null
-        }
-        Insert: {
-          id?: number
-          created_at?: string
-          webhook_id: number
-          status: string
-          request_body: Json
-          response_body?: Json | null
-          response_status?: number | null
-          error_message?: string | null
-        }
-        Update: {
-          id?: number
-          created_at?: string
-          webhook_id?: number
-          status?: string
-          request_body?: Json
-          response_body?: Json | null
-          response_status?: number | null
-          error_message?: string | null
-        }
-      }
-      orders: {
-        Row: {
-          id: number
-          created_at: string
-          user_id: string
-          order_number: string
-          customer_id: number | null
-          status: string
-          total_amount: number
-          currency: string
-          payment_status: string
-          fulfillment_status: string
-          source: string
-          notes: string | null
-          metadata: Json | null
-        }
-        Insert: {
-          id?: number
-          created_at?: string
-          user_id: string
-          order_number: string
-          customer_id?: number | null
-          status?: string
-          total_amount: number
-          currency: string
-          payment_status?: string
-          fulfillment_status?: string
-          source: string
-          notes?: string | null
-          metadata?: Json | null
-        }
-        Update: {
-          id?: number
-          created_at?: string
-          user_id?: string
-          order_number?: string
-          customer_id?: number | null
-          status?: string
-          total_amount?: number
-          currency?: string
-          payment_status?: string
-          fulfillment_status?: string
-          source?: string
-          notes?: string | null
-          metadata?: Json | null
-        }
-      }
       customers: {
         Row: {
-          id: number
-          created_at: string
-          user_id: string
-          name: string
-          email: string
-          phone: string | null
           address: string | null
-          city: string | null
-          state: string | null
-          postal_code: string | null
-          country: string | null
-          metadata: Json | null
+          created_at: string
+          email: string
+          id: number
+          name: string
+          phone: string | null
+          updated_at: string | null
+          user_id: number | null
         }
         Insert: {
-          id?: number
-          created_at?: string
-          user_id: string
-          name: string
-          email: string
-          phone?: string | null
           address?: string | null
-          city?: string | null
-          state?: string | null
-          postal_code?: string | null
-          country?: string | null
-          metadata?: Json | null
+          created_at?: string
+          email: string
+          id?: number
+          name: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: number | null
         }
         Update: {
-          id?: number
-          created_at?: string
-          user_id?: string
-          name?: string
-          email?: string
-          phone?: string | null
           address?: string | null
-          city?: string | null
-          state?: string | null
-          postal_code?: string | null
-          country?: string | null
-          metadata?: Json | null
+          created_at?: string
+          email?: string
+          id?: number
+          name?: string
+          phone?: string | null
+          updated_at?: string | null
+          user_id?: number | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "customers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       deliveries: {
         Row: {
-          id: number
           created_at: string
-          user_id: string
-          order_id: number | null
+          currency: string | null
+          customer_id: number | null
+          delivery_fee: number | null
+          delivery_id: string
+          dropoff_address: string
+          dropoff_eta: string | null
+          dropoff_latitude: number | null
+          dropoff_longitude: number | null
+          dropoff_name: string
+          dropoff_phone: string
+          id: number
           integration_id: number
+          order_id: number | null
+          pickup_address: string
+          pickup_eta: string | null
+          pickup_latitude: number | null
+          pickup_longitude: number | null
+          pickup_name: string
+          pickup_phone: string
           provider: string
-          external_id: string | null
           status: string
           tracking_url: string | null
-          pickup_address: string
-          pickup_lat: number | null
-          pickup_lng: number | null
-          dropoff_address: string
-          dropoff_lat: number | null
-          dropoff_lng: number | null
-          current_lat: number | null
-          current_lng: number | null
-          pickup_eta: string | null
-          dropoff_eta: string | null
-          driver_name: string | null
-          driver_phone: string | null
-          vehicle_type: string | null
-          fee: number | null
-          currency: string | null
-          metadata: Json | null
+          updated_at: string | null
+          user_id: number
         }
         Insert: {
-          id?: number
           created_at?: string
-          user_id: string
-          order_id?: number | null
-          integration_id: number
-          provider: string
-          external_id?: string | null
-          status?: string
-          tracking_url?: string | null
-          pickup_address: string
-          pickup_lat?: number | null
-          pickup_lng?: number | null
-          dropoff_address: string
-          dropoff_lat?: number | null
-          dropoff_lng?: number | null
-          current_lat?: number | null
-          current_lng?: number | null
-          pickup_eta?: string | null
-          dropoff_eta?: string | null
-          driver_name?: string | null
-          driver_phone?: string | null
-          vehicle_type?: string | null
-          fee?: number | null
           currency?: string | null
-          metadata?: Json | null
+          customer_id?: number | null
+          delivery_fee?: number | null
+          delivery_id: string
+          dropoff_address: string
+          dropoff_eta?: string | null
+          dropoff_latitude?: number | null
+          dropoff_longitude?: number | null
+          dropoff_name: string
+          dropoff_phone: string
+          id?: number
+          integration_id: number
+          order_id?: number | null
+          pickup_address: string
+          pickup_eta?: string | null
+          pickup_latitude?: number | null
+          pickup_longitude?: number | null
+          pickup_name: string
+          pickup_phone: string
+          provider: string
+          status: string
+          tracking_url?: string | null
+          updated_at?: string | null
+          user_id: number
         }
         Update: {
-          id?: number
           created_at?: string
-          user_id?: string
-          order_id?: number | null
+          currency?: string | null
+          customer_id?: number | null
+          delivery_fee?: number | null
+          delivery_id?: string
+          dropoff_address?: string
+          dropoff_eta?: string | null
+          dropoff_latitude?: number | null
+          dropoff_longitude?: number | null
+          dropoff_name?: string
+          dropoff_phone?: string
+          id?: number
           integration_id?: number
+          order_id?: number | null
+          pickup_address?: string
+          pickup_eta?: string | null
+          pickup_latitude?: number | null
+          pickup_longitude?: number | null
+          pickup_name?: string
+          pickup_phone?: string
           provider?: string
-          external_id?: string | null
           status?: string
           tracking_url?: string | null
-          pickup_address?: string
-          pickup_lat?: number | null
-          pickup_lng?: number | null
-          dropoff_address?: string
-          dropoff_lat?: number | null
-          dropoff_lng?: number | null
-          current_lat?: number | null
-          current_lng?: number | null
-          pickup_eta?: string | null
-          dropoff_eta?: string | null
-          driver_name?: string | null
-          driver_phone?: string | null
-          vehicle_type?: string | null
-          fee?: number | null
-          currency?: string | null
-          metadata?: Json | null
+          updated_at?: string | null
+          user_id?: number
         }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "integrations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      integrations: {
+        Row: {
+          api_key: string | null
+          api_secret: string | null
+          config: Json | null
+          created_at: string
+          id: number
+          name: string
+          status: string
+          type: string
+          updated_at: string | null
+          url: string | null
+          user_id: number
+        }
+        Insert: {
+          api_key?: string | null
+          api_secret?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: number
+          name: string
+          status?: string
+          type: string
+          updated_at?: string | null
+          url?: string | null
+          user_id: number
+        }
+        Update: {
+          api_key?: string | null
+          api_secret?: string | null
+          config?: Json | null
+          created_at?: string
+          id?: number
+          name?: string
+          status?: string
+          type?: string
+          updated_at?: string | null
+          url?: string | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_id: number | null
+          id: number
+          order_number: string
+          status: string
+          total_amount: number
+          updated_at: string | null
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: number | null
+          id?: number
+          order_number: string
+          status?: string
+          total_amount: number
+          updated_at?: string | null
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: number | null
+          id?: number
+          order_number?: string
+          status?: string
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       social_media_accounts: {
         Row: {
-          id: number
-          created_at: string
-          user_id: string
-          platform: string
-          username: string
-          display_name: string | null
           access_token: string | null
+          created_at: string
+          id: number
+          platform: string
           refresh_token: string | null
-          token_expires_at: string | null
-          profile_url: string | null
           status: string
-          settings: Json | null
+          updated_at: string | null
+          user_id: number
+          username: string
         }
         Insert: {
-          id?: number
-          created_at?: string
-          user_id: string
-          platform: string
-          username: string
-          display_name?: string | null
           access_token?: string | null
+          created_at?: string
+          id?: number
+          platform: string
           refresh_token?: string | null
-          token_expires_at?: string | null
-          profile_url?: string | null
           status?: string
-          settings?: Json | null
+          updated_at?: string | null
+          user_id: number
+          username: string
         }
         Update: {
-          id?: number
-          created_at?: string
-          user_id?: string
-          platform?: string
-          username?: string
-          display_name?: string | null
           access_token?: string | null
+          created_at?: string
+          id?: number
+          platform?: string
           refresh_token?: string | null
-          token_expires_at?: string | null
-          profile_url?: string | null
           status?: string
-          settings?: Json | null
+          updated_at?: string | null
+          user_id?: number
+          username?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "social_media_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      users: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          email: string
+          id: number
+          password: string
+          role: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_plan: string | null
+          updated_at: string | null
+          username: string
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          email: string
+          id?: number
+          password: string
+          role?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string | null
+          updated_at?: string | null
+          username: string
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          email?: string
+          id?: number
+          password?: string
+          role?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_plan?: string | null
+          updated_at?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string
+          id: number
+          payload: Json | null
+          response: Json | null
+          status: string
+          webhook_id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          payload?: Json | null
+          response?: Json | null
+          status: string
+          webhook_id: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          payload?: Json | null
+          response?: Json | null
+          status?: string
+          webhook_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      webhooks: {
+        Row: {
+          created_at: string
+          description: string | null
+          endpoint_url: string
+          event_types: string[] | null
+          id: number
+          name: string
+          secret_key: string
+          status: string
+          updated_at: string | null
+          user_id: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          endpoint_url: string
+          event_types?: string[] | null
+          id?: number
+          name: string
+          secret_key: string
+          status?: string
+          updated_at?: string | null
+          user_id: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          endpoint_url?: string
+          event_types?: string[] | null
+          id?: number
+          name?: string
+          secret_key?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

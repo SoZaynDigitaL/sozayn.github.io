@@ -22,12 +22,11 @@ route = "api.sozayn.com/*"
 name = "sozayn-api-staging"
 workers_dev = true
 
-[build]
-command = "npm run build:worker"
-watch_dir = "server/workers"
+# Removing custom build command since we can't modify package.json
+# We'll use the default build process instead
 
-[build.upload]
-format = "modules"
+# [build]
+# watch_dir = "server/workers"
 
 # KV Namespace bindings
 # [[kv_namespaces]]

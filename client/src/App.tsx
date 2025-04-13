@@ -15,6 +15,8 @@ import Marketing from "@/pages/dashboard/marketing";
 import POS from "@/pages/dashboard/pos";
 import Webhooks from "@/pages/dashboard/webhooks";
 import Settings from "@/pages/dashboard/settings";
+import GitHubLanding from "@/pages/github-landing";
+import DeliveryFeaturesPage from "@/pages/delivery-features";
 
 import DeliveryPartnersPage from "@/pages/dashboard/delivery-partners";
 import Users from "@/pages/dashboard/admin/users";
@@ -37,7 +39,9 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={Home} />
+      <Route path="/" component={GitHubLanding} />
+      <Route path="/home" component={Home} />
+      <Route path="/delivery-features" component={DeliveryFeaturesPage} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       

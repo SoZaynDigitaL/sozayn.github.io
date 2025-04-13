@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -46,7 +46,7 @@ export default function UberDirectIntegration() {
   });
   
   // Load existing integration if available
-  useState(() => {
+  useEffect(() => {
     const fetchIntegration = async () => {
       if (!user) return;
       

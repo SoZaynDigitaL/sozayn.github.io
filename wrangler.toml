@@ -22,11 +22,17 @@ route = { pattern = "api.sozayn.com/*", zone_name = "sozayn.com" }
 name = "sozayn-api-staging"
 workers_dev = true
 
-# Removing custom build command since we can't modify package.json
-# We'll use the default build process instead
+# Configure build settings
+[build]
+command = ""
+cwd = "."
+watch_dir = "server/workers"
 
-# [build]
-# watch_dir = "server/workers"
+# Enable JS/ESM module support
+[build.upload]
+format = "modules"
+main = "./server/workers/index.js"
+dir = "."
 
 # KV Namespace bindings
 # [[kv_namespaces]]

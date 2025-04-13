@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import swaggerDocsJson from './swagger.json';
+import swaggerDocsJson from './swagger.js';
 
 // Initialize Supabase client
 const supabaseClient = (env) => {
@@ -347,9 +347,6 @@ const checkRateLimit = async (request, env, ctx) => {
   
   return false; // Not rate limited
 };
-
-// Load Swagger docs
-import swaggerDocsJson from './swagger.json';
 
 // Handler for API documentation
 const handleApiDocs = (request) => {

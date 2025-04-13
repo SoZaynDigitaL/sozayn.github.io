@@ -1,0 +1,80 @@
+2025-04-13T07:04:58.121Z	Initializing build environment...
+2025-04-13T07:05:04.900Z	Success: Finished initializing build environment
+2025-04-13T07:05:05.047Z	Cloning repository...
+2025-04-13T07:05:06.713Z	Detected the following tools from environment: npm@10.8.3, nodejs@22.9.0
+2025-04-13T07:05:06.714Z	Installing project dependencies: npm clean-install --progress=false
+2025-04-13T07:05:10.308Z	npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+2025-04-13T07:05:10.725Z	npm warn deprecated npmlog@5.0.1: This package is no longer supported.
+2025-04-13T07:05:11.094Z	npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2025-04-13T07:05:11.617Z	npm warn deprecated gauge@3.0.2: This package is no longer supported.
+2025-04-13T07:05:11.806Z	npm warn deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+2025-04-13T07:05:12.859Z	npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2025-04-13T07:05:12.875Z	npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2025-04-13T07:05:13.017Z	npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2025-04-13T07:05:18.792Z	
+2025-04-13T07:05:18.792Z	added 581 packages, and audited 582 packages in 11s
+2025-04-13T07:05:18.792Z	
+2025-04-13T07:05:18.793Z	64 packages are looking for funding
+2025-04-13T07:05:18.793Z	  run `npm fund` for details
+2025-04-13T07:05:18.830Z	
+2025-04-13T07:05:18.830Z	8 moderate severity vulnerabilities
+2025-04-13T07:05:18.830Z	
+2025-04-13T07:05:18.830Z	To address issues that do not require attention, run:
+2025-04-13T07:05:18.830Z	  npm audit fix
+2025-04-13T07:05:18.830Z	
+2025-04-13T07:05:18.830Z	To address all issues (including breaking changes), run:
+2025-04-13T07:05:18.830Z	  npm audit fix --force
+2025-04-13T07:05:18.831Z	
+2025-04-13T07:05:18.831Z	Run `npm audit` for details.
+2025-04-13T07:05:18.871Z	Executing user build command: npm run build
+2025-04-13T07:05:19.094Z	
+2025-04-13T07:05:19.095Z	> rest-express@1.0.0 build
+2025-04-13T07:05:19.095Z	> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+2025-04-13T07:05:19.095Z	
+2025-04-13T07:05:19.526Z	vite v5.4.14 building for production...
+2025-04-13T07:05:19.613Z	transforming...
+2025-04-13T07:05:19.928Z	Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+2025-04-13T07:05:19.928Z	  npx update-browserslist-db@latest
+2025-04-13T07:05:19.928Z	  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2025-04-13T07:05:29.752Z	✓ 2987 modules transformed.
+2025-04-13T07:05:30.224Z	rendering chunks...
+2025-04-13T07:05:31.018Z	computing gzip size...
+2025-04-13T07:05:31.077Z	../dist/public/index.html                      1.81 kB │ gzip:   0.70 kB
+2025-04-13T07:05:31.078Z	../dist/public/assets/index-Chg9IdW5.css      77.83 kB │ gzip:  13.47 kB
+2025-04-13T07:05:31.078Z	../dist/public/assets/browser-D9IvRdK8.js      0.30 kB │ gzip:   0.24 kB
+2025-04-13T07:05:31.078Z	../dist/public/assets/index-BWeZUXny.js    1,396.95 kB │ gzip: 365.66 kB
+2025-04-13T07:05:31.079Z	
+2025-04-13T07:05:31.079Z	(!) Some chunks are larger than 500 kB after minification. Consider:
+2025-04-13T07:05:31.079Z	- Using dynamic import() to code-split the application
+2025-04-13T07:05:31.079Z	- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-04-13T07:05:31.079Z	- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-04-13T07:05:31.079Z	✓ built in 11.53s
+2025-04-13T07:05:31.250Z	
+2025-04-13T07:05:31.250Z	  dist/index.js  120.1kb
+2025-04-13T07:05:31.250Z	
+2025-04-13T07:05:31.250Z	⚡ Done in 21ms
+2025-04-13T07:05:31.263Z	Success: Build command completed
+2025-04-13T07:05:31.265Z	Executing user deploy command: npx wrangler deploy
+2025-04-13T07:05:32.619Z	npm warn exec The following package was not found and will be installed: wrangler@4.10.0
+2025-04-13T07:05:42.857Z	
+2025-04-13T07:05:42.857Z	 ⛅️ wrangler 4.10.0
+2025-04-13T07:05:42.857Z	-------------------
+2025-04-13T07:05:42.858Z	
+2025-04-13T07:05:42.930Z	▲ [WARNING] Failed to match Worker name. Your config file is using the Worker name "sozayn-api", but the CI system expected "sozayn". Overriding using the CI provided Worker name. Workers Builds connected builds will attempt to open a pull request to resolve this config name mismatch.
+2025-04-13T07:05:42.933Z	
+2025-04-13T07:05:42.934Z	
+2025-04-13T07:05:43.740Z	Total Upload: 274.17 KiB / gzip: 54.74 KiB
+2025-04-13T07:05:45.301Z	Worker Startup Time: 1 ms
+2025-04-13T07:05:45.302Z	No bindings found.
+2025-04-13T07:05:45.305Z	Uploaded sozayn (1.79 sec)
+2025-04-13T07:05:46.065Z	
+2025-04-13T07:05:46.066Z	✘ [ERROR] A request to the Cloudflare API (/accounts/b4a3ef7c52bd5c73baec4ac45379d7a4/workers/scripts/sozayn/domains/records) failed.
+2025-04-13T07:05:46.066Z	
+2025-04-13T07:05:46.067Z	  Can't infer zone from route, please specify zone for "api.sozayn.com" [code: 10082]
+2025-04-13T07:05:46.067Z	  
+2025-04-13T07:05:46.067Z	  If you think this is a bug, please open an issue at: https://github.com/cloudflare/workers-sdk/issues/new/choose
+2025-04-13T07:05:46.067Z	
+2025-04-13T07:05:46.067Z	
+2025-04-13T07:05:46.067Z	
+2025-04-13T07:05:46.067Z	Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md
+2025-04-13T07:05:46.123Z	Failed: error occurred while running deploy command

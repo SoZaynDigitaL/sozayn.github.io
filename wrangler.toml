@@ -2,9 +2,9 @@ name = "sozayn-api"
 main = "server/workers/index.js"
 compatibility_date = "2023-03-01"
 
-# Configure route
+# Configure route with zone_name
 routes = [
-  { pattern = "api.sozayn.com", custom_domain = true }
+  { pattern = "api.sozayn.com", zone_name = "sozayn.com", custom_domain = true }
 ]
 
 [vars]
@@ -15,7 +15,7 @@ routes = [
 [env.production]
 # Production-specific settings
 workers_dev = false
-route = "api.sozayn.com/*"
+route = { pattern = "api.sozayn.com/*", zone_name = "sozayn.com" }
 
 [env.staging]
 # Staging-specific settings

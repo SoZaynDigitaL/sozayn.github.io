@@ -24,23 +24,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Prepare Worker Directory
+      - name: Create .env file for Worker
         run: |
-          mkdir -p .wrangler/tmp
-          cp -r server/workers/* .wrangler/tmp/
+          echo "SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}" >> server/workers/.env
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> server/workers/.env
+          echo "ENVIRONMENT=production" >> server/workers/.env
       
       - name: Deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+          command: deploy server/workers/index.js --name=sozayn-api
+          workingDirectory: "."
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          ENVIRONMENT: production
 
   deploy-pages:
     name: Deploy Cloudflare Pages Frontend

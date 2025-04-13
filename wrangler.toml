@@ -28,11 +28,9 @@ command = ""
 cwd = "."
 watch_dir = "server/workers"
 
-# Enable JS/ESM module support
-[build.upload]
-format = "modules"
-main = "./server/workers/index.js"
-dir = "."
+# Module format configuration
+compatibility_date = "2023-03-01"
+compatibility_flags = ["nodejs_compat"]
 
 # KV Namespace bindings
 # [[kv_namespaces]]
